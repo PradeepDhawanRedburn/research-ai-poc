@@ -94,10 +94,21 @@ def _layout(table: dict):
     return leaf, at
 
 
+NUMERIC_CELL = re.compile(r"^[\s(\-–−+$€£¥]*[\d.,]+\s*[%x)]*\s*$|^(?:n/?a|--|-)$", re.I)
+
+
+def _looks_like_data(cells: list[str]) -> bool:
+    """A row whose non-label cells are numbers is data, not a header (key/value tables have no header)."""
+    rest = [c for c in cells[1:] if c.strip()]
+    return bool(rest) and all(NUMERIC_CELL.match(c.strip()) for c in rest)
+
+
 def guess_header_rows(table: dict, leaf: list[int], at) -> list[int]:
     if table.get("header_rows"):
         return table["header_rows"]
     if table["n_rows"] < 2:
+        return []
+    if _looks_like_data([cell_text(at(0, c)) for c in leaf]):
         return []
     hdr = [0]
     row0 = {id(at(0, c)): at(0, c) for c in leaf if at(0, c)}
@@ -124,7 +135,9 @@ def render_table(table: dict, indent: str = "", row_range: tuple[int, int] | Non
         headers.append(" / ".join(parts))
     if any(headers):
         lines.append(indent + "| " + " | ".join(h or " " for h in headers) + " |")
-        lines.append(indent + "|" + "---|" * len(leaf))
+    else:
+        lines.append(indent + "|" + " |" * len(leaf))  # empty header: renderers need one, and none of the rows is one
+    lines.append(indent + "|" + "---|" * len(leaf))
     body_start = (max(hdr_rows) + 1) if hdr_rows and any(headers) else 0
     nested: list[dict] = []
     body_rows = range(body_start, table["n_rows"])
@@ -153,7 +166,8 @@ def render_table(table: dict, indent: str = "", row_range: tuple[int, int] | Non
         for nt in cell["tables"]:
             sub = render_table(nt, indent)
             if sub.strip():
-                out += f"\n{indent}Nested table in cell (row {cell['row'] + 1}, col {cell['col'] + 1}):\n" + sub
+                # blank lines on both sides so Markdown renderers see a table, not a paragraph
+                out += f"\n\n{indent}Nested table in cell (row {cell['row'] + 1}, col {cell['col'] + 1}):\n\n" + sub
     return out
 
 
@@ -229,7 +243,9 @@ def render_figure(el: dict, assets: dict) -> str:
     title = f"**{head}: {cap}**" if cap else f"**{head}**"
     lines = [title]
     for item in el.get("content", []):
-        lines.append(render_drawing(item, assets))
+        body = render_drawing(item, assets)
+        # a table needs blank lines around it to render as one
+        lines.append(f"\n{body}\n" if item.get("kind") == "table" else body)
     if el.get("extra_text"):
         lines.extend(el["extra_text"])
     if el.get("note"):
@@ -281,8 +297,8 @@ def render_element(el: dict, assets: dict, footnotes: dict) -> str:
     if t == "author_block":
         return "Analysts: " + "; ".join(f"{a.get('name') or ''} <{a['email']}>" for a in el["analysts"]) + f" {tag}"
     if t == "table":
-        cap = f"**Table: {el['caption']}**\n" if el.get("caption") else ""
-        return f"{cap}{render_table(el['table'])}\n{tag}"
+        cap = f"**Table: {el['caption']}**\n\n" if el.get("caption") else ""
+        return f"{cap}{render_table(el['table'])}\n\n{tag}"
     if t == "figure":
         return render_figure(el, assets) + f"\n{tag}"
     return f"{el.get('text', '')} {tag}"
