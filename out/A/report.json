@@ -1,0 +1,38 @@
+[
+ {
+  "doc": "RA01220",
+  "seconds": 7.0,
+  "raw_chars": 33395,
+  "chars_without_data_uris": 31631,
+  "inline_images": 84,
+  "pipe_table_rows": 198,
+  "lines": 377
+ },
+ {
+  "doc": "RA01734",
+  "seconds": 3.9,
+  "raw_chars": 34068,
+  "chars_without_data_uris": 33669,
+  "inline_images": 19,
+  "pipe_table_rows": 191,
+  "lines": 409
+ },
+ {
+  "doc": "RA02283",
+  "seconds": 12.5,
+  "raw_chars": 41102,
+  "chars_without_data_uris": 40757,
+  "inline_images": 17,
+  "pipe_table_rows": 73,
+  "lines": 252
+ },
+ {
+  "doc": "RA02752",
+  "seconds": 6.9,
+  "raw_chars": 115498,
+  "chars_without_data_uris": 114308,
+  "inline_images": 59,
+  "pipe_table_rows": 197,
+  "lines": 816
+ }
+]

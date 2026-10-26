@@ -1,5 +1,3 @@
-data/
-out/
 reports/
 .tiktoken_cache/
 .venv/
