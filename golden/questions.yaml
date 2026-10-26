@@ -1,0 +1,475 @@
+# Golden question set, DRAFT v0.1 (engineer-written; to be checked by analysts).
+#
+# Fields
+#   id        stable identifier
+#   doc       report the answer lives in
+#   type      text_fact | table_lookup | chart_native | chart_picture | symbol_matrix | relationship | cross_document | unanswerable
+#   question  what a user would ask
+#   answer    expected answer (for the LLM-judged stage)
+#   evidence  strings the answer rests on. Each item must be present; an item that is a list means "any one of these".
+#             Matching is case-insensitive, ignores thousands separators and markdown punctuation, and maps
+#             "✓ (green)" -> tick_green and "✗ (red)" -> cross_red.
+#   group     links the two halves of a cross-document question
+#
+# Status: every item here was derived by reading the extracted content of the four reports, not the rendered
+# pages. Analysts should confirm answers against the published PDFs before the set is used for sign-off.
+
+# ---------------------------------------------------------------- RA01220  Money Map, April 2025
+- id: MM04-01
+  doc: RA01220
+  type: text_fact
+  question: What does the April 2025 Money Map expect the Fed to do at its 6-7 May meeting?
+  answer: Keep policy rates on hold.
+  evidence: ["keep policy rates on hold at the next meeting"]
+- id: MM04-02
+  doc: RA01220
+  type: text_fact
+  question: What is the year-end 2025 US CPI estimate in the April Money Map?
+  answer: 5%, described as feeling conservative.
+  evidence: ["Y/E estimate of 5% CPI"]
+- id: MM04-03
+  doc: RA01220
+  type: text_fact
+  question: How much Money Market Fund cash sits in the ON RRP according to the April Money Map?
+  answer: Only $200bn.
+  evidence: ["$200bn of cash held by Money Market Funds"]
+- id: MM04-04
+  doc: RA01220
+  type: cross_document
+  group: ecb-june-expectation
+  question: In April 2025, what did the Money Map expect the ECB to do at its 5 June meeting?
+  answer: Cut the Deposit rate by 25bp to 2.0%.
+  evidence: ["cut the Deposit rate by 25bp to 2.0%"]
+- id: MM04-05
+  doc: RA01220
+  type: text_fact
+  question: What did the ECB Governing Council decide on 17 April 2025?
+  answer: A unanimous 25bp cut in the Deposit rate to 2.25%.
+  evidence: ["17 April", "cut the Deposit rate by 25bp to 2.25%"]
+- id: MM04-06
+  doc: RA01220
+  type: chart_native
+  question: In Fig 27 of the April Money Map, what is Germany's cyclically adjusted government balance forecast for 2030?
+  answer: -4.7% of GDP.
+  evidence: ["Germany", "2030: -4.7"]
+- id: MM04-07
+  doc: RA01220
+  type: chart_native
+  question: In Fig 27 of the April Money Map, what is the Eurozone cyclically adjusted balance for 2026?
+  answer: -3.3% of GDP.
+  evidence: ["Eurozone", "2026: -3.3"]
+- id: MM04-08
+  doc: RA01220
+  type: chart_native
+  question: What was the highest euro-dollar rate shown in Fig 26 of the April Money Map, and on what date?
+  answer: 1.15145 $ per € on 21 April 2025.
+  evidence: ["1.15145", "2025-04-21"]
+- id: MM04-09
+  doc: RA01220
+  type: chart_picture
+  question: Which two series are plotted in Fig 1 (US CPI and inflation expectations) of the April Money Map?
+  answer: U-Mich 1yr inflation expectations and CPI (right-hand scale).
+  evidence: ["U-Mich 1yr inflation expectations", "CPI (rhs)"]
+- id: MM04-10
+  doc: RA01220
+  type: relationship
+  question: What is the source of the cyclically adjusted government balance chart (Fig 27) in the April Money Map?
+  answer: IMF Fiscal Monitor April 2025.
+  evidence: ["Fig 27", "IMF Fiscal Monitor April 2025"]
+- id: MM04-11
+  doc: RA01220
+  type: text_fact
+  question: Who are the authors of the April 2025 Money Map?
+  answer: Melissa Davies and Michael Taylor.
+  evidence: ["Melissa Davies", "Michael Taylor"]
+- id: MM04-12
+  doc: RA01220
+  type: text_fact
+  question: When does the April Money Map expect the US debt-ceiling 'X date' to fall?
+  answer: Uncertain, but likely August.
+  evidence: ["likely falls in August"]
+- id: MM04-13
+  doc: RA01220
+  type: text_fact
+  question: What is the publication date of the April Money Map?
+  answer: 30 April 2025.
+  evidence: ["30 April 2025"]
+- id: MM04-14
+  doc: RA01220
+  type: unanswerable
+  question: What policy rate does the April Money Map forecast for the Bank of Japan in 2027?
+  answer: Not stated in the report.
+  evidence: []
+
+# ---------------------------------------------------------------- RA01734  Money Map, July 2025
+- id: MM07-01
+  doc: RA01734
+  type: text_fact
+  question: What does the July 2025 Money Map expect the Fed to do at its 29-30 July meeting?
+  answer: Keep the Federal Funds rate on hold at 4.25-4.5%.
+  evidence: ["on hold at 4.25-4.5%"]
+- id: MM07-02
+  doc: RA01734
+  type: text_fact
+  question: Which major central bank does the July Money Map expect to cut rates, and to what level?
+  answer: The Bank of England, taking Bank Rate to 4% in August.
+  evidence: ["BoE", "Bank Rate to 4%"]
+- id: MM07-03
+  doc: RA01734
+  type: text_fact
+  question: What was UK CPI in June 2025 according to the July Money Map?
+  answer: 3.6%.
+  evidence: ["CPI at 3.6% in June"]
+- id: MM07-04
+  doc: RA01734
+  type: text_fact
+  question: When was the Big Beautiful Bill signed into law?
+  answer: 4 July 2025.
+  evidence: ["4 July", "Big Beautiful Bill"]
+- id: MM07-05
+  doc: RA01734
+  type: cross_document
+  group: ecb-june-expectation
+  question: In July 2025, what did the Money Map expect the ECB to do at its 24 July meeting?
+  answer: Keep the Deposit rate at 2.0%.
+  evidence: ["keep the Deposit rate at 2.0%"]
+- id: MM07-06
+  doc: RA01734
+  type: chart_native
+  question: What is the latest value of the Atlanta Fed wage tracker in Fig 14 of the July Money Map?
+  answer: 4.2% (June 2025).
+  evidence: ["Median Wage Growth", ["2025-06-15: 4.2", "2025-06: 4.2", "Jun-25 4.2"]]
+- id: MM07-07
+  doc: RA01734
+  type: chart_native
+  question: What was the peak of the Atlanta Fed wage tracker series shown in Fig 14, and when?
+  answer: 6.7% in June 2022.
+  evidence: ["6.7", "2022-06"]
+- id: MM07-08
+  doc: RA01734
+  type: chart_native
+  question: What was the Manufacturing ISM reading for June 2025 in Fig 16 of the July Money Map?
+  answer: 49.0.
+  evidence: ["Manufacturing ISM", ["2025-06-15: 49", "2025-06: 49", "Jun-25 49"]]
+- id: MM07-09
+  doc: RA01734
+  type: chart_native
+  question: What was the US 10yr-minus-2yr yield curve slope in July 2025 according to Fig 21?
+  answer: 0.58 percentage points.
+  evidence: ["10yr minus 2yr", "0.58"]
+- id: MM07-10
+  doc: RA01734
+  type: chart_native
+  question: What was Eurozone headline CPI inflation in June 2025 according to Fig 31 of the July Money Map?
+  answer: 2.0% year on year.
+  evidence: ["CPI YoY", ["2025-06-15: 0.02", "2025-06: 0.02", "2.0%"]]
+- id: MM07-11
+  doc: RA01734
+  type: chart_native
+  question: What was Eurozone M1 growth in May 2025 according to Fig 23?
+  answer: About 5.2% year on year (0.0515).
+  evidence: ["M1", "0.0515"]
+- id: MM07-12
+  doc: RA01734
+  type: chart_picture
+  question: Which three scenarios for US public sector debt are shown in Fig 1 of the July Money Map?
+  answer: Baseline, Budget as written, Budget if made permanent.
+  evidence: ["Baseline", "Budget as written", "Budget if made permanent"]
+- id: MM07-13
+  doc: RA01734
+  type: relationship
+  question: What is the source of the US public sector debt projection in Fig 1 of the July Money Map?
+  answer: Committee for a Responsible Federal Budget.
+  evidence: ["Fig 1", "Committee for a Responsible Federal Budget"]
+- id: MM07-14
+  doc: RA01734
+  type: text_fact
+  question: Who is the author of the July 2025 Money Map?
+  answer: Melissa Davies.
+  evidence: ["Melissa Davies"]
+- id: MM07-15
+  doc: RA01734
+  type: unanswerable
+  question: What did the Fed actually decide at its 29-30 July 2025 meeting?
+  answer: Not in the report, which was published before the meeting.
+  evidence: []
+
+# ---------------------------------------------------------------- RA02283  Evolution AB, October 2025
+- id: EVO-01
+  doc: RA02283
+  type: text_fact
+  question: What is Evolution AB's ticker in the report?
+  answer: EVO SS.
+  evidence: ["EVO SS"]
+- id: EVO-02
+  doc: RA02283
+  type: text_fact
+  question: What is the new price target for Evolution, and what was it before?
+  answer: SEK610, lowered from SEK650.
+  evidence: ["SEK610", "from SEK650"]
+- id: EVO-03
+  doc: RA02283
+  type: text_fact
+  question: What is the rating on Evolution in this report?
+  answer: Sell, reiterated.
+  evidence: ["Reiterate Sell"]
+- id: EVO-04
+  doc: RA02283
+  type: text_fact
+  question: What was Evolution's share price at the time of the report?
+  answer: SEK726.
+  evidence: ["SEK726"]
+- id: EVO-05
+  doc: RA02283
+  type: text_fact
+  question: By how much were Evolution's EBITDA estimates trimmed for 2025E, 2026E and 2027E?
+  answer: 1%, 3% and 3% respectively.
+  evidence: ["1%/3%/3%"]
+- id: EVO-06
+  doc: RA02283
+  type: text_fact
+  question: To how many European countries could Evolution's ringfencing extend, from how many today?
+  answer: From seven countries to 14.
+  evidence: ["seven countries to 14"]
+- id: EVO-07
+  doc: RA02283
+  type: text_fact
+  question: On how many of the 12 unregulated Italian sites checked was Evolution content accessible?
+  answer: Six out of 12.
+  evidence: ["six out of 12"]
+- id: EVO-08
+  doc: RA02283
+  type: table_lookup
+  question: What is the FY26E revenue estimate for Evolution (€m)?
+  answer: €2,240m.
+  evidence: ["Revenue", "2,240"]
+- id: EVO-09
+  doc: RA02283
+  type: table_lookup
+  question: How far below Visible Alpha consensus is the FY27E EBITDA estimate?
+  answer: 10% below.
+  evidence: ["EBITDA", "vs VA consensus", "(10%)"]
+- id: EVO-10
+  doc: RA02283
+  type: table_lookup
+  question: What is the FY25E adjusted EPS estimate for Evolution?
+  answer: €5.25.
+  evidence: ["Adjusted EPS", "€5.25"]
+- id: EVO-11
+  doc: RA02283
+  type: table_lookup
+  question: What 2025E P/E does Evolution trade on in the peer table?
+  answer: 12.7x.
+  evidence: ["Evolution AB", "12.7x"]
+- id: EVO-12
+  doc: RA02283
+  type: table_lookup
+  question: What rating does Entain carry in the peer valuation table, and what is its market cap?
+  answer: Buy; £5,347m.
+  evidence: ["Entain", "Buy", "£5,347"]
+- id: EVO-13
+  doc: RA02283
+  type: table_lookup
+  question: What is Flutter Entertainment's 2026E EV/EBITDA in the peer table?
+  answer: 12.3x.
+  evidence: ["Flutter", "12.3x"]
+- id: EVO-14
+  doc: RA02283
+  type: table_lookup
+  question: What is Evolution's IDEAS Score?
+  answer: 59 out of 100.
+  evidence: [["59/100", "59.0"]]
+- id: EVO-15
+  doc: RA02283
+  type: table_lookup
+  question: What is Evolution's Quality (returns) factor score in the Systematic View?
+  answer: 95.
+  evidence: ["Quality (returns)", "95"]
+- id: EVO-16
+  doc: RA02283
+  type: symbol_matrix
+  question: According to the Italy ringfencing matrix (Fig 4), is Evolution content available on Stake?
+  answer: No, Evolution content is restricted on Stake in Italy (red cross).
+  evidence: ["Snatch Casino BC.Game Stake Rainbet", "Evolution cross_red tick_green cross_red tick_green tick_green tick_green tick_green tick_green cross_red cross_red cross_red cross_red"]
+- id: EVO-17
+  doc: RA02283
+  type: symbol_matrix
+  question: In the Italy matrix (Fig 4), which operator shows N/A for Pragmatic Play?
+  answer: BC.Game.
+  evidence: ["Pragmatic cross_red N/A cross_red"]
+- id: EVO-18
+  doc: RA02283
+  type: symbol_matrix
+  question: In Fig 3, was Pragmatic Play content available in Bulgaria in the October 2025 check?
+  answer: No (red cross), while Evolution and Hacksaw were available.
+  evidence: ["Pragmatic / October 2025", "Bulgaria tick_green tick_green tick_green tick_green cross_red"]
+- id: EVO-19
+  doc: RA02283
+  type: symbol_matrix
+  question: In Fig 3, which supplier's content was available in Denmark?
+  answer: None; all five checks for Denmark show a red cross.
+  evidence: ["Denmark cross_red cross_red cross_red cross_red cross_red"]
+- id: EVO-20
+  doc: RA02283
+  type: symbol_matrix
+  question: In Fig 3, how do Evolution and Hacksaw compare in the Czech Republic?
+  answer: Evolution is restricted in all three checks (red crosses) while Hacksaw and Pragmatic are available (green ticks).
+  evidence: ["Czech Republic cross_red cross_red cross_red tick_green tick_green"]
+- id: EVO-21
+  doc: RA02283
+  type: symbol_matrix
+  question: According to the France matrix (Fig 7), is Evolution content available on Stake?
+  answer: Yes (green tick); Evolution performs no explicit ringfencing for France.
+  evidence: ["Evolution tick_green tick_green tick_green tick_green cross_red tick_green tick_green cross_red cross_red cross_red cross_red tick_green"]
+- id: EVO-22
+  doc: RA02283
+  type: symbol_matrix
+  question: In the France matrix (Fig 7), on which site is Hacksaw content available?
+  answer: Only Snatch Casino.
+  evidence: ["Hacksaw tick_green cross_red cross_red cross_red"]
+- id: EVO-23
+  doc: RA02283
+  type: chart_picture
+  question: Which regions' consensus revenue growth expectations are plotted in Fig 2?
+  answer: Asia, Europe and Group, for 2025E to 2028E.
+  evidence: ["Asia", "Europe", "Group", "2028E"]
+- id: EVO-24
+  doc: RA02283
+  type: relationship
+  question: Which figure shows Pragmatic Play content geoblocked from Italy, and what is its source?
+  answer: Fig 1, sourced from shuffle.com.
+  evidence: ["Fig 1", "geoblocked from Italy", "shuffle.com"]
+- id: EVO-25
+  doc: RA02283
+  type: relationship
+  question: What are the sources for the estimate revisions table (Fig 13)?
+  answer: Rothschild & Co Redburn and Visible Alpha.
+  evidence: ["Fig 13", "Visible Alpha"]
+- id: EVO-26
+  doc: RA02283
+  type: text_fact
+  question: When was the Evolution report published and priced?
+  answer: Published 2025-10-20 06:30; priced as of close 2025-10-16.
+  evidence: ["2025-10-20 06:30", "2025-10-16"]
+- id: EVO-27
+  doc: RA02283
+  type: unanswerable
+  question: What is the FY28E EBITDA estimate for Evolution?
+  answer: Not given; estimates run to FY27E.
+  evidence: []
+
+# ---------------------------------------------------------------- RA02752  Coca-Cola Europacific Partners, November 2025
+- id: CCEP-01
+  doc: RA02752
+  type: text_fact
+  question: What are CCEP's ticker and price target in the report?
+  answer: CCEP US; target price USD102.
+  evidence: ["CCEP US", "USD102"]
+- id: CCEP-02
+  doc: RA02752
+  type: text_fact
+  question: What share of CCEP's sales and operating income does Great Britain represent?
+  answer: 16% of sales and an estimated c21% of operating income.
+  evidence: ["16% of CCEP", "c21%"]
+- id: CCEP-03
+  doc: RA02752
+  type: text_fact
+  question: How many production lines does the Wakefield plant have?
+  answer: 11, plus an Automated Storage Retrieval System.
+  evidence: ["11 production lines"]
+- id: CCEP-04
+  doc: RA02752
+  type: text_fact
+  question: How much has CCEP invested in Wakefield since 2019, and how much of that is for the new ASRS?
+  answer: Over £100m, of which £42m for ASRS 2.
+  evidence: ["£100m since 2019", "£42m"]
+- id: CCEP-05
+  doc: RA02752
+  type: text_fact
+  question: What storage capacity will Wakefield have when ASRS 2 is complete, and when is it due?
+  answer: 58,500 pallets, due in 2026.
+  evidence: ["58,500 pallets", "2026"]
+- id: CCEP-06
+  doc: RA02752
+  type: text_fact
+  question: When was the UK soft drinks industry levy introduced?
+  answer: April 2018.
+  evidence: ["April 2018", "sugar levy"]
+- id: CCEP-07
+  doc: RA02752
+  type: text_fact
+  question: Who acquired Britvic and when?
+  answer: Carlsberg, in January 2025.
+  evidence: ["Britvic was acquired by Carlsberg", "January 2025"]
+- id: CCEP-08
+  doc: RA02752
+  type: text_fact
+  question: What EPS growth does the report forecast for CCEP, and on what forward P/E does it trade?
+  answer: A c10% EPS CAGR over three years; 17.6x one-year forward P/E.
+  evidence: ["c10% EPS CAGR", "17.6x"]
+- id: CCEP-09
+  doc: RA02752
+  type: table_lookup
+  question: What were CCEP's net sales in 2024 (€m)?
+  answer: €20,706m.
+  evidence: ["Net sales", "20,706"]
+- id: CCEP-10
+  doc: RA02752
+  type: table_lookup
+  question: What is the 2025E adjusted diluted EPS estimate for CCEP, and what is consensus?
+  answer: €4.12 versus consensus €4.09.
+  evidence: ["4.12", "4.09"]
+- id: CCEP-11
+  doc: RA02752
+  type: table_lookup
+  question: What was CCEP's net debt to EBITDA in 2021?
+  answer: 4.6x.
+  evidence: ["Net debt/EBITDA", "4.6"]
+- id: CCEP-12
+  doc: RA02752
+  type: table_lookup
+  question: In Fig 6, what were CCSB's volume and organic growth rates for 1988-96?
+  answer: Volume 6.2%, organic 8.8%.
+  evidence: ["CCSB", "6.2%", "8.8%"]
+- id: CCEP-13
+  doc: RA02752
+  type: table_lookup
+  question: In Fig 6, what organic growth is forecast for CCEP in Great Britain for 2024-30E?
+  answer: 3.7%.
+  evidence: ["2024-30E", "3.7%"]
+- id: CCEP-14
+  doc: RA02752
+  type: chart_picture
+  question: Which cola brands' UK retail volume shares are shown in Fig 8 ('Max attack')?
+  answer: Pepsi Max, Coca-Cola Classic, Coca-Cola Zero and Diet Coke, sourced from Circana.
+  evidence: ["Pepsi Max", "Coca-Cola Classic", "Coca-Cola Zero", "Diet Coke", "Circana"]
+- id: CCEP-15
+  doc: RA02752
+  type: chart_picture
+  question: Which beverage categories make up the Great Britain category mix in Fig 9?
+  answer: Sparkling, energy drinks, water/sports drinks, and RTD tea/coffee, juice and other.
+  evidence: ["Energy drinks", "Sparkling", "Water/sports"]
+- id: CCEP-16
+  doc: RA02752
+  type: relationship
+  question: What does the footnote about Beecham Group say?
+  answer: Beecham was a former Coca-Cola bottler that refocused on pharmaceuticals in the mid-1980s and merged with Smith, Kline & French in 1989.
+  evidence: ["Beecham Group", "Smith, Kline & French", "1989"]
+- id: CCEP-17
+  doc: RA02752
+  type: relationship
+  question: What does the green box added to the Wakefield plant diagram (Fig 11) highlight?
+  answer: The bridge connecting Wakefield to the adjacent aluminium can manufacturing plant.
+  evidence: ["green box", "aluminium can"]
+- id: CCEP-18
+  doc: RA02752
+  type: text_fact
+  question: When was the CCEP report published?
+  answer: 21 November 2025 (06:30 UK time).
+  evidence: ["2025-11-21 06:30"]
+- id: CCEP-19
+  doc: RA02752
+  type: unanswerable
+  question: How many people attended CCEP's Great Britain site visit?
+  answer: Not stated in the report.
+  evidence: []

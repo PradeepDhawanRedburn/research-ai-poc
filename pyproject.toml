@@ -1,0 +1,26 @@
+[project]
+name = "research-ingest"
+version = "0.1.0"
+description = "Deterministic extraction of research .docx reports into a canonical model, with a MarkItDown plugin"
+requires-python = ">=3.12"
+dependencies = [
+    "lxml>=6.1.3",
+    "markitdown[docx]>=0.1.9",
+    "openpyxl>=3.1.5",
+    "pyyaml>=6.0.3",
+    "rank-bm25>=0.2.2",
+    "tiktoken>=0.14.0",
+]
+
+[project.entry-points."markitdown.plugin"]
+research_ingest = "research_ingest.markitdown_plugin"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/research_ingest"]
+
+[tool.uv]
+package = true
