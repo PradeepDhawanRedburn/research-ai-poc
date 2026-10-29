@@ -88,6 +88,63 @@ Everything is read from the OOXML package; no model is involved at this stage.
 Not yet done: EMF→PNG rendering (needs LibreOffice or Inkscape in the container), vision descriptions
 of pictures, embedded-workbook range reads, the LLM answer/judge stage.
 
+## Multimodal RAG (`rag/`)
+
+Question answering over the reports, using Azure AI Foundry models (chat, vision and embeddings) through LangChain
+and a local Chroma database. There are two solutions with the same chunking, retrieval and answering. Only the input differs:
+
+| Solution | Input | Loader |
+|---|---|---|
+| `docx` | the original Word files in `data/raw/` | `rag/loaders/docx_source.py`. Reads the docx on its own: headings, tables, figure grids, native chart data, Wingdings ticks. Every picture, including EMF-pasted Excel charts, is rasterised and described by the vision model |
+| `markdown` | the A+ output in `out/A+/` | `rag/loaders/markdown_source.py`. Uses the plugin's Markdown as is. The vision model only describes pictures that have no digitised values (the "vision description pending" ones) |
+
+How it works:
+- **Ingest.** Blocks are read in document order. Figures, charts and tables each get their own chunk, and every
+  chunk starts with the report and section name. Chunks are embedded with the Azure embedding deployment into
+  Chroma, with one collection per solution in `.chroma/`.
+- **Retrieve.** Vector search and BM25 run over the same chunks and are combined with reciprocal rank fusion.
+- **Answer.** The chat model gets the top chunks as text and the pictures behind the top figure chunks as
+  images, so it can read a chart directly. Answers cite their sources, and the model says "The documents do not say" when the sources don't answer the question.
+- Picture descriptions are cached by image hash in `.rag_cache/`, so the two solutions share them and re-runs cost nothing.
+  EMF rendering uses Pillow's GDI backend, which only exists on Windows.
+
+```powershell
+uv sync --extra rag                      # or: pip install -e ".[rag]"
+copy .env.example .env                   # fill in endpoint, key (or use az login), deployment names
+
+uv run python -m rag inspect --vision none        # optional: write chunks to .rag_cache/ without calling any model
+uv run python -m rag ingest --source docx         # or --source markdown, or both (the default)
+uv run python -m rag ask "What does the April Money Map expect the Fed to do in May?"   # answers from both solutions
+uv run python -m rag ask --source markdown --doc RA02752     # interactive, restricted to one report
+uv run python -m rag eval --limit 10              # golden questions -> reports/rag_eval.md (retrieval + LLM judge)
+```
+
+Without uv, create a venv and call its Python instead (`python -m venv .venv`, `.venv\Scripts\pip install -e ".[rag]"`,
+then `.venv\Scripts\python -m rag ...`).
+
+In `.env`, `AZURE_OPENAI_ENDPOINT` is the resource root only (`https://<name>.services.ai.azure.com/`), not a full
+API URL such as `.../openai/v1/responses`. `AZURE_OPENAI_API_VERSION` is an API version (`2024-10-21`), not the model
+version shown on the deployment (`2025-04-14`). Either mistake gives HTTP 404.
+
+### Web UI
+
+A Streamlit page for asking the reports questions. Run `ingest` first: the page reads the Chroma indexes and shows a
+warning for a solution that has not been indexed yet.
+
+```powershell
+uv run streamlit run rag/app.py                   # or: .venv\Scripts\streamlit run rag/app.py
+```
+
+It opens at http://localhost:8501. In the sidebar:
+- **Solution**: Word (docx) or MarkItDown (A+). Questions go to the selected one. To compare, ask a question, switch
+  the solution and ask it again. Both answers stay in the conversation, each headed with its solution.
+- **Report**: limit the search to one report. **Chunks to retrieve**, **Hybrid search** and **Show figure images to the
+  model** are the same settings as `--k`, `--no-hybrid` and `--no-images` on `ask`.
+- **Reload indexes**: press after re-running `ingest` while the page is open. **Clear conversation** empties the history.
+
+Under each answer, **Sources** lists the retrieved chunks, numbered as in the answer's citations, and **Images shown
+to the model** shows the charts that were attached to the question.
+
 ## Golden questions
 
 `golden/questions.yaml` holds 77 draft questions across eight types (text fact, table lookup, native chart,
