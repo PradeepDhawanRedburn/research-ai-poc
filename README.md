@@ -145,6 +145,105 @@ It opens at http://localhost:8501. In the sidebar:
 Under each answer, **Sources** lists the retrieved chunks, numbered as in the answer's citations, and **Images shown
 to the model** shows the charts that were attached to the question.
 
+## Agentic retrieval (`agentic/`)
+
+A second answering approach, built from the Azure tutorial
+[Build an agentic retrieval solution](https://learn.microsoft.com/en-us/azure/search/agentic-retrieval-how-to-create-pipeline).
+The reports are chunked by `rag/` (same loaders and chunking), embedded and pushed to an **Azure AI Search index**.
+A **knowledge source** and **knowledge base** sit on top of it. A **Foundry agent** (`gpt-5-mini`) reaches the
+knowledge base through an MCP tool over a project connection, and answers with citations or "I don't know".
+Retrieval runs in the search service (hybrid vector + keyword + semantic ranking, query variants), not locally.
+
+| Tutorial step | Command | Code |
+|---|---|---|
+| Index, upload documents | `index` | `agentic/search_setup.py` |
+| Knowledge source, knowledge base | `kb` | `agentic/search_setup.py` |
+| Project connection, agent | `agent` | `agentic/foundry.py` |
+| Chat | `ask` | `agentic/foundry.py` |
+| Clean up | `cleanup` | |
+
+Configuration (`.env`, names as in the tutorial; see `.env.example`):
+
+| Variable | Where to find it |
+|---|---|
+| `AZURE_SEARCH_ENDPOINT` | search service > Overview |
+| `PROJECT_ENDPOINT` | Foundry project > Endpoints (`.../api/projects/<project>`) |
+| `PROJECT_RESOURCE_ID` | Foundry project > Properties (resource ID) |
+| `AGENT_MODEL` | a chat deployment in the same Foundry resource (`gpt-5-mini`) |
+| embedding deployment | `AZURE_EMBEDDING_DEPLOYMENT` is reused; the search service reaches it at `https://<resource>.openai.azure.com`, derived from `AZURE_OPENAI_ENDPOINT` |
+
+The tutorial's `AZURE_OPENAI_ENDPOINT` (`.openai.azure.com`) is derived, not set, because `rag/` already uses that name
+for the `.services.ai.azure.com` endpoint; set `AZURE_SEARCH_OPENAI_ENDPOINT` to override.
+
+Search service: `ais-research-agentic-poc`, created for this solution (Basic SKU, France Central, system-assigned identity,
+semantic ranker on the free plan). Create it with `az search service create -g <rg> -n <name> -l francecentral --sku basic
+--identity-type SystemAssigned --semantic-search free --auth-options aadOrApiKey`. Sweden Central, where the Foundry
+resource is, had no capacity when it was created. Do not point `AZURE_SEARCH_ENDPOINT` at a service that other work uses:
+`cleanup` deletes the indexes, knowledge bases and agents named here, and `setup_access.ps1` changes its roles and identity.
+
+Access (once). Needs an **MFA** sign-in: a browser `az login` that prompts for MFA (a Windows integrated sign-in has no MFA
+claim), because Azure policy refuses writes from a token without it. `agentic/setup_access.ps1` (parameters name the
+search service and Foundry resource) enables a managed identity on the search service and assigns the tutorial's roles: you get Search Service Contributor, Search Index Data Contributor and
+Reader on the search service plus Foundry User and Foundry Project Manager on the Foundry resource; the project's managed
+identity gets Search Index Data Reader; the search service's identity gets Cognitive Services User on the Foundry resource.
+
+```powershell
+uv sync --extra rag --extra agentic
+az login                                          # MFA, see above
+./agentic/setup_access.ps1
+uv run python -m agentic check                    # shows resolved settings, tests search and Foundry
+uv run python -m agentic up                       # both solutions: index + knowledge base + connection + agent
+uv run python -m agentic up --source docx         # or one solution only (docx, markdown or docx,markdown)
+uv run python -m agentic ask "What does the April Money Map expect the Fed to do in May?"   # asks both agents
+uv run python -m agentic ask --source markdown    # interactive; follow-ups keep context
+uv run python -m agentic cleanup                  # delete agents, connections, knowledge bases, sources, indexes
+uv run streamlit run agentic/app.py               # web UI, see below
+```
+
+Two solutions, as in `rag/`: `docx` reads the Word files, `markdown` reads the A+ output. Each has its own index
+(`research-reports-docx`, `research-reports-markdown`), knowledge source, knowledge base, project connection and agent, so
+an answer can be traced to one of them. Every chunk records `source` and `source_file`. The knowledge base uses extractive
+output and minimal reasoning, as in the tutorial: the search service does not call an LLM, and the agent reasons over the
+passages. The tutorial's SDK pins (`azure-ai-projects==2.2.0`, `azure-search-documents==12.1.0b2`) are preview releases and
+the knowledge base API is `2026-08-01-preview`.
+
+### Web UI
+
+`agentic/app.py` is the Streamlit page for these agents. Pick **Word (docx)**, **MarkItDown (A+)** or **Both, side by
+side**; each solution keeps its own conversation. The sidebar shows the index, knowledge base, agent and models behind the
+selected solution, with live chunk counts per source file and the chunk size. Under every answer:
+- **How the agent got this answer**: the steps in order, with timings. (1) the agent rewrites the question into several
+  search queries, (2) the knowledge base runs them against the index and merges the hits, (3) if the answer depends on a
+  picture, the agent calls `inspect_figure` and a vision model looks at it (the picture is shown), (4) the agent writes the
+  answer with links to passages. A timing table gives seconds and tokens per round and for the picture calls. This is the
+  extra work agentic does compared with `rag/`, which embeds the question, fetches the top chunks and answers.
+- a check that all retrieved passages come from that solution's index and source (an error if one does not);
+- **Cited or inspected passages**: the chunks the answer links to or whose picture was examined, with report, kind, source
+  file, chunk id and the figure image. The agent's `【7:0†...】` markers are replaced by `[n]`, the number of the passage;
+- **Retrieved passages**: everything the knowledge base returned, ranked, with the cited ones marked (tick the sidebar
+  box to see their text).
+
+Sidebar controls: **Passages the knowledge base returns per search** (stored on the knowledge base, applied before the next
+question; fewer means a shorter prompt and a faster answer) and **Let the agent look at figure pictures** (off: the agent
+reads only the text and the stored descriptions).
+
+### Pictures, speed and tuning
+
+- **Pictures.** The knowledge base only returns text, so the agent has a second tool, `inspect_figure`. Figure chunks store
+  the path of their rasterised picture (`image_path`, made by `rag/`); the tool looks it up in the index and asks a vision
+  model (`AGENTIC_VISION_DEPLOYMENT`, default the agent model) the question. It runs on this machine, so the pictures must
+  exist locally, as with `rag/`. Counting objects in a small picture is not exact: for the Fanta cans the answer varied
+  between 3 and 5 across runs and models, which is why the answer gives a per-can breakdown.
+- **Speed.** A text question takes about 7 s, about the same as `rag/`. A picture question adds the vision call (15 to 25 s
+  at `AGENTIC_VISION_EFFORT=medium`; `low` is faster but its counts are unstable). What made it slow before: the agent used
+  reasoning effort medium, the knowledge base returned 36 passages (17k tokens) per question, and the agent sometimes made
+  a wasted tool call first. Now: `AGENT_REASONING_EFFORT=low`, 12 passages per search (`AGENTIC_MAX_DOCS`), and the first
+  turn is forced to search the knowledge base.
+- **Chunking and retrieval knobs.** Chunking is shared with `rag/`: `RAG_CHUNK_CHARS`, or
+  `python -m agentic index --chunk-chars 1200 --reset`. Retrieval: `kb --max-docs N` (or the sidebar slider) for passages per
+  search; `agent --reasoning minimal|low|medium|high`. `rag/` also has hybrid on/off and a chunk count per question; here
+  the search service always does hybrid + semantic ranking and the agent chooses the queries.
+
 ## Golden questions
 
 `golden/questions.yaml` holds 77 draft questions across eight types (text fact, table lookup, native chart,
@@ -158,6 +257,7 @@ src/research_ingest/   package.py (OOXML access), extract.py (canonical model), 
                        render.py (compact text + chunks), cli.py
 pipelines/             run_markitdown.py (A), run_azure_cu.py (B)
 eval/                  retention.py (evidence retention + BM25 retrieval, token counts)
+agentic/               Azure AI Search knowledge base + Foundry agent over MCP (search_setup.py, foundry.py, app.py)
 golden/                questions.yaml
 reports/               generated comparison reports
 data/raw/              sample reports (git-ignored)

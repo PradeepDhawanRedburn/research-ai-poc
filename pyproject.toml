@@ -27,6 +27,16 @@ rag = [
     "streamlit>=1.40",
     "truststore>=0.10",
 ]
+agentic = [
+    "azure-ai-projects==2.2.0",
+    "azure-identity>=1.27.0",
+    "azure-mgmt-cognitiveservices>=14.1.0",
+    "azure-search-documents==12.1.0b2",
+    "openai>=3.41.0",
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+    "truststore>=0.10.5",
+]
 
 [project.entry-points."markitdown.plugin"]
 research_ingest = "research_ingest.markitdown_plugin"
