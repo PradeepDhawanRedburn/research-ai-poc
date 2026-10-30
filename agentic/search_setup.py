@@ -83,12 +83,25 @@ def build_index(source: str) -> SearchIndex:
     )
 
 
+def clear_index(name: str) -> int:
+    """Delete every document, keeping the index. Deleting the index itself is refused while a knowledge source
+    points at it, and recreating it would mean recreating the knowledge source, base and agent too."""
+    search = SearchClient(endpoint=settings.search_endpoint, index_name=name, credential=credential())
+    removed = 0
+    while True:
+        ids = [r["id"] for r in search.search("*", select=["id"], top=1000)]
+        if not ids:
+            return removed
+        search.delete_documents([{"id": i} for i in ids])
+        removed += len(ids)
+
+
 def create_index(source: str, reset: bool = False) -> None:
     settings.require("openai_endpoint")
     client, name = index_client(), settings.names(source).index
     if reset and name in client.list_index_names():
-        client.delete_index(name)
-    client.create_or_update_index(build_index(source))
+        print(f"[{source}] index '{name}': {clear_index(name)} documents removed")
+    client.create_or_update_index(build_index(source))  # also applies field or config changes to an existing index
     print(f"[{source}] index '{name}' ready")
 
 

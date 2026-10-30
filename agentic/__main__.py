@@ -201,7 +201,9 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--vision", choices=("auto", "all", "none"), default="auto",
                        help="markdown: which pictures to describe (auto = those without digitised values); "
                             "docx: 'none' skips descriptions, otherwise all pictures are described")
-        p.add_argument("--reset", action="store_true", help="drop and recreate the indexes first")
+        p.add_argument("--reset", action="store_true",
+                       help="remove every document first (the index, knowledge source, base and agent stay); "
+                            "for a schema change that cannot be applied in place run `down` then `up`")
         tuning(p, "chunk", *(("docs", "reasoning") if name == "up" else ()))
         p.set_defaults(fn=fn)
     p = sub.add_parser("ask")
