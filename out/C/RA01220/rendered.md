@@ -66,22 +66,9 @@ Values digitised from the drawing (approximate; values read from the drawing; va
 
 **Fig 4: Treasury General Account ($m)**
 Image: fe6f5b1be92995bd.emf
-Values digitised from the drawing (approximate; values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines):
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (6 points): None: -165,411, None: -140,960, None: -133,974, None: -165,528, None: -197,896, None: -196,266
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (7 points): None: -403,518, None: -413,066, None: -434,373, None: -428,900, None: -383,142, None: -363,232, None: -362,883
-- (unnamed series) (7 points): None: -403,634, None: -413,182, None: -434,373, None: -429,017, None: -383,142, None: -363,348, None: -362,883
-- (unnamed series) (7 points): None: -403,634, None: -413,182, None: -434,373, None: -429,017, None: -383,142, None: -363,348, None: -362,883
-- (unnamed series) (7 points): None: -403,634, None: -413,182, None: -434,373, None: -429,017, None: -383,142, None: -363,348, None: -362,883
-- (unnamed series) (10 points): None: -200,574, None: -183,109, None: -174,493, None: -167,973, None: -176,589, None: -137,467, None: -146,549, None: -213,848, None: -219,204, None: -190,794
-- (unnamed series) (7 points): None: -403,634, None: -413,182, None: -434,373, None: -429,017, None: -383,142, None: -363,348, None: -362,883
-- (unnamed series) (6 points): None: -165,411, None: -140,960, None: -133,974, None: -165,644, None: -198,013, None: -196,383
-- (unnamed series) (121 points, None to None): first 46,573 at None; min 35,396 at None; max 1,792,145 at None; last six: None: 778,707, None: 845,773, None: 782,433, None: 720,956, None: 810,377, None: 568,196
+axis values in image: 0, 200,000, 400,000, 600,000, 800,000, 1,000,000, 1,200,000, 1,400,000, 1,600,000, 1,800,000, 2,000,000
+Chart values were not read from the drawing (6 series had no x positions; no series survived the checks).
+(vision description pending)
 Source: Datastream
 [e0021]
 
@@ -299,61 +286,20 @@ Source: Datastream
 
 **Fig 28: Corporate loans, YoY**
 Image: 1873bc1540d229fe.emf
-Values digitised from the drawing (approximate; values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month):
-- Loans to NFCs (107 points, None to None): first 0.952% at None; min -0.782% at None; max 8.34% at None; last six: None: 0.729%, None: 0.803%, None: 0.952%, None: 1.49%, None: 1.94%, None: 2.15%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (10 points): None: -3.15%, None: -3.05%, None: -3%, None: -2.97%, None: -3.02%, None: -2.79%, None: -2.84%, None: -3.23%, None: -3.26%, None: -3.1%
-- (unnamed series) (9 points): None: -4.59%, None: -4.43%, None: -4.29%, None: -4.25%, None: -4.39%, None: -4.26%, None: -4.1%, None: -4.06%, None: -4.27%
-- (unnamed series) (7 points): None: -3.75%, None: -3.64%, None: -3.69%, None: -4.09%, None: -4.05%, None: -4.02%, None: -4.02%
-- (unnamed series) (6 points): None: -2.95%, None: -2.81%, None: -2.77%, None: -2.95%, None: -3.14%, None: -3.13%
+labels in image: Loans to NFCs
+axis values in image: -2%, 0%, 2%, 4%, 6%, 8%, 10%
+Chart values were not read from the drawing (5 series had no x positions; no series survived the checks).
+(vision description pending)
 Note: NFCs = non-financial corporates
 Source: Datastream
 [e0058]
 
 **Fig 29: Household loans, YoY**
 Image: 3ae407a9b5045264.emf
-Values digitised from the drawing (approximate; values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month):
-- Consumer Credit (107 points, Consumer Credit to House Purchase): first 5.23% at Consumer Credit; min -2.9% at House Purchase; max 8.02% at Consumer Credit; last six: House Purchase: 2.76%, House Purchase: 3.06%, House Purchase: 3.11%, House Purchase: 3.95%, House Purchase: 3.81%, House Purchase: 3.66%
-- House Purchase (107 points, Consumer Credit to House Purchase): first 2.33% at Consumer Credit; min -0.248% at House Purchase; max 5.89% at House Purchase; last six: House Purchase: 0.643%, House Purchase: 0.395%, House Purchase: 0.395%, House Purchase: 0.544%, House Purchase: 1.14%, House Purchase: 1.32%
-- (unnamed series) (9 points): Consumer Credit: -7.01%, Consumer Credit: -6.82%, Consumer Credit: -6.65%, Consumer Credit: -6.61%, Consumer Credit: -6.77%, Consumer Credit: -6.63%, Consumer Credit: -6.43%, Consumer Credit: -6.39%, Consumer Credit: -6.63%
-- (unnamed series) (7 points): Consumer Credit: -6.03%, Consumer Credit: -5.9%, Consumer Credit: -5.96%, Consumer Credit: -6.42%, Consumer Credit: -6.38%, Consumer Credit: -6.34%, Consumer Credit: -6.34%
-- (unnamed series) (9 points): Consumer Credit: -7.01%, Consumer Credit: -6.82%, Consumer Credit: -6.65%, Consumer Credit: -6.61%, Consumer Credit: -6.77%, Consumer Credit: -6.63%, Consumer Credit: -6.43%, Consumer Credit: -6.39%, Consumer Credit: -6.63%
-- (unnamed series) (7 points): Consumer Credit: -6.03%, Consumer Credit: -5.9%, Consumer Credit: -5.96%, Consumer Credit: -6.42%, Consumer Credit: -6.38%, Consumer Credit: -6.34%, Consumer Credit: -6.34%
-- (unnamed series) (9 points): Consumer Credit: -7.01%, Consumer Credit: -6.82%, Consumer Credit: -6.65%, Consumer Credit: -6.61%, Consumer Credit: -6.77%, Consumer Credit: -6.63%, Consumer Credit: -6.43%, Consumer Credit: -6.39%, Consumer Credit: -6.63%
-- (unnamed series) (7 points): Consumer Credit: -6.03%, Consumer Credit: -5.9%, Consumer Credit: -5.96%, Consumer Credit: -6.42%, Consumer Credit: -6.38%, Consumer Credit: -6.34%, Consumer Credit: -6.34%
-- (unnamed series) (9 points): Consumer Credit: -7.01%, Consumer Credit: -6.82%, Consumer Credit: -6.65%, Consumer Credit: -6.61%, Consumer Credit: -6.77%, Consumer Credit: -6.63%, Consumer Credit: -6.43%, Consumer Credit: -6.39%, Consumer Credit: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (9 points): House Purchase: -7.01%, House Purchase: -6.82%, House Purchase: -6.65%, House Purchase: -6.61%, House Purchase: -6.77%, House Purchase: -6.63%, House Purchase: -6.43%, House Purchase: -6.39%, House Purchase: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (9 points): House Purchase: -7.01%, House Purchase: -6.82%, House Purchase: -6.65%, House Purchase: -6.61%, House Purchase: -6.77%, House Purchase: -6.63%, House Purchase: -6.43%, House Purchase: -6.39%, House Purchase: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (9 points): House Purchase: -7.01%, House Purchase: -6.82%, House Purchase: -6.65%, House Purchase: -6.61%, House Purchase: -6.77%, House Purchase: -6.63%, House Purchase: -6.43%, House Purchase: -6.39%, House Purchase: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (9 points): House Purchase: -7.01%, House Purchase: -6.82%, House Purchase: -6.65%, House Purchase: -6.61%, House Purchase: -6.77%, House Purchase: -6.63%, House Purchase: -6.43%, House Purchase: -6.39%, House Purchase: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (9 points): House Purchase: -7.01%, House Purchase: -6.82%, House Purchase: -6.65%, House Purchase: -6.61%, House Purchase: -6.77%, House Purchase: -6.63%, House Purchase: -6.43%, House Purchase: -6.39%, House Purchase: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (10 points): House Purchase: -5.33%, House Purchase: -5.22%, House Purchase: -5.16%, House Purchase: -5.12%, House Purchase: -5.17%, House Purchase: -4.91%, House Purchase: -4.98%, House Purchase: -5.42%, House Purchase: -5.46%, House Purchase: -5.27%
-- (unnamed series) (9 points): House Purchase: -7.01%, House Purchase: -6.82%, House Purchase: -6.65%, House Purchase: -6.61%, House Purchase: -6.77%, House Purchase: -6.63%, House Purchase: -6.43%, House Purchase: -6.39%, House Purchase: -6.63%
-- (unnamed series) (7 points): House Purchase: -6.03%, House Purchase: -5.9%, House Purchase: -5.96%, House Purchase: -6.42%, House Purchase: -6.38%, House Purchase: -6.34%, House Purchase: -6.34%
-- (unnamed series) (6 points): House Purchase: -5.1%, House Purchase: -4.94%, House Purchase: -4.89%, House Purchase: -5.1%, House Purchase: -5.32%, House Purchase: -5.31%
+labels in image: Consumer Credit; House Purchase
+axis values in image: -4%, -2%, 0%, 2%, 4%, 6%, 8%, 10%
+Chart values were not read from the drawing (4 of 6 series could not be matched to a legend entry).
+(vision description pending)
 Source: Datastream
 [e0059]
 
@@ -634,11 +580,10 @@ Source: Datastream
 
 **Fig 63: Bank of England assets (£m)**
 Image: 730c5d41dd20b734.emf
-Values digitised from the drawing (approximate; values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines):
-- Term Funding Scheme Aggregate (49 points, 2021-04 to 2025-04): first 74,616 at 2021-04; min 74,616 at 2021-04; max 193,785 at 2021-12; last six: 2024-11: 117,475, 2024-12: 115,384, 2025-01: 102,840, 2025-02: 101,795, 2025-03: 98,659, 2025-04: 91,341
-- (unnamed series) (12 points): 2021-04: 29,270, 2021-05: 28,224, 2021-06: 27,179, 2021-07: 24,043, 2021-08: 22,998, 2021-09: 20,907, 2021-10: 14,635, 2021-11: 5,227, 2021-12: 2,091, 2022-01: 1,045, 2022-02: 1,045, 2022-03: 1,045
-- (unnamed series) (49 points, 2021-04 to 2025-04): first 794,465 at 2021-04; min 654,388 at 2025-02; max 894,818 at 2022-01; last six: 2024-11: 659,615, 2024-12: 659,615, 2025-01: 659,615, 2025-02: 654,388, 2025-03: 654,388, 2025-04: 654,388
-other text in image: Loan to Asset Purchase Facility; Term Funding Scheme on Bank Balance Sheet
+labels in image: Apr-21; Apr-22; Apr-23; Apr-24; Apr-25; Loan to Asset Purchase Facility; Term Funding Scheme on Bank Balance Sheet; Term Funding Scheme Aggregate
+axis values in image: 0, 200000, 400000, 600000, 800000, 1000000
+Chart values were not read from the drawing (2 of 3 series could not be matched to a legend entry).
+(vision description pending)
 Source: Datastream, Bank of England
 [e0103]
 
@@ -803,20 +748,10 @@ Source: Datastream
 
 **Fig 82: Japanese PMI surveys (diffusion Index)**
 Image: 28e2fe10fd86ce2f.emf
-Values digitised from the drawing (approximate; values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month):
-- Manufacturing PMI (103 points, Manufacturing PMI to Services PMI): first 52.6 at Manufacturing PMI; min 37.8 at Services PMI; max 54.6 at Services PMI; last six: Services PMI: 49.6, Services PMI: 48.8, Services PMI: 48.7, Services PMI: 48.9, Services PMI: 48.3, Services PMI: 48.5
-- Services PMI (102 points, Manufacturing PMI to Services PMI): first 52.8 at Manufacturing PMI; min 22.8 at Services PMI; max 56.3 at Services PMI; last six: Services PMI: 50.9, Services PMI: 52.7, Services PMI: 53, Services PMI: 53.1, Services PMI: 49.5, Services PMI: 52.2
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (10 points): Services PMI: -5.88, Services PMI: -5.37, Services PMI: -5.12, Services PMI: -4.93, Services PMI: -5.18, Services PMI: -4.03, Services PMI: -4.3, Services PMI: -6.27, Services PMI: -6.43, Services PMI: -5.59
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (6 points): Services PMI: -4.85, Services PMI: -4.14, Services PMI: -3.94, Services PMI: -4.86, Services PMI: -5.8, Services PMI: -5.76
+labels in image: Manufacturing PMI; Services PMI
+axis values in image: 0, 10, 20, 30, 40, 50, 60
+Chart values were not read from the drawing (3 series read negative from a non-negative axis).
+(vision description pending)
 Source: Datastream
 [e0133]
 

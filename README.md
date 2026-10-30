@@ -82,6 +82,15 @@ Everything is read from the OOXML package; no model is involved at this stage.
   quarter of the plot, which keeps maps, scatter markers and data-label boxes out. 135 of the 148 EMFs in the four
   sample reports are digitised; raster EMFs (screenshots) and scatter plots fall back to the text-record description.
   PNG/JPEG/SVG are marked "vision description pending".
+  **Quality gate.** A digitisation is only written out as numbers when it passes checks a reader cannot make from
+  the text: duplicate series (the same shape drawn again as a border) are dropped, series whose points have no x
+  position or whose sign contradicts a non-negative axis are dropped, and a chart with several series is withheld
+  entirely when one of them could not be matched to a legend entry. A withheld chart gets the line
+  `Chart values were not read from the drawing (...)` plus `(vision description pending)`, so the RAG loaders send
+  its picture to the vision model instead. On the four reports 121 digitisations pass and 14 are withheld
+  (10 for unmatched legends, 3 for sign, 2 for missing x; Fig 4 of RA01220, which used to read as nine copies of a
+  negative undated series, is now withheld). The positional notes ("y labels not matched to gridlines") stay in the
+  precision note but do not withhold on their own: Fig 84 of RA01220 carries one and its values check out.
 - Footnotes, hyperlinks, content controls, headers/footers, publication timestamps, ticker, price,
   target, market cap, analysts, an inferred rating.
 
@@ -118,6 +127,9 @@ uv run python -m rag ask "What does the April Money Map expect the Fed to do in 
 uv run python -m rag ask --source markdown --doc RA02752     # interactive, restricted to one report
 uv run python -m rag eval --limit 10              # golden questions -> reports/rag_eval.md (retrieval + LLM judge)
 ```
+
+The judge is `JUDGE_DEPLOYMENT` (`.env`), shared with `agentic eval` and defaulting to the chat deployment. Set it to a
+different, stronger model than the one that answers: a model grading its own answers is lenient with them.
 
 Without uv, create a venv and call its Python instead (`python -m venv .venv`, `.venv\Scripts\pip install -e ".[rag]"`,
 then `.venv\Scripts\python -m rag ...`).
@@ -196,6 +208,7 @@ uv run python -m agentic up                       # both solutions: index + know
 uv run python -m agentic up --source docx         # or one solution only (docx, markdown or docx,markdown)
 uv run python -m agentic ask "What does the April Money Map expect the Fed to do in May?"   # asks both agents
 uv run python -m agentic ask --source markdown    # interactive; follow-ups keep context
+uv run python -m agentic eval --limit 10          # golden questions through the agents -> reports/agentic_eval.md
 uv run python -m agentic cleanup                  # delete agents, connections, knowledge bases, sources, indexes
 uv run streamlit run agentic/app.py               # web UI, see below
 uv run --extra rag --extra agentic streamlit run app.py   # four-way comparison, see below
@@ -251,6 +264,24 @@ indexes, chunk counts per file and chunk size for each solution. The passage lim
 updates the knowledge base before the next question). Each question takes about a minute or more, since the agentic
 solutions run several model calls. Picture answers can differ between runs.
 
+### Evaluation
+
+`python -m agentic eval` runs the golden questions through the agents the way `rag eval` runs them through the local
+RAG: same questions, same evidence matching, same judge prompt (`eval/judge.py`) and the same `JUDGE_DEPLOYMENT`.
+Each question starts a fresh conversation. Rows go to `reports/agentic_eval.jsonl` as they are produced, with the
+agent's query variants, the passages retrieved and cited, rounds, seconds per phase (retrieval, generation, vision)
+and tokens (input, output, reasoning); `--resume` continues an interrupted run. `--source`, `--ids`, `--types`,
+`--limit`, `--no-images` and `--judge` narrow or change a run. The report `reports/agentic_eval.md` comes from
+`eval/scores.py`, which also merges runs into one table:
+
+```powershell
+uv run python eval/scores.py reports/rag_eval.jsonl reports/agentic_eval.jsonl reports/four_way.md
+```
+
+gives per question and per type the columns `docx | markdown | agentic-docx | agentic-markdown`. When comparing
+agentic with RAG, run both with the same answer model (`AZURE_CHAT_DEPLOYMENT` for `rag/`, `AGENT_MODEL` for
+`agentic/`): the committed `rag` run used gpt-4.1 and the agents default to gpt-5-mini.
+
 ### Pictures, speed and tuning
 
 - **Pictures.** The knowledge base only returns text, so the agent has a second tool, `inspect_figure`. Figure chunks store
@@ -280,7 +311,8 @@ from the extracted content and must be checked by analysts against the published
 src/research_ingest/   package.py (OOXML access), extract.py (canonical model), charts.py, emf.py,
                        render.py (compact text + chunks), cli.py
 pipelines/             run_markitdown.py (A), run_azure_cu.py (B)
-eval/                  retention.py (evidence retention + BM25 retrieval, token counts)
+eval/                  retention.py (evidence retention + BM25 retrieval, token counts), judge.py (shared answer
+                       judge), scores.py (jsonl -> scores table, merges rag and agentic runs)
 agentic/               Azure AI Search knowledge base + Foundry agent over MCP (search_setup.py, foundry.py, app.py)
 app.py                 Streamlit page comparing agentic and RAG, each on docx and markdown (needs both extras)
 golden/                questions.yaml

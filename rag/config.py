@@ -33,6 +33,8 @@ class Settings:
     api_version: str = _env("AZURE_OPENAI_API_VERSION", "2024-10-21")
     chat_deployment: str = _env("AZURE_CHAT_DEPLOYMENT", "gpt-4.1")
     vision_deployment: str = _env("AZURE_VISION_DEPLOYMENT") or _env("AZURE_CHAT_DEPLOYMENT", "gpt-4.1")
+    # Grades answers in `eval`; defaults to the chat deployment, which then grades its own answers (set another)
+    judge_deployment: str = _env("JUDGE_DEPLOYMENT") or _env("AZURE_CHAT_DEPLOYMENT", "gpt-4.1")
     embedding_deployment: str = _env("AZURE_EMBEDDING_DEPLOYMENT", "text-embedding-3-large")
     embedding_endpoint: str | None = _env("AZURE_EMBEDDING_ENDPOINT") or _env("AZURE_OPENAI_ENDPOINT")
     embedding_api_key: str | None = _env("AZURE_EMBEDDING_API_KEY") or _env("AZURE_OPENAI_API_KEY")

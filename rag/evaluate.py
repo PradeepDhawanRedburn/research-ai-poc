@@ -18,7 +18,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from .azure_models import chat_model
-from .config import ROOT
+from .config import ROOT, settings
 from .pipeline import answer, retriever
 
 log = logging.getLogger(__name__)
@@ -27,15 +27,10 @@ _spec = importlib.util.spec_from_file_location("retention", ROOT / "eval" / "ret
 retention = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(retention)
 
-JUDGE_SYSTEM = """You grade answers from a document QA system against an expected answer.
-correct: states the expected facts (numbers may differ only in rounding or formatting; extra correct detail is fine).
-partial: some expected facts present, some missing or wrong.
-incorrect: wrong, missing, or claims the documents do not say when they do.
-For an unanswerable question the expected answer says the documents do not cover it; then \
-"correct" means the system declined, and any made-up answer is "incorrect".
-Judge only against the Expected text. If the expected answer states a fact (including "No", "None", "Only X" or \
-"all red crosses"), a system answer that declines or says the documents do not say is "incorrect"; never read an \
-expected "None" or "No" as "the documents do not say"."""
+_jspec = importlib.util.spec_from_file_location("judge", ROOT / "eval" / "judge.py")
+_judge = importlib.util.module_from_spec(_jspec)
+_jspec.loader.exec_module(_judge)
+JUDGE_SYSTEM = _judge.JUDGE_SYSTEM  # shared with `agentic eval`, so both approaches are graded the same way
 
 
 class Verdict(BaseModel):
@@ -44,10 +39,9 @@ class Verdict(BaseModel):
 
 
 def judge(q: dict, got: str) -> Verdict:
-    model = chat_model(max_tokens=300).with_structured_output(Verdict)
-    return model.invoke([SystemMessage(JUDGE_SYSTEM), HumanMessage(
-        f"Question type: {q['type']}\nQuestion: {q['question']}\nExpected: {q.get('answer', '')}\n"
-        f"System answer: {got}")])
+    # JUDGE_DEPLOYMENT lets the judge be a different, stronger model than the one that wrote the answers
+    model = chat_model(settings.judge_deployment, max_tokens=300).with_structured_output(Verdict)
+    return model.invoke([SystemMessage(JUDGE_SYSTEM), HumanMessage(_judge.judge_user_text(q, got))])
 
 
 def load_questions(ids: set[str] | None, types: set[str] | None, limit: int | None) -> list[dict]:

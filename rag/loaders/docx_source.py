@@ -344,7 +344,7 @@ def _digitise_emf(blob: bytes) -> str:
     except Exception as ex:  # noqa: BLE001
         log.warning("emf digitise failed: %s", ex)
         return ""
-    return digitised_summary_text(d) if d else ""
+    return digitised_summary_text(d) if d else ""  # "" also when the quality gate withheld the numbers
 
 
 def _attach_captions(blocks: list[Block]) -> list[Block]:

@@ -12556,6 +12556,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -12729,6 +12731,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -12842,6 +12846,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -12927,6 +12933,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {

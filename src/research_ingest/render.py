@@ -10,7 +10,7 @@ import json
 import re
 
 from .charts import chart_summary_text
-from .emf_chart import digitised_summary_text, parse_date
+from .emf_chart import digitised_issue_text, digitised_summary_text, parse_date
 
 
 def _clean(s: str | None) -> str:
@@ -207,7 +207,7 @@ def render_drawing(d: dict, assets: dict) -> str:
             bits.append(f"alt text: {d['alt_text']}")
         dig = a.get("digitised")
         emf = a.get("emf_text")
-        if dig:
+        if dig and digitised_summary_text(dig):
             bits.append(digitised_summary_text(dig))
             if emf and emf.get("labels"):
                 other = [x for x in emf["labels"] if len(x) > 1 and x not in dig.get("legend", []) and not parse_date(x)][:20]
@@ -220,7 +220,9 @@ def render_drawing(d: dict, assets: dict) -> str:
                 bits.append("labels in image: " + "; ".join(labels))
             if axis:
                 bits.append("axis values in image: " + ", ".join(axis))
-        if a.get("ext") in ("png", "jpeg", "jpg", "svg"):
+        if dig and digitised_issue_text(dig):
+            bits.append(digitised_issue_text(dig))
+        if a.get("ext") in ("png", "jpeg", "jpg", "svg") or (dig and digitised_issue_text(dig)):
             bits.append("(vision description pending)")
         return "\n".join(bits)
     if kind == "shape":

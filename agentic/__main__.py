@@ -12,6 +12,7 @@ to one of them.
   python -m agentic agent     create the project connections and agents
   python -m agentic up        index + kb + agent
   python -m agentic ask       chat with the agents (one question, or interactive)
+  python -m agentic eval      run golden/questions.yaml through the agents; reports/agentic_eval.{jsonl,md}
   python -m agentic cleanup   delete agents, connections, knowledge bases, knowledge sources and indexes
 
 All commands take --source docx, markdown or docx,markdown (default: both).
@@ -136,6 +137,19 @@ def cmd_ask(args) -> int:
     return 0
 
 
+def cmd_eval(args) -> int:
+    from .evaluate import run
+
+    if args.judge:
+        object.__setattr__(settings, "judge_deployment", args.judge)
+    path = run(args.source, ids=set(args.ids.split(",")) if args.ids else None,
+               types=set(args.types.split(",")) if args.types else None, limit=args.limit,
+               use_images=not args.no_images, resume=args.resume)
+    print(f"report: {path}\nfour-way table: python eval/scores.py reports/rag_eval.jsonl reports/agentic_eval.jsonl"
+          " reports/four_way.md")
+    return 0
+
+
 def cmd_cleanup(args) -> int:
     from .foundry import delete_agent
     from .search_setup import delete_search_objects
@@ -196,6 +210,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--quiet", action="store_true", help="do not list steps and passages")
     p.add_argument("--no-images", action="store_true", help="do not let the agent look at pictures")
     p.set_defaults(fn=cmd_ask)
+    p = sub.add_parser("eval")
+    source_arg(p)
+    p.add_argument("--ids", help="comma-separated question ids")
+    p.add_argument("--types", help="comma-separated question types")
+    p.add_argument("--limit", type=int)
+    p.add_argument("--no-images", action="store_true", help="do not let the agent look at pictures")
+    p.add_argument("--judge", help=f"deployment that grades the answers (default {settings.judge_deployment})")
+    p.add_argument("--resume", action="store_true", help="continue reports/agentic_eval.jsonl, skipping done pairs")
+    p.set_defaults(fn=cmd_eval)
 
     args = ap.parse_args(argv)
     if getattr(args, "chunk_chars", None):

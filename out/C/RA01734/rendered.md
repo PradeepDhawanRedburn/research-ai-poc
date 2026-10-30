@@ -718,20 +718,10 @@ Source: Datastream
 **Fig 80: Japanese PMI surveys (diffusion Index)**
 Image: 28e2fe10fd86ce2f.emf
 alt text: P618C4T40#yIS1
-Values digitised from the drawing (approximate; values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month):
-- Manufacturing PMI (103 points, Manufacturing PMI to Services PMI): first 52.6 at Manufacturing PMI; min 37.8 at Services PMI; max 54.6 at Services PMI; last six: Services PMI: 49.6, Services PMI: 48.8, Services PMI: 48.7, Services PMI: 48.9, Services PMI: 48.3, Services PMI: 48.5
-- Services PMI (102 points, Manufacturing PMI to Services PMI): first 52.8 at Manufacturing PMI; min 22.8 at Services PMI; max 56.3 at Services PMI; last six: Services PMI: 50.9, Services PMI: 52.7, Services PMI: 53, Services PMI: 53.1, Services PMI: 49.5, Services PMI: 52.2
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Manufacturing PMI: -11.8, Manufacturing PMI: -12.1, Manufacturing PMI: -12.7, Manufacturing PMI: -12.6, Manufacturing PMI: -11.2, Manufacturing PMI: -10.6, Manufacturing PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (10 points): Services PMI: -5.88, Services PMI: -5.37, Services PMI: -5.12, Services PMI: -4.93, Services PMI: -5.18, Services PMI: -4.03, Services PMI: -4.3, Services PMI: -6.27, Services PMI: -6.43, Services PMI: -5.59
-- (unnamed series) (7 points): Services PMI: -11.8, Services PMI: -12.1, Services PMI: -12.7, Services PMI: -12.6, Services PMI: -11.2, Services PMI: -10.6, Services PMI: -10.6
-- (unnamed series) (6 points): Services PMI: -4.85, Services PMI: -4.14, Services PMI: -3.94, Services PMI: -4.86, Services PMI: -5.8, Services PMI: -5.76
+labels in image: Manufacturing PMI; Services PMI
+axis values in image: 0, 10, 20, 30, 40, 50, 60
+Chart values were not read from the drawing (3 series read negative from a non-negative axis).
+(vision description pending)
 Source: Datastream
 [e0148]
 

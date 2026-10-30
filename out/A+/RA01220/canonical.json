@@ -4935,6 +4935,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -9457,6 +9459,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -10006,6 +10010,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -10540,6 +10546,11 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "low",
+    "issues": [
+     "6 series had no x positions",
+     "no series survived the checks"
+    ],
     "x_mode": null,
     "y_axes": [
      {
@@ -10559,1024 +10570,7 @@
      }
     ],
     "legend": [],
-    "series": [
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -165411.45327511756
-       ],
-       [
-        null,
-        -140960.4169225311
-       ],
-       [
-        null,
-        -133974.40653607808
-       ],
-       [
-        null,
-        -165527.8867815584
-       ],
-       [
-        null,
-        -197896.40157212457
-       ],
-       [
-        null,
-        -196266.33248195238
-       ]
-      ],
-      "n_points": 6,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403517.9739467297
-       ],
-       [
-        null,
-        -413065.5214748825
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -428900.47835084284
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363231.98071818333
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403634.4074531705
-       ],
-       [
-        null,
-        -413181.95498132333
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -429016.9118572837
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363348.41422462417
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403634.4074531705
-       ],
-       [
-        null,
-        -413181.95498132333
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -429016.9118572837
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363348.41422462417
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403634.4074531705
-       ],
-       [
-        null,
-        -413181.95498132333
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -429016.9118572837
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363348.41422462417
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -200574.3722202652
-       ],
-       [
-        null,
-        -183109.34625413222
-       ],
-       [
-        null,
-        -174493.26677750656
-       ],
-       [
-        null,
-        -167972.9904168169
-       ],
-       [
-        null,
-        -176589.06989344256
-       ],
-       [
-        null,
-        -137467.4117293046
-       ],
-       [
-        null,
-        -146549.22523169406
-       ],
-       [
-        null,
-        -213847.7919545262
-       ],
-       [
-        null,
-        -219203.73325080704
-       ],
-       [
-        null,
-        -190793.95767923072
-       ]
-      ],
-      "n_points": 10,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -403634.4074531705
-       ],
-       [
-        null,
-        -413181.95498132333
-       ],
-       [
-        null,
-        -434372.8531535645
-       ],
-       [
-        null,
-        -429016.9118572837
-       ],
-       [
-        null,
-        -383142.11031957483
-       ],
-       [
-        null,
-        -363348.41422462417
-       ],
-       [
-        null,
-        -362882.68019886035
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -165411.45327511756
-       ],
-       [
-        null,
-        -140960.4169225311
-       ],
-       [
-        null,
-        -133974.40653607808
-       ],
-       [
-        null,
-        -165644.32028799923
-       ],
-       [
-        null,
-        -198012.8350785654
-       ],
-       [
-        null,
-        -196382.76598839322
-       ]
-      ],
-      "n_points": 6,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": "2E3E80",
-      "axis": "left",
-      "points": [
-       [
-        null,
-        46573.40257635433
-       ],
-       [
-        null,
-        65202.76360689616
-       ],
-       [
-        null,
-        244044.62950009736
-       ],
-       [
-        null,
-        162075.44096571347
-       ],
-       [
-        null,
-        210511.77964512212
-       ],
-       [
-        null,
-        203060.0352329053
-       ],
-       [
-        null,
-        119227.91059546731
-       ],
-       [
-        null,
-        197471.2269237428
-       ],
-       [
-        null,
-        35395.78595802933
-       ],
-       [
-        null,
-        152760.76045044255
-       ],
-       [
-        null,
-        324150.88193142693
-       ],
-       [
-        null,
-        337191.43465280626
-       ],
-       [
-        null,
-        216100.58795428462
-       ],
-       [
-        null,
-        290618.0320764519
-       ],
-       [
-        null,
-        372587.2206108358
-       ],
-       [
-        null,
-        258948.11832453078
-       ],
-       [
-        null,
-        346506.1151680772
-       ],
-       [
-        null,
-        314836.20141615625
-       ],
-       [
-        null,
-        288755.0959733976
-       ],
-       [
-        null,
-        339054.3707558606
-       ],
-       [
-        null,
-        419160.62318719015
-       ],
-       [
-        null,
-        421023.5592902445
-       ],
-       [
-        null,
-        372587.2206108358
-       ],
-       [
-        null,
-        339054.3707558606
-       ],
-       [
-        null,
-        147171.95214128005
-       ],
-       [
-        null,
-        61476.891400787514
-       ],
-       [
-        null,
-        270125.7349428558
-       ],
-       [
-        null,
-        188156.54640847188
-       ],
-       [
-        null,
-        197471.2269237428
-       ],
-       [
-        null,
-        182567.73809930938
-       ],
-       [
-        null,
-        65202.76360689616
-       ],
-       [
-        null,
-        154623.69655349664
-       ],
-       [
-        null,
-        180704.8019962553
-       ],
-       [
-        null,
-        178841.86589320097
-       ],
-       [
-        null,
-        186293.6103054178
-       ],
-       [
-        null,
-        275714.5432520183
-       ],
-       [
-        null,
-        199334.16302679712
-       ],
-       [
-        null,
-        299932.7125917226
-       ],
-       [
-        null,
-        402394.19825970265
-       ],
-       [
-        null,
-        331602.62634364376
-       ],
-       [
-        null,
-        361409.6039925106
-       ],
-       [
-        null,
-        309247.3931069935
-       ],
-       [
-        null,
-        344643.1790650231
-       ],
-       [
-        null,
-        366998.4123016731
-       ],
-       [
-        null,
-        365135.476198619
-       ],
-       [
-        null,
-        331602.62634364376
-       ],
-       [
-        null,
-        366998.4123016731
-       ],
-       [
-        null,
-        409845.94267191924
-       ],
-       [
-        null,
-        264536.9266336933
-       ],
-       [
-        null,
-        294343.9042825601
-       ],
-       [
-        null,
-        368861.3484047274
-       ],
-       [
-        null,
-        247770.50170620577
-       ],
-       [
-        null,
-        240318.75729398895
-       ],
-       [
-        null,
-        175115.99368709256
-       ],
-       [
-        null,
-        149034.88824433414
-       ],
-       [
-        null,
-        305521.52090088534
-       ],
-       [
-        null,
-        400531.2621566483
-       ],
-       [
-        null,
-        357683.7317864022
-       ],
-       [
-        null,
-        402394.19825970265
-       ],
-       [
-        null,
-        448967.600836057
-       ],
-       [
-        null,
-        387490.70943526924
-       ],
-       [
-        null,
-        506718.62003073655
-       ],
-       [
-        null,
-        1074914.1314622615
-       ],
-       [
-        null,
-        1326410.5053745757
-       ],
-       [
-        null,
-        1656150.1956151656
-       ],
-       [
-        null,
-        1792144.5311381207
-       ],
-       [
-        null,
-        1605850.9208327027
-       ],
-       [
-        null,
-        1780966.9145197957
-       ],
-       [
-        null,
-        1652424.3234090572
-       ],
-       [
-        null,
-        1482897.138031127
-       ],
-       [
-        null,
-        1613302.6652449195
-       ],
-       [
-        null,
-        1613302.6652449195
-       ],
-       [
-        null,
-        1438186.6715578265
-       ],
-       [
-        null,
-        1121487.5340386159
-       ],
-       [
-        null,
-        931468.0515270897
-       ],
-       [
-        null,
-        778707.2910766469
-       ],
-       [
-        null,
-        851361.7990957599
-       ],
-       [
-        null,
-        536525.5976796036
-       ],
-       [
-        null,
-        296206.8403856144
-       ],
-       [
-        null,
-        173253.05758403847
-       ],
-       [
-        null,
-        236592.88508788054
-       ],
-       [
-        null,
-        158349.56875960506
-       ],
-       [
-        null,
-        283166.2876642351
-       ],
-       [
-        null,
-        638987.0833475834
-       ],
-       [
-        null,
-        674382.8693056128
-       ],
-       [
-        null,
-        555154.9587101454
-       ],
-       [
-        null,
-        957549.1569698481
-       ],
-       [
-        null,
-        780570.227179701
-       ],
-       [
-        null,
-        758214.993943051
-       ],
-       [
-        null,
-        614768.9140078791
-       ],
-       [
-        null,
-        668794.0609964503
-       ],
-       [
-        null,
-        661342.3165842337
-       ],
-       [
-        null,
-        635261.211141475
-       ],
-       [
-        null,
-        532799.7254734952
-       ],
-       [
-        null,
-        409845.94267191924
-       ],
-       [
-        null,
-        499266.87561851996
-       ],
-       [
-        null,
-        350231.9873741856
-       ],
-       [
-        null,
-        162075.44096571347
-       ],
-       [
-        null,
-        296206.8403856144
-       ],
-       [
-        null,
-        48436.338679408655
-       ],
-       [
-        null,
-        407983.00656886515
-       ],
-       [
-        null,
-        549566.1504009827
-       ],
-       [
-        null,
-        499266.87561851996
-       ],
-       [
-        null,
-        670656.9970995046
-       ],
-       [
-        null,
-        752626.1856338885
-       ],
-       [
-        null,
-        752626.1856338885
-       ],
-       [
-        null,
-        711641.5913666964
-       ],
-       [
-        null,
-        864402.3518171392
-       ],
-       [
-        null,
-        767529.6744583219
-       ],
-       [
-        null,
-        771255.5466644303
-       ],
-       [
-        null,
-        890483.4572598976
-       ],
-       [
-        null,
-        715367.4635728048
-       ],
-       [
-        null,
-        743311.5051186176
-       ],
-       [
-        null,
-        853224.7351988142
-       ],
-       [
-        null,
-        756352.0578399966
-       ],
-       [
-        null,
-        778707.2910766469
-       ],
-       [
-        null,
-        845772.9907865974
-       ],
-       [
-        null,
-        782433.1632827553
-       ],
-       [
-        null,
-        720956.2718819673
-       ],
-       [
-        null,
-        810377.204828568
-       ],
-       [
-        null,
-        568195.5114315245
-       ]
-      ],
-      "n_points": 121,
-      "pct": false,
-      "mark": "bar"
-     }
-    ]
+    "series": []
    }
   },
   "001f1c7c27de7aea": {
@@ -11626,6 +10620,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -13441,6 +12437,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -14480,6 +13478,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -16206,6 +15206,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -17937,6 +16939,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -18677,6 +17681,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -19415,6 +18421,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -19775,6 +18783,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -21181,6 +20191,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -23094,6 +22106,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -23468,6 +22482,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -24509,6 +23525,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -25359,6 +24377,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -26355,6 +25375,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -28359,6 +27381,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -30277,6 +29301,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -31168,6 +30194,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -32218,6 +31246,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -33259,6 +32289,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -33393,6 +32425,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -34437,6 +33471,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -36255,6 +35291,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -37279,6 +36317,11 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "low",
+    "issues": [
+     "5 series had no x positions",
+     "no series survived the checks"
+    ],
     "x_mode": null,
     "y_axes": [
      {
@@ -37297,1347 +36340,7 @@
     "legend": [
      "Loans to NFCs"
     ],
-    "series": [
-     {
-      "name": "Loans to NFCs",
-      "color": "2E3E80",
-      "axis": "left",
-      "points": [
-       [
-        null,
-        0.9521276595744688
-       ],
-       [
-        null,
-        1.1861702127659584
-       ],
-       [
-        null,
-        1.3031914893617031
-       ],
-       [
-        null,
-        1.3563829787234045
-       ],
-       [
-        null,
-        1.175531914893618
-       ],
-       [
-        null,
-        1.462765957446809
-       ],
-       [
-        null,
-        1.7606382978723403
-       ],
-       [
-        null,
-        1.7819148936170226
-       ],
-       [
-        null,
-        1.9095744680851077
-       ],
-       [
-        null,
-        1.8670212765957448
-       ],
-       [
-        null,
-        1.590425531914894
-       ],
-       [
-        null,
-        1.8138297872340434
-       ],
-       [
-        null,
-        1.6648936170212778
-       ],
-       [
-        null,
-        1.547872340425533
-       ],
-       [
-        null,
-        1.090425531914894
-       ],
-       [
-        null,
-        0.9840425531914896
-       ],
-       [
-        null,
-        1.090425531914894
-       ],
-       [
-        null,
-        1.3244680851063837
-       ],
-       [
-        null,
-        1.590425531914894
-       ],
-       [
-        null,
-        1.7393617021276597
-       ],
-       [
-        null,
-        1.9840425531914896
-       ],
-       [
-        null,
-        2.50531914893617
-       ],
-       [
-        null,
-        2.430851063829788
-       ],
-       [
-        null,
-        2.1968085106382986
-       ],
-       [
-        null,
-        2.1436170212765955
-       ],
-       [
-        null,
-        2.462765957446809
-       ],
-       [
-        null,
-        2.303191489361703
-       ],
-       [
-        null,
-        2.7819148936170226
-       ],
-       [
-        null,
-        2.8989361702127674
-       ],
-       [
-        null,
-        3.132978723404256
-       ],
-       [
-        null,
-        2.8457446808510642
-       ],
-       [
-        null,
-        3.047872340425532
-       ],
-       [
-        null,
-        2.867021276595745
-       ],
-       [
-        null,
-        2.3989361702127674
-       ],
-       [
-        null,
-        2.792553191489363
-       ],
-       [
-        null,
-        2.420212765957448
-       ],
-       [
-        null,
-        2.8244680851063837
-       ],
-       [
-        null,
-        2.835106382978724
-       ],
-       [
-        null,
-        3.4840425531914896
-       ],
-       [
-        null,
-        3.4734042553191493
-       ],
-       [
-        null,
-        3.664893617021277
-       ],
-       [
-        null,
-        3.1117021276595747
-       ],
-       [
-        null,
-        3.292553191489362
-       ],
-       [
-        null,
-        2.8244680851063837
-       ],
-       [
-        null,
-        2.6117021276595747
-       ],
-       [
-        null,
-        2.75
-       ],
-       [
-        null,
-        2.5585106382978733
-       ],
-       [
-        null,
-        5.122340425531916
-       ],
-       [
-        null,
-        6.186170212765958
-       ],
-       [
-        null,
-        6.877659574468086
-       ],
-       [
-        null,
-        6.590425531914894
-       ],
-       [
-        null,
-        6.3989361702127665
-       ],
-       [
-        null,
-        6.292553191489362
-       ],
-       [
-        null,
-        6.250000000000001
-       ],
-       [
-        null,
-        5.98404255319149
-       ],
-       [
-        null,
-        6.196808510638299
-       ],
-       [
-        null,
-        6.452127659574469
-       ],
-       [
-        null,
-        6.377659574468086
-       ],
-       [
-        null,
-        6.49468085106383
-       ],
-       [
-        null,
-        4.707446808510639
-       ],
-       [
-        null,
-        2.7287234042553195
-       ],
-       [
-        null,
-        1.6117021276595747
-       ],
-       [
-        null,
-        1.420212765957448
-       ],
-       [
-        null,
-        1.3138297872340434
-       ],
-       [
-        null,
-        1.0797872340425538
-       ],
-       [
-        null,
-        1.7180851063829792
-       ],
-       [
-        null,
-        1.9521276595744688
-       ],
-       [
-        null,
-        2.49468085106383
-       ],
-       [
-        null,
-        3.760638297872341
-       ],
-       [
-        null,
-        3.9414893617021285
-       ],
-       [
-        null,
-        4.058510638297873
-       ],
-       [
-        null,
-        3.5585106382978733
-       ],
-       [
-        null,
-        4.643617021276596
-       ],
-       [
-        null,
-        5.271276595744681
-       ],
-       [
-        null,
-        6.079787234042554
-       ],
-       [
-        null,
-        6.781914893617022
-       ],
-       [
-        null,
-        8.069148936170214
-       ],
-       [
-        null,
-        8.175531914893618
-       ],
-       [
-        null,
-        8.335106382978724
-       ],
-       [
-        null,
-        7.367021276595745
-       ],
-       [
-        null,
-        5.537234042553192
-       ],
-       [
-        null,
-        5.345744680851064
-       ],
-       [
-        null,
-        4.888297872340426
-       ],
-       [
-        null,
-        4.718085106382979
-       ],
-       [
-        null,
-        4.271276595744681
-       ],
-       [
-        null,
-        3.7712765957446814
-       ],
-       [
-        null,
-        2.8989361702127674
-       ],
-       [
-        null,
-        2.0585106382978733
-       ],
-       [
-        null,
-        0.45212765957446877
-       ],
-       [
-        null,
-        -0.27127659574468055
-       ],
-       [
-        null,
-        -0.7819148936170208
-       ],
-       [
-        null,
-        -0.6223404255319149
-       ],
-       [
-        null,
-        -0.11170212765957466
-       ],
-       [
-        null,
-        -0.3989361702127656
-       ],
-       [
-        null,
-        -0.22872340425531767
-       ],
-       [
-        null,
-        0.14361702127659726
-       ],
-       [
-        null,
-        0.058510638297873285
-       ],
-       [
-        null,
-        0.11170212765957466
-       ],
-       [
-        null,
-        0.34574468085106425
-       ],
-       [
-        null,
-        0.2606382978723403
-       ],
-       [
-        null,
-        0.547872340425533
-       ],
-       [
-        null,
-        0.7287234042553195
-       ],
-       [
-        null,
-        0.8031914893617031
-       ],
-       [
-        null,
-        0.9521276595744688
-       ],
-       [
-        null,
-        1.4946808510638299
-       ],
-       [
-        null,
-        1.9414893617021285
-       ],
-       [
-        null,
-        2.1542553191489375
-       ]
-      ],
-      "n_points": 107,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.1522606382978715
-       ],
-       [
-        null,
-        -3.0525265957446805
-       ],
-       [
-        null,
-        -3.0039893617021267
-       ],
-       [
-        null,
-        -2.9667553191489358
-       ],
-       [
-        null,
-        -3.0159574468085104
-       ],
-       [
-        null,
-        -2.7918882978723403
-       ],
-       [
-        null,
-        -2.84375
-       ],
-       [
-        null,
-        -3.228058510638297
-       ],
-       [
-        null,
-        -3.258643617021276
-       ],
-       [
-        null,
-        -3.096409574468085
-       ]
-      ],
-      "n_points": 10,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -4.59375
-       ],
-       [
-        null,
-        -4.428191489361701
-       ],
-       [
-        null,
-        -4.287234042553191
-       ],
-       [
-        null,
-        -4.247340425531915
-       ],
-       [
-        null,
-        -4.388962765957446
-       ],
-       [
-        null,
-        -4.263297872340425
-       ],
-       [
-        null,
-        -4.097074468085106
-       ],
-       [
-        null,
-        -4.05718085106383
-       ],
-       [
-        null,
-        -4.270611702127658
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -3.75
-       ],
-       [
-        null,
-        -3.6409574468085104
-       ],
-       [
-        null,
-        -3.6868351063829774
-       ],
-       [
-        null,
-        -4.08843085106383
-       ],
-       [
-        null,
-        -4.051196808510637
-       ],
-       [
-        null,
-        -4.019281914893616
-       ],
-       [
-        null,
-        -4.017287234042552
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        null,
-        -2.951462765957446
-       ],
-       [
-        null,
-        -2.8125
-       ],
-       [
-        null,
-        -2.772606382978722
-       ],
-       [
-        null,
-        -2.952127659574467
-       ],
-       [
-        null,
-        -3.1376329787234027
-       ],
-       [
-        null,
-        -3.128324468085106
-       ]
-      ],
-      "n_points": 6,
-      "pct": true
-     }
-    ]
+    "series": []
    }
   },
   "3ae407a9b5045264": {
@@ -38666,6 +36369,10 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "low",
+    "issues": [
+     "4 of 6 series could not be matched to a legend entry"
+    ],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -39649,662 +37356,6 @@
       "axis": "left",
       "points": [
        [
-        "Consumer Credit",
-        -7.010489054068092
-       ],
-       [
-        "Consumer Credit",
-        -6.817161725870562
-       ],
-       [
-        "Consumer Credit",
-        -6.653220151559058
-       ],
-       [
-        "Consumer Credit",
-        -6.607594902104438
-       ],
-       [
-        "Consumer Credit",
-        -6.771536476415946
-       ],
-       [
-        "Consumer Credit",
-        -6.626154325611402
-       ],
-       [
-        "Consumer Credit",
-        -6.432053688101082
-       ],
-       [
-        "Consumer Credit",
-        -6.386428438646465
-       ],
-       [
-        "Consumer Credit",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Consumer Credit",
-        -6.029159536137431
-       ],
-       [
-        "Consumer Credit",
-        -5.901563499527061
-       ],
-       [
-        "Consumer Credit",
-        -5.955695151422368
-       ],
-       [
-        "Consumer Credit",
-        -6.4227739763475995
-       ],
-       [
-        "Consumer Credit",
-        -6.379468654831353
-       ],
-       [
-        "Consumer Credit",
-        -6.34157649850464
-       ],
-       [
-        "Consumer Credit",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Consumer Credit",
-        -7.010489054068092
-       ],
-       [
-        "Consumer Credit",
-        -6.817161725870562
-       ],
-       [
-        "Consumer Credit",
-        -6.653220151559058
-       ],
-       [
-        "Consumer Credit",
-        -6.607594902104438
-       ],
-       [
-        "Consumer Credit",
-        -6.771536476415946
-       ],
-       [
-        "Consumer Credit",
-        -6.626154325611402
-       ],
-       [
-        "Consumer Credit",
-        -6.432053688101082
-       ],
-       [
-        "Consumer Credit",
-        -6.386428438646465
-       ],
-       [
-        "Consumer Credit",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Consumer Credit",
-        -6.029159536137431
-       ],
-       [
-        "Consumer Credit",
-        -5.901563499527061
-       ],
-       [
-        "Consumer Credit",
-        -5.955695151422368
-       ],
-       [
-        "Consumer Credit",
-        -6.4227739763475995
-       ],
-       [
-        "Consumer Credit",
-        -6.379468654831353
-       ],
-       [
-        "Consumer Credit",
-        -6.34157649850464
-       ],
-       [
-        "Consumer Credit",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Consumer Credit",
-        -7.010489054068092
-       ],
-       [
-        "Consumer Credit",
-        -6.817161725870562
-       ],
-       [
-        "Consumer Credit",
-        -6.653220151559058
-       ],
-       [
-        "Consumer Credit",
-        -6.607594902104438
-       ],
-       [
-        "Consumer Credit",
-        -6.771536476415946
-       ],
-       [
-        "Consumer Credit",
-        -6.626154325611402
-       ],
-       [
-        "Consumer Credit",
-        -6.432053688101082
-       ],
-       [
-        "Consumer Credit",
-        -6.386428438646465
-       ],
-       [
-        "Consumer Credit",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -7.010489054068092
-       ],
-       [
-        "House Purchase",
-        -6.817161725870562
-       ],
-       [
-        "House Purchase",
-        -6.653220151559058
-       ],
-       [
-        "House Purchase",
-        -6.607594902104438
-       ],
-       [
-        "House Purchase",
-        -6.771536476415946
-       ],
-       [
-        "House Purchase",
-        -6.626154325611402
-       ],
-       [
-        "House Purchase",
-        -6.432053688101082
-       ],
-       [
-        "House Purchase",
-        -6.386428438646465
-       ],
-       [
-        "House Purchase",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -7.010489054068092
-       ],
-       [
-        "House Purchase",
-        -6.817161725870562
-       ],
-       [
-        "House Purchase",
-        -6.653220151559058
-       ],
-       [
-        "House Purchase",
-        -6.607594902104438
-       ],
-       [
-        "House Purchase",
-        -6.771536476415946
-       ],
-       [
-        "House Purchase",
-        -6.626154325611402
-       ],
-       [
-        "House Purchase",
-        -6.432053688101082
-       ],
-       [
-        "House Purchase",
-        -6.386428438646465
-       ],
-       [
-        "House Purchase",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -7.010489054068092
-       ],
-       [
-        "House Purchase",
-        -6.817161725870562
-       ],
-       [
-        "House Purchase",
-        -6.653220151559058
-       ],
-       [
-        "House Purchase",
-        -6.607594902104438
-       ],
-       [
-        "House Purchase",
-        -6.771536476415946
-       ],
-       [
-        "House Purchase",
-        -6.626154325611402
-       ],
-       [
-        "House Purchase",
-        -6.432053688101082
-       ],
-       [
-        "House Purchase",
-        -6.386428438646465
-       ],
-       [
-        "House Purchase",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -7.010489054068092
-       ],
-       [
-        "House Purchase",
-        -6.817161725870562
-       ],
-       [
-        "House Purchase",
-        -6.653220151559058
-       ],
-       [
-        "House Purchase",
-        -6.607594902104438
-       ],
-       [
-        "House Purchase",
-        -6.771536476415946
-       ],
-       [
-        "House Purchase",
-        -6.626154325611402
-       ],
-       [
-        "House Purchase",
-        -6.432053688101082
-       ],
-       [
-        "House Purchase",
-        -6.386428438646465
-       ],
-       [
-        "House Purchase",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -7.010489054068092
-       ],
-       [
-        "House Purchase",
-        -6.817161725870562
-       ],
-       [
-        "House Purchase",
-        -6.653220151559058
-       ],
-       [
-        "House Purchase",
-        -6.607594902104438
-       ],
-       [
-        "House Purchase",
-        -6.771536476415946
-       ],
-       [
-        "House Purchase",
-        -6.626154325611402
-       ],
-       [
-        "House Purchase",
-        -6.432053688101082
-       ],
-       [
-        "House Purchase",
-        -6.386428438646465
-       ],
-       [
-        "House Purchase",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
         "House Purchase",
         -5.333181154626324
        ],
@@ -40346,88 +37397,6 @@
        ]
       ],
       "n_points": 10,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -7.010489054068092
-       ],
-       [
-        "House Purchase",
-        -6.817161725870562
-       ],
-       [
-        "House Purchase",
-        -6.653220151559058
-       ],
-       [
-        "House Purchase",
-        -6.607594902104438
-       ],
-       [
-        "House Purchase",
-        -6.771536476415946
-       ],
-       [
-        "House Purchase",
-        -6.626154325611402
-       ],
-       [
-        "House Purchase",
-        -6.432053688101082
-       ],
-       [
-        "House Purchase",
-        -6.386428438646465
-       ],
-       [
-        "House Purchase",
-        -6.6346607280520935
-       ]
-      ],
-      "n_points": 9,
-      "pct": true
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "House Purchase",
-        -6.029159536137431
-       ],
-       [
-        "House Purchase",
-        -5.901563499527061
-       ],
-       [
-        "House Purchase",
-        -5.955695151422368
-       ],
-       [
-        "House Purchase",
-        -6.4227739763475995
-       ],
-       [
-        "House Purchase",
-        -6.379468654831353
-       ],
-       [
-        "House Purchase",
-        -6.34157649850464
-       ],
-       [
-        "House Purchase",
-        -6.340029879879058
-       ]
-      ],
-      "n_points": 7,
       "pct": true
      },
      {
@@ -40512,6 +37481,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -41220,6 +38191,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -41892,6 +38865,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -43166,6 +40141,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -45081,6 +42058,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -45477,6 +42456,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -46467,6 +43448,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -47214,6 +44197,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -47503,6 +44488,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -47887,6 +44874,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -49611,6 +46600,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -50500,6 +47491,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -51540,6 +48533,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -52581,6 +49576,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -52714,6 +49711,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -53758,6 +50757,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -55574,6 +52575,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -56610,6 +53613,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -57114,6 +54119,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -58069,6 +55076,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -58613,6 +55622,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -59224,6 +56235,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -59839,6 +56852,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -61243,6 +58258,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -63152,6 +60169,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -63542,6 +60561,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -64406,6 +61427,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -65211,6 +62234,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -66301,6 +63326,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -67294,6 +64321,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -68957,6 +65986,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -69841,6 +66872,10 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "low",
+    "issues": [
+     "2 of 3 series could not be matched to a legend entry"
+    ],
     "x_mode": "months",
     "y_axes": [
      {
@@ -70364,6 +67399,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -70873,6 +67910,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -70969,6 +68008,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -72015,6 +69056,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -73832,6 +70875,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -74876,6 +71921,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -75246,6 +72293,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -75618,6 +72667,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -76323,6 +73374,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -76711,6 +73764,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -77112,6 +74167,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -77684,6 +74741,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -79596,6 +76655,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -79788,6 +76849,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -80779,6 +77842,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -81770,6 +78835,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -82714,6 +79781,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -83078,6 +80147,10 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "low",
+    "issues": [
+     "3 series read negative from a non-negative axis"
+    ],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -83935,421 +81008,6 @@
       ],
       "n_points": 102,
       "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -5.8806765666166285
-       ],
-       [
-        "Services PMI",
-        -5.36977761629052
-       ],
-       [
-        "Services PMI",
-        -5.117734134129648
-       ],
-       [
-        "Services PMI",
-        -4.930404519010068
-       ],
-       [
-        "Services PMI",
-        -5.1790420081687785
-       ],
-       [
-        "Services PMI",
-        -4.034628359438301
-       ],
-       [
-        "Services PMI",
-        -4.300295813607875
-       ],
-       [
-        "Services PMI",
-        -6.2689597688644625
-       ],
-       [
-        "Services PMI",
-        -6.425635446964463
-       ],
-       [
-        "Services PMI",
-        -5.594573154434002
-       ]
-      ],
-      "n_points": 10,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -4.852066679960075
-       ],
-       [
-        "Services PMI",
-        -4.140214142505698
-       ],
-       [
-        "Services PMI",
-        -3.9358545623752548
-       ],
-       [
-        "Services PMI",
-        -4.85547267296225
-       ],
-       [
-        "Services PMI",
-        -5.802338727566621
-       ],
-       [
-        "Services PMI",
-        -5.758060818538354
-       ]
-      ],
-      "n_points": 6,
-      "pct": false
      }
     ]
    }
@@ -84397,6 +81055,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -85287,6 +81947,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -86326,6 +82988,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -86868,6 +83532,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -86961,6 +83627,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {

@@ -72,6 +72,9 @@ class Settings:
     vision_deployment: str = _env("AGENTIC_VISION_DEPLOYMENT") or _env("AGENT_MODEL", "gpt-5-mini")
     # Counting is unstable at low effort (3 to 5 for the same picture) and steady at medium, at about 15 s a picture
     vision_effort: str = _env("AGENTIC_VISION_EFFORT", "medium")
+    # Grades answers in `agentic eval`: same variable as rag/, so both approaches get the same judge
+    judge_deployment: str = (_env("JUDGE_DEPLOYMENT") or _env("AZURE_CHAT_DEPLOYMENT")
+                             or _env("AGENT_MODEL", "gpt-5-mini"))
     # Most passages the knowledge base hands to the agent per retrieval (stored on the knowledge base)
     max_docs: int = int(_env("AGENTIC_MAX_DOCS", "12"))
     # Base names; each solution (docx, markdown) gets its own set, suffixed with the source name

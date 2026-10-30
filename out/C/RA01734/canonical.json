@@ -34655,6 +34655,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -34901,6 +34903,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -36708,6 +36712,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -37747,6 +37753,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -39473,6 +39481,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -41202,6 +41212,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -41562,6 +41574,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -42968,6 +42982,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -44881,6 +44897,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -45255,6 +45273,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -46292,6 +46312,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -47146,6 +47168,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -47553,6 +47577,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -47756,6 +47782,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -48155,6 +48183,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -49193,6 +49223,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -49759,6 +49791,8 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+    "quality": "ok",
+    "issues": [],
     "x_mode": "months",
     "y_axes": [
      {
@@ -49932,6 +49966,10 @@
    "digitised": {
     "method": "emf-vector-digitised",
     "precision_note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+    "quality": "low",
+    "issues": [
+     "3 series read negative from a non-negative axis"
+    ],
     "x_mode": "categories",
     "y_axes": [
      {
@@ -50788,421 +50826,6 @@
        ]
       ],
       "n_points": 102,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Manufacturing PMI",
-        -11.817322369405943
-       ],
-       [
-        "Manufacturing PMI",
-        -12.096613795584204
-       ],
-       [
-        "Manufacturing PMI",
-        -12.723316507984222
-       ],
-       [
-        "Manufacturing PMI",
-        -12.563234836882046
-       ],
-       [
-        "Manufacturing PMI",
-        -11.22127359402549
-       ],
-       [
-        "Manufacturing PMI",
-        -10.6422547836559
-       ],
-       [
-        "Manufacturing PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -5.8806765666166285
-       ],
-       [
-        "Services PMI",
-        -5.36977761629052
-       ],
-       [
-        "Services PMI",
-        -5.117734134129648
-       ],
-       [
-        "Services PMI",
-        -4.930404519010068
-       ],
-       [
-        "Services PMI",
-        -5.1790420081687785
-       ],
-       [
-        "Services PMI",
-        -4.034628359438301
-       ],
-       [
-        "Services PMI",
-        -4.300295813607875
-       ],
-       [
-        "Services PMI",
-        -6.2689597688644625
-       ],
-       [
-        "Services PMI",
-        -6.425635446964463
-       ],
-       [
-        "Services PMI",
-        -5.594573154434002
-       ]
-      ],
-      "n_points": 10,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -11.817322369405943
-       ],
-       [
-        "Services PMI",
-        -12.096613795584204
-       ],
-       [
-        "Services PMI",
-        -12.723316507984222
-       ],
-       [
-        "Services PMI",
-        -12.563234836882046
-       ],
-       [
-        "Services PMI",
-        -11.22127359402549
-       ],
-       [
-        "Services PMI",
-        -10.6422547836559
-       ],
-       [
-        "Services PMI",
-        -10.628630811647199
-       ]
-      ],
-      "n_points": 7,
-      "pct": false
-     },
-     {
-      "name": null,
-      "color": null,
-      "axis": "left",
-      "points": [
-       [
-        "Services PMI",
-        -4.852066679960075
-       ],
-       [
-        "Services PMI",
-        -4.140214142505698
-       ],
-       [
-        "Services PMI",
-        -3.9358545623752548
-       ],
-       [
-        "Services PMI",
-        -4.85547267296225
-       ],
-       [
-        "Services PMI",
-        -5.802338727566621
-       ],
-       [
-        "Services PMI",
-        -5.758060818538354
-       ]
-      ],
-      "n_points": 6,
       "pct": false
      }
     ]
