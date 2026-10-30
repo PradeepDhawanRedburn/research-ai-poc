@@ -107,7 +107,7 @@ def show_passage(p: Passage) -> None:
 
 def show_tile(a: Answer, show_all_text: bool = False) -> None:
     """The same layout for every arm and mode."""
-    st.markdown(f"<div class='tile-answer'>{a.text or '<i>(empty answer)</i>'}</div>", unsafe_allow_html=True)
+    st.markdown(a.text or "*(empty answer)*")  # the model's own Markdown: bullets, bold, tables
     st.caption(f"{combo_label(a.arm, a.mode)} · {a.store} · model `{a.model}` · {a.rounds} model round"
                f"{'s' if a.rounds != 1 else ''}. Numbers in brackets are the passages below.")
     st.markdown(cost_line(a))
