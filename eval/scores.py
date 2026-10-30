@@ -108,7 +108,8 @@ def main(srcs: list[Path] | Path, dst: Path) -> None:
             for key, name, unit in (("retrieval_s", "retrieval time", "s"), ("generation_s", "generation time", "s"),
                                     ("vision_s", "vision time", "s"), ("total_s", "total time", "s"),
                                     ("input_tokens", "input tokens", ""), ("output_tokens", "output tokens", ""),
-                                    ("reasoning_tokens", "reasoning tokens", ""), ("total_tokens", "total tokens", "")):
+                                    ("reasoning_tokens", "reasoning tokens", ""), ("vision_tokens", "vision tokens", ""),
+                                    ("total_tokens", "total tokens", "")):
                 xs = sorted(r[key] for r in rs if key in r)
                 if not xs:
                     continue

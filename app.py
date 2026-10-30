@@ -1,48 +1,37 @@
-"""Streamlit UI that compares four ways of answering questions about the research reports:
+"""Streamlit page that compares four ways of answering questions about the research reports, like for like:
 
 - Agentic retrieval: Azure AI Search knowledge base + Foundry agent (`agentic/`)
 - RAG: local Chroma index, hybrid search, one answer call (`rag/`)
 
-each on Word (docx) and on MarkItDown output (A+ markdown). Pick any of the four in the sidebar. One question goes to
-all of them and the answers appear side by side, with the passages each used, the file they came from, which of them
-were cited, and the pictures the model looked at.
+each on Word (docx) and on MarkItDown output (A+ markdown). One question goes to every selected solution at the
+same time, each in its own thread; a tile fills in the moment its answer arrives, so a slow solution never holds
+up the others. Every tile has the same layout (answer, cost line, how it got there, cited passages, all retrieved
+passages) and the table underneath puts time, tokens and grounding side by side, with session totals in the
+sidebar. The shapes and numbers come from comparison.py; this file only draws them.
 
 Needs both extras:  uv run --extra rag --extra agentic streamlit run app.py
 """
 from __future__ import annotations
 
-import re
-import time
+import csv
+import io
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
 from pathlib import Path
 
 import streamlit as st
 
-from agentic.config import SOURCES, settings
+from agentic.config import settings
+from comparison import (FILE_KIND, FILE_PLURAL, LABELS, SOLUTION_KEYS, SOURCES, Result, comparison_rows,
+                        from_agentic, from_rag, run_parallel, session_totals)
 from rag.config import settings as rag_settings
 
-APPROACHES = {"agentic": "Agentic", "rag": "RAG"}
-FORMATS = {"docx": "Word (docx)", "markdown": "MarkItDown (A+)"}
-SOLUTION_KEYS = [f"{a}-{s}" for s in SOURCES for a in APPROACHES]  # Word pair first, then the Markdown pair
-LABELS = {f"{a}-{s}": f"{APPROACHES[a]} · {FORMATS[s]}" for s in SOURCES for a in APPROACHES}
-FILE_KIND = {"docx": "Word file", "markdown": "MarkItDown output (A+)"}
-FILE_PLURAL = {"docx": "Word files", "markdown": "MarkItDown outputs (A+)"}
 ICONS = {"plan": "🧭", "retrieve": "🔎", "reason": "🤔", "look": "👁️", "answer": "✍️"}
 
+st.set_page_config(page_title="Research reports: agentic vs RAG, Word vs MarkItDown", layout="wide")
+st.session_state.setdefault("history", [])
 
-@dataclass
-class RagAnswer:
-    question: str
-    source: str  # docx or markdown
-    text: str
-    passages: list  # LangChain documents in rank order; [n] in the answer is passages[n - 1]
-    images: list[str]
-    seconds: float
-    collection: str
-    model: str
 
+# ----------------------------------------------------------------------------------------------- backends
 
 def rag_file(source: str, doc_id: str) -> str:
     """RAG chunks keep the report id, not the file path, so name the input file the id came from."""
@@ -51,32 +40,8 @@ def rag_file(source: str, doc_id: str) -> str:
     return name if (folder / name).exists() else doc_id
 
 
-def cited_numbers(text: str) -> set[int]:
-    return {int(n) for n in re.findall(r"\[(\d+)\]", text)}
-
-
-def run_rag(question: str, source: str, k: int, use_images: bool) -> RagAnswer:
-    from rag.pipeline import answer as rag_answer
-
-    t0 = time.perf_counter()
-    a = rag_answer(question, source, k=k, hybrid=True, use_images=use_images)
-    return RagAnswer(question, source, a.answer, a.sources, a.images, time.perf_counter() - t0,
-                     rag_settings.collection(source), rag_settings.chat_deployment)
-
-st.set_page_config(page_title="Research reports: agentic vs RAG", layout="wide")
-
-
-@st.cache_data(ttl=60, show_spinner=False)
-def stats(source: str) -> dict:
-    from agentic.search_setup import index_stats, knowledge_base_settings
-
-    try:
-        return {**index_stats(source), "kb": knowledge_base_settings(source)}
-    except Exception as e:  # noqa: BLE001 - index missing or no access
-        return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
-
-
 def chat_for(source: str):
+    """One agent conversation per solution, kept in the session so follow-up questions have their context."""
     from agentic.foundry import Chat
 
     chats = st.session_state.setdefault("chats", {})
@@ -85,46 +50,101 @@ def chat_for(source: str):
     return chats[source]
 
 
+def agentic_task(source: str, question: str, use_images: bool):
+    chat = chat_for(source)  # created here, on the main thread, because it lives in session state
+    return lambda: from_agentic(chat.ask(question, use_images=use_images), source)
+
+
+def rag_task(source: str, question: str, k: int, use_images: bool):
+    from rag.pipeline import answer, retriever
+
+    retriever(source)  # load Chroma and build BM25 on the main thread, before the threads start
+    return lambda: from_rag(answer(question, source, k=k, hybrid=True, use_images=use_images), source,
+                            rag_settings.collection(source), rag_settings.chat_deployment,
+                            lambda doc_id: rag_file(source, doc_id))
+
+
 @st.cache_data(ttl=60, show_spinner=False)
-def rag_stats(source: str) -> dict:
-    from rag.pipeline import retriever as rag_retriever
+def agentic_stats(source: str) -> dict:
+    from agentic.search_setup import index_stats, knowledge_base_settings
 
     try:
-        docs = rag_retriever(source).docs
+        return {**index_stats(source), "kb": knowledge_base_settings(source)}
+    except Exception as e:  # noqa: BLE001 - index missing or no access
+        return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def rag_stats(source: str) -> dict:
+    from rag.pipeline import retriever
+
+    try:
+        docs = retriever(source).docs
     except Exception as e:  # noqa: BLE001 - empty collection or missing .env
         return {"error": f"{type(e).__name__}: {str(e)[:200]}"}
     return {"chunks": len(docs), "files": Counter(d.metadata.get("doc_id") for d in docs)}
 
 
+def apply_max_docs(sources: list[str], infos: dict, n: int) -> None:
+    """The agentic passage limit lives on the knowledge base in Azure; RAG takes it per call."""
+    from agentic.search_setup import set_max_docs
+
+    changed = False
+    for s in sources:
+        kb = infos[s].get("kb")
+        if kb and kb["max_docs"] != n:
+            set_max_docs(s, n)
+            changed = True
+    if changed:
+        agentic_stats.clear()
+
+
+# ----------------------------------------------------------------------------------------------- sidebar
+
 with st.sidebar:
     st.header("Settings")
     selected = st.multiselect("Solutions to compare", SOLUTION_KEYS, default=SOLUTION_KEYS, format_func=LABELS.get,
-                              help="Every question goes to all selected solutions, side by side.")
+                              help="Every question goes to all selected solutions at the same time.")
     agentic_sources = [s for s in SOURCES if f"agentic-{s}" in selected]
     rag_sources = [s for s in SOURCES if f"rag-{s}" in selected]
-    infos = {s: stats(s) for s in agentic_sources}
+    infos = {s: agentic_stats(s) for s in agentic_sources}
     rag_infos = {s: rag_stats(s) for s in rag_sources}
     live_docs = next((i["kb"]["max_docs"] for i in infos.values() if "kb" in i and i["kb"]["max_docs"]),
                      settings.max_docs)
-    max_docs = st.slider("Passages per search (agentic) or chunks retrieved (RAG)", 3, 30, int(live_docs),
-                         help="The same number goes to both approaches. Agentic: stored on the knowledge base and "
-                              "applied before the next question. Fewer passages means a shorter prompt and a faster "
-                              "answer, more passages means more recall.")
-    use_images = st.checkbox("Let the agent look at figure pictures", value=True,
-                             help="Off: the agent only reads the text and the stored picture descriptions.")
+    max_docs = st.slider("Passages per question", 3, 30, int(live_docs),
+                         help="The same number for every solution: passages per knowledge base search (agentic) and "
+                              "chunks retrieved (RAG). Fewer means a shorter prompt and fewer tokens, more means "
+                              "more recall.")
+    use_images = st.checkbox("Let the models look at figure pictures", value=True,
+                             help="Off: every solution answers from text and stored picture descriptions only.")
+    per_row = {"All in one row": 4, "Two per row": 2}[st.radio("Tiles", ["All in one row", "Two per row"],
+                                                               horizontal=True)]
     show_all_text = st.checkbox("Show the text of every retrieved passage", value=False)
-    if st.button("Clear conversation"):
+    c1, c2 = st.columns(2)
+    if c1.button("Clear conversation"):
         st.session_state.history, st.session_state.chats = [], {}
         st.rerun()
-    if st.button("Refresh index info"):
-        stats.clear()
+    if c2.button("Refresh index info"):
+        agentic_stats.clear()
         rag_stats.clear()
         st.rerun()
+
+    totals = session_totals(st.session_state.history, SOLUTION_KEYS)
+    if totals:
+        st.header("This session so far")
+        st.dataframe(totals, hide_index=True, width="stretch")
+        buf = io.StringIO()
+        rows = [{"question": t["question"], **row} for t in st.session_state.history
+                for row in comparison_rows(t["results"], t["errors"], t["selected"])]
+        w = csv.DictWriter(buf, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+        st.download_button("Download every answer's numbers (CSV)", buf.getvalue(), "comparison.csv", "text/csv")
 
     st.header("Where answers come from")
     st.caption(f"Search service `{settings.search_endpoint.split('//')[-1].split('.')[0]}` · agent model "
                f"`{settings.agent_model}` (reasoning {settings.reasoning_effort}) · pictures read by "
-               f"`{settings.vision_deployment}`")
+               f"`{settings.vision_deployment}` (agentic) and `{rag_settings.chat_deployment}` (RAG)")
     for s in agentic_sources:
         n, info = settings.names(s), infos[s]
         st.markdown(f"**{LABELS[f'agentic-{s}']}**")
@@ -150,230 +170,194 @@ with st.sidebar:
                     f"- Answer model `{rag_settings.chat_deployment}`, which also reads the pictures\n"
                     "- Hybrid search: vector + BM25, fused by reciprocal rank")
         st.caption("Chunks per file: " + ", ".join(f"{rag_file(s, d)} {c}" for d, c in sorted(info["files"].items())))
-    with st.expander("What agentic adds over plain RAG"):
+    with st.expander("How the numbers compare"):
         st.markdown(
-            "- **Plain RAG**: embed the question, fetch the top chunks (vector + BM25), answer from them.\n"
-            "- **Agentic**: the agent first **rewrites the question into several search queries**, the search service runs "
-            "them (hybrid + semantic reranking) and merges the results, the agent can **look at a picture** with a vision "
-            "model when the text does not say, and it **links each claim to a passage**. The steps panel shows each of these.\n"
-            "- Chunk size is fixed when the index is built (`python -m agentic index --chunk-chars N --reset`).")
+            "- **Time**: wall-clock for the whole question, split into retrieval, generation and vision. Agentic "
+            "usually writes its answer in the same round as the search, so its generation time can be 0.\n"
+            "- **Tokens**: input + output of the answering model. RAG sends pictures inside its one call, so they are "
+            "in its input tokens; agentic looks at pictures in separate vision calls, shown as *vision tokens*. "
+            "**Total tokens** is the like-for-like number.\n"
+            "- **Grounding**: passages retrieved, how many the answer cites, pictures looked at. Each tile also "
+            "checks that every passage came from its own format's index.\n"
+            "- **Agentic** rewrites the question into several queries, lets the search service rerank, and can "
+            "decide to look at a picture. **RAG** embeds the question once, fuses vector and keyword hits, and "
+            "answers in one call. The steps panel in each tile shows what happened.")
 
 st.title("Research reports Q&A: agentic vs RAG, Word vs MarkItDown")
-st.session_state.setdefault("history", [])
 if not selected:
     st.info("Pick at least one solution in the sidebar.")
     st.stop()
 
 
-def show_steps(a) -> None:
-    visible = [s for s in a.steps if s.kind != "timing"]
-    looks = iter(a.looks)
-    with st.expander(f"How the agent got this answer: {len(visible)} steps, {a.seconds:.1f} s", expanded=True):
-        for i, s in enumerate(visible, 1):
+# ----------------------------------------------------------------------------------------------- one tile
+
+def cost_line(r: Result) -> str:
+    bits = [f"⏱ **{r.total_s:.1f} s**",
+            f"🔤 **{r.total_tokens:,} tokens** ({r.input_tokens:,} in, {r.output_tokens:,} out"
+            + (f", {r.reasoning_tokens:,} reasoning" if r.reasoning_tokens else "")
+            + (f", {r.vision_tokens:,} vision" if r.vision_tokens else "") + ")",
+            f"📄 **{len(r.passages)} passages**, {len(r.cited)} cited"]
+    if r.images:
+        bits.append(f"👁️ **{len(r.images)} picture{'s' if len(r.images) > 1 else ''}** looked at")
+    return " · ".join(bits)
+
+
+def show_passage(p, source: str) -> None:
+    tags = " · ".join(t for t, on in (("cited", p.cited), ("picture inspected", p.inspected)) if on)
+    st.markdown(f"**[{p.rank}] {p.doc_id} · {p.kind}**" + (f" ({tags})" if tags else "")
+                + f" · {FILE_KIND.get(source, source)} `{p.file}` · chunk `{p.id}`")
+    if p.meta or p.heading:
+        st.caption(" · ".join(x for x in (p.meta, p.heading) if x))
+    st.text(p.text[:2500])
+    for img in p.images:
+        if Path(img).exists():
+            st.image(img, width=420)
+
+
+def show_tile(r: Result) -> None:
+    st.markdown(r.text or "*(empty answer)*")
+    st.caption(f"{'Index' if r.approach == 'agentic' else 'Collection'} `{r.store}` · model `{r.model}` · "
+               f"{r.rounds} model round{'s' if r.rounds != 1 else ''}. Numbers in brackets are the passages below.")
+    st.markdown(cost_line(r))
+    for e in r.errors:
+        st.error(e)
+    if r.leaked:
+        st.error(f"{len(r.leaked)} passage(s) did not come from the {FILE_PLURAL[r.source]}: "
+                 + ", ".join(f"{p.id} <- {p.source}" for p in r.leaked))
+    elif r.passages:
+        st.success(f"All {len(r.passages)} passages come from `{r.store}`, {FILE_KIND[r.source]}: "
+                   + ", ".join(r.files))
+    else:
+        st.info("No passages were retrieved.")
+
+    with st.expander(f"How it got the answer: {len(r.steps)} steps"):
+        for i, s in enumerate(r.steps, 1):
             secs = f" · {s.seconds:.1f} s" if s.seconds is not None else ""
             st.markdown(f"**{i}. {ICONS.get(s.kind, '')} {s.title}**{secs}")
             if s.detail:
                 st.caption(s.detail.replace("\n", "  \n"))
-            for it in (s.items if s.kind == "plan" else []):
+            for it in s.items:
                 st.markdown(f"- {it}")
-            if s.kind == "look":
-                look = next(looks, None)
-                for p in (look.paths if look else []):
-                    st.image(p, width=320)
-        rounds = [s for s in a.steps if s.kind == "timing"]
-        st.markdown("**Timing** (each round is one call to the agent; a round with the knowledge base call includes the search)")
-        st.dataframe([{"round": s.title.split(": ", 1)[0], "what": s.title.split(": ", 1)[-1],
-                       "seconds": round(s.seconds or 0, 1), "tokens": s.detail} for s in rounds]
-                     + [{"round": "Figure inspection", "what": f"{len(a.looks)} vision call(s), run on this machine",
-                         "seconds": round(sum(lk.seconds for lk in a.looks), 1), "tokens": ""}] * bool(a.looks),
-                     hide_index=True, width="stretch")
-        st.caption(f"Total {a.seconds:.1f} s · {a.input_tokens} tokens in, {a.output_tokens} out "
-                   f"({a.reasoning_tokens} reasoning)")
-
-
-def show_agentic(a) -> None:
-    st.markdown(a.text)
-    n = a.names
-    st.caption(f"{LABELS[f'agentic-{n.source}']} · index `{n.index}` · knowledge base `{n.knowledge_base}` · agent `{n.agent}` "
-               f"({a.model}). Numbers in brackets are the passages below.")
-    for e in a.errors:
-        st.error(f"The knowledge base call failed: {e}")
-    show_steps(a)
-
-    mismatched = [p for p in a.passages if p.source != n.source or p.index != n.index]
-    if mismatched:
-        st.error(f"{len(mismatched)} passage(s) did not come from {n.index} ({n.source}): "
-                 + ", ".join(f"{p.id} <- {p.index}/{p.source}" for p in mismatched))
-    elif a.passages:
-        files = sorted({p.source_file for p in a.passages})
-        st.success(f"All {len(a.passages)} retrieved passages come from index `{n.index}`, "
-                   f"{FILE_KIND[n.source]}: {', '.join(files)}")
-    else:
-        st.info("The knowledge base returned no passages.")
-
-    shown = [p for p in a.passages if p.cited or p.inspected]
-    with st.expander(f"Cited or inspected passages ({len(shown)})", expanded=True):
-        if not a.cited:
-            st.warning("The answer does not link to any passage.")
-        for p in shown:
-            tags = " · ".join(t for t, on in (("cited", p.cited), ("picture inspected", p.inspected)) if on)
-            st.markdown(f"**[{p.rank}] {p.doc_id} · {p.kind}** ({tags}) · {FILE_KIND.get(p.source, p.source)} "
-                        f"`{p.source_file}` · chunk `{p.id}`")
-            st.caption(f"{p.title} ({p.date}) · {p.caption or p.section}")
-            st.text(p.text[:2500])
-            for img in p.image_paths:
+            for img in s.images:
                 if Path(img).exists():
-                    st.image(img, width=420)
+                    st.image(img, width=320)
+        st.caption(f"Retrieval {r.retrieval_s:.1f} s · generation {r.generation_s:.1f} s · vision {r.vision_s:.1f} s "
+                   f"· total {r.total_s:.1f} s")
 
-    with st.expander(f"Retrieved passages ({len(a.passages)}), in the order the knowledge base ranked them"):
-        st.dataframe(
-            [{"#": p.rank, "cited": "yes" if p.cited else "", "picture inspected": "yes" if p.inspected else "",
-              "chunk": p.id, "source": p.source, "file": p.source_file, "kind": p.kind,
-              "section / caption": (p.caption or p.section)}
-             for p in a.passages],
-            hide_index=True, width="stretch",
-        )
+    shown = [p for p in r.passages if p.cited or p.inspected]
+    with st.expander(f"Cited passages ({len(shown)})", expanded=True):
+        if not r.cited:
+            st.warning("The answer does not cite any passage.")
+        for p in shown:
+            show_passage(p, r.source)
+
+    with st.expander(f"All retrieved passages ({len(r.passages)}), in rank order"):
+        st.dataframe([{"#": p.rank, "cited": "yes" if p.cited else "", "picture": "yes" if p.inspected else "",
+                       "chunk": p.id, "file": p.file, "kind": p.kind, "section / caption": p.heading}
+                      for p in r.passages], hide_index=True, width="stretch")
         if show_all_text:
-            for p in a.passages:
+            for p in r.passages:
                 st.markdown(f"**[{p.rank}] {p.id}**" + (" · cited" if p.cited else ""))
                 st.text(p.text[:1500])
-    with st.expander("Answer exactly as the agent wrote it"):
-        st.text(a.raw_text)
+    if r.raw_text != r.text:
+        with st.expander("Answer exactly as the model wrote it"):
+            st.text(r.raw_text)
 
 
-def show_rag(a: RagAnswer) -> None:
-    st.markdown(a.text)
-    st.caption(f"RAG · collection `{a.collection}` · answer model `{a.model}` · {a.seconds:.1f} s. "
-               "Numbers in brackets are the passages below.")
-    wrong = [p for p in a.passages if p.metadata.get("source") != a.source]
-    if wrong:
-        st.error(f"{len(wrong)} chunk(s) did not come from the {FILE_PLURAL[a.source]}: "
-                 + ", ".join(p.id for p in wrong))
-    elif a.passages:
-        files = sorted({rag_file(a.source, p.metadata.get("doc_id", "")) for p in a.passages})
-        st.success(f"All {len(a.passages)} retrieved chunks come from collection `{a.collection}`, "
-                   f"{FILE_KIND[a.source]}: {', '.join(files)}")
-    else:
-        st.info("The search returned no chunks.")
+# ----------------------------------------------------------------------------------------------- one turn
 
-    cited = cited_numbers(a.text)
-    shown = [(n, p) for n, p in enumerate(a.passages, 1) if n in cited]
-    with st.expander(f"Cited passages ({len(shown)})", expanded=True):
-        if not shown:
-            st.warning("The answer does not cite any passage.")
-        for n, p in shown:
-            m = p.metadata
-            st.markdown(f"**[{n}] {m.get('doc_id')} · {m.get('kind')}** · {FILE_KIND[a.source]} "
-                        f"`{rag_file(a.source, m.get('doc_id', ''))}` · chunk `{p.id}`")
-            st.caption(" · ".join(x for x in (m.get("title"), m.get("date"), m.get("caption") or m.get("section"))
-                                  if x))
-            st.text(p.page_content[:2500])
-    if a.images:
-        with st.expander(f"Pictures sent to the model ({len(a.images)})", expanded=True):
-            for img in a.images:
-                st.image(img, width=420)
-    with st.expander(f"Retrieved passages ({len(a.passages)}), in the order they were ranked"):
-        st.dataframe(
-            [{"#": n, "cited": "yes" if n in cited else "", "chunk": p.id,
-              "file": rag_file(a.source, p.metadata.get("doc_id", "")), "kind": p.metadata.get("kind"),
-              "section / caption": p.metadata.get("caption") or p.metadata.get("section")}
-             for n, p in enumerate(a.passages, 1)],
-            hide_index=True, width="stretch",
-        )
-        if show_all_text:
-            for n, p in enumerate(a.passages, 1):
-                st.markdown(f"**[{n}] {p.id}**" + (" · cited" if n in cited else ""))
-                st.text(p.page_content[:1500])
-
-
-def cited_count(a) -> int:
-    if isinstance(a, RagAnswer):
-        return len(cited_numbers(a.text) & set(range(1, len(a.passages) + 1)))
-    return len(a.cited)
-
-
-def show_turn(answers: dict, errors: dict, selected: list[str]) -> None:
-    """One row per input file (Word, then Markdown), agentic and RAG side by side in each row."""
-    keys = [k for k in SOLUTION_KEYS if k in selected]
-    for fmt in SOURCES:
-        row = [k for k in keys if k.endswith(f"-{fmt}")]
-        if not row:
-            continue
-        for col, key in zip(st.columns(len(row)), row):
+def tile_grid(keys: list[str]) -> dict[str, object]:
+    """One placeholder per solution, `per_row` to a row, in a fixed order so a tile never moves."""
+    slots = {}
+    for i in range(0, len(keys), per_row):
+        row = keys[i:i + per_row]
+        for col, key in zip(st.columns(per_row), row):
             with col:
                 st.subheader(LABELS[key])
-                if key in errors:
-                    st.error(errors[key])
-                elif key in answers:
-                    (show_rag if isinstance(answers[key], RagAnswer) else show_agentic)(answers[key])
-    rows = []
+                slots[key] = st.empty()
+    return slots
+
+
+def show_table(slot, results: dict, errors: dict, keys: list[str], running: dict[str, float] | None = None) -> None:
+    rows = comparison_rows(results, errors, keys)
+    for row in rows:
+        key = next(k for k in keys if LABELS[k] == row["solution"])
+        if running and key in running:
+            row["answered"] = f"running… {running[key]:.0f} s"
+    with slot.container():
+        st.markdown("**Side by side**")
+        st.dataframe(rows, hide_index=True, width="stretch")
+
+
+def show_turn(results: dict, errors: dict, keys: list[str]) -> None:
+    """A past turn: everything is known, draw it in one go."""
+    slots = tile_grid(keys)
+    for key, slot in slots.items():
+        with slot.container():
+            if key in results:
+                show_tile(results[key])
+            else:
+                st.error(errors.get(key, "no answer"))
+    show_table(st.empty(), results, errors, keys)
+
+
+def ask_all(question: str, keys: list[str]) -> tuple[dict, dict]:
+    """Start every solution at once and fill each tile as soon as its answer is in."""
+    results: dict[str, Result] = {}
+    errors: dict[str, str] = {}
+    tasks = {}
     for key in keys:
-        if key in answers:
-            a = answers[key]
-            rows.append({"solution": LABELS[key], "seconds": round(a.seconds, 1), "passages": len(a.passages),
-                         "cited": cited_count(a), "error": ""})
+        approach, source = key.split("-", 1)
+        try:
+            tasks[key] = (agentic_task(source, question, use_images) if approach == "agentic"
+                          else rag_task(source, question, max_docs, use_images))
+        except Exception as e:  # noqa: BLE001 - e.g. the index or the collection is missing
+            errors[key] = f"{type(e).__name__}: {e}"
+    slots = tile_grid(keys)
+    for key in keys:
+        if key in errors:
+            slots[key].error(errors[key])
         else:
-            rows.append({"solution": LABELS[key], "seconds": None, "passages": None, "cited": None,
-                         "error": errors.get(key, "")})
-    st.markdown("**Side by side**")
-    st.dataframe(rows, hide_index=True, width="stretch")
+            slots[key].info("⏳ Running…")
+    table = st.empty()
+    show_table(table, results, errors, keys, {k: 0.0 for k in tasks})
 
+    def on_done(key: str, r: Result | None, err: str | None) -> None:
+        if r is not None:
+            results[key] = r
+            with slots[key].container():
+                show_tile(r)
+        else:
+            errors[key] = err or "failed"
+            slots[key].error(errors[key])
+        show_table(table, results, errors, keys, {k: 0.0 for k in tasks if k not in results and k not in errors})
 
-def ask_all(question: str, agentic: list[str], rag: list[str], k: int, use_images: bool) -> tuple[dict, dict]:
-    """Agentic calls run in background threads; RAG runs on the main thread because its Chroma client is shared."""
-    answers, errors = {}, {}
-    futures = {}
-    with ThreadPoolExecutor(max_workers=max(1, len(agentic))) as pool:
-        for s in agentic:  # chats are created here, on the main thread, because they live in session state
-            key = f"agentic-{s}"
-            try:
-                futures[key] = pool.submit(chat_for(s).ask, question, use_images=use_images)
-            except Exception as e:  # noqa: BLE001
-                errors[key] = f"{type(e).__name__}: {e}"
-        for s in rag:
-            key = f"rag-{s}"
-            try:
-                answers[key] = run_rag(question, s, k, use_images)
-            except Exception as e:  # noqa: BLE001
-                errors[key] = f"{type(e).__name__}: {e}"
-        for key, fut in futures.items():
-            try:
-                answers[key] = fut.result()
-            except Exception as e:  # noqa: BLE001
-                errors[key] = f"{type(e).__name__}: {e}"
-    return answers, errors
+    def on_tick(running: dict[str, float]) -> None:
+        for key, secs in running.items():
+            slots[key].info(f"⏳ Running… {secs:.0f} s")
+        show_table(table, results, errors, keys, running)
 
-
-def apply_max_docs() -> None:
-    from agentic.search_setup import set_max_docs
-
-    changed = False
-    for s in agentic_sources:
-        kb = infos[s].get("kb")
-        if kb and kb["max_docs"] != max_docs:
-            set_max_docs(s, max_docs)
-            changed = True
-    if changed:
-        stats.clear()
+    run_parallel(tasks, on_done, on_tick)
+    return results, errors
 
 
 for turn in st.session_state.history:
     with st.chat_message("user"):
         st.markdown(turn["question"])
     with st.chat_message("assistant"):
-        show_turn(turn["answers"], turn["errors"], turn["selected"])
+        show_turn(turn["results"], turn["errors"], turn["selected"])
 
 question = st.chat_input("Ask about the reports, e.g. How many oranges are in the Fanta image?")
 if question:
+    keys = [k for k in SOLUTION_KEYS if k in selected]
     with st.chat_message("user"):
         st.markdown(question)
     with st.chat_message("assistant"):
-        try:
-            apply_max_docs()
-        except Exception as e:  # noqa: BLE001
-            st.warning(f"Could not change the passage limit: {type(e).__name__}: {e}")
-        with st.spinner("Running the selected solutions: rewriting, searching, looking at pictures..."):
-            answers, errors = ask_all(question, agentic_sources, rag_sources, max_docs, use_images)
-        show_turn(answers, errors, selected)
-    st.session_state.history.append(
-        {"question": question, "answers": answers, "errors": errors, "selected": selected})
+        if agentic_sources:
+            try:
+                apply_max_docs(agentic_sources, infos, max_docs)
+            except Exception as e:  # noqa: BLE001
+                st.warning(f"Could not change the passage limit: {type(e).__name__}: {e}")
+        results, errors = ask_all(question, keys)
+    st.session_state.history.append({"question": question, "results": results, "errors": errors, "selected": keys})
+    st.rerun()  # redraw from history, so the session totals in the sidebar include this question

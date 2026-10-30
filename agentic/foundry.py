@@ -151,13 +151,20 @@ class Answer:
     steps: list[Step] = field(default_factory=list)
     looks: list[vision.FigureLook] = field(default_factory=list)
     seconds: float = 0.0
-    input_tokens: int = 0
+    input_tokens: int = 0           # agent rounds (the knowledge base call is inside them)
     output_tokens: int = 0
-    reasoning_tokens: int = 0
+    reasoning_tokens: int = 0       # part of output_tokens
+    vision_input_tokens: int = 0    # inspect_figure calls, run here; RAG counts its pictures in input_tokens
+    vision_output_tokens: int = 0
 
     @property
     def cited(self) -> list[Passage]:
         return [p for p in self.passages if p.cited]
+
+    @property
+    def total_tokens(self) -> int:
+        """Everything this answer cost in tokens, agent and vision model together."""
+        return self.input_tokens + self.output_tokens + self.vision_input_tokens + self.vision_output_tokens
 
 
 def _annotations(response) -> list[tuple[int, int, str]]:
@@ -247,6 +254,8 @@ class Chat:
             return "Picture inspection is disabled for this question; answer from the text of the chunks."
         look = vision.inspect_figure(self.source, args.get("chunk_id", ""), args.get("question", ""))
         ans.looks.append(look)
+        ans.vision_input_tokens += look.input_tokens
+        ans.vision_output_tokens += look.output_tokens
         ans.steps.append(Step(
             "look",
             f"Vision model ({look.model}) looked at the picture of {look.chunk_id}" if look.model else

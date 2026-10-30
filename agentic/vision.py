@@ -51,6 +51,8 @@ class FigureLook:
     paths: list[str] = field(default_factory=list)
     seconds: float = 0.0
     model: str = ""
+    input_tokens: int = 0   # the picture(s) and the caption; counted so agentic and RAG tokens compare like for like
+    output_tokens: int = 0
 
 
 def _client() -> AzureOpenAI:
@@ -87,5 +89,7 @@ def inspect_figure(source: str, chunk_id: str, question: str) -> FigureLook:
         messages=[{"role": "system", "content": SYSTEM}, {"role": "user", "content": content}],
         max_completion_tokens=2000, **kw,
     )
+    u = getattr(resp, "usage", None)
     return FigureLook(chunk_id, question, (resp.choices[0].message.content or "").strip(), paths,
-                      time.perf_counter() - t0, settings.vision_deployment)
+                      time.perf_counter() - t0, settings.vision_deployment,
+                      int(getattr(u, "prompt_tokens", 0) or 0), int(getattr(u, "completion_tokens", 0) or 0))

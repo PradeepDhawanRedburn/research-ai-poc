@@ -5,7 +5,7 @@ Per question and solution:
 - retrieval: are the golden evidence strings present in the passages the knowledge base returned (same matching as
   eval/retention.py); for picture questions the evidence is the caption, so this only says the figure was found;
 - answer: the judge in eval/judge.py compares the answer with the expected one (correct / partial / incorrect);
-- cost: seconds per round, tokens in and out, reasoning tokens, vision calls and their seconds.
+- cost: seconds per round, tokens in and out, reasoning tokens, vision calls with their seconds and tokens.
 
 Every question starts a fresh conversation, so nothing leaks between questions. Rows are appended to the jsonl as
 they are produced; `--resume` skips (id, source) pairs already there, so a run interrupted by a token expiry or a
@@ -77,7 +77,8 @@ def _row(q: dict, source: str, a, verdict: dict, items) -> dict:
         "retrieval_s": retrieval_s, "generation_s": max(0.0, a.seconds - retrieval_s - vision_s), "vision_s": vision_s,
         "total_s": a.seconds, "rounds": sum(1 for s in a.steps if s.kind == "timing"),
         "input_tokens": a.input_tokens, "output_tokens": a.output_tokens, "reasoning_tokens": a.reasoning_tokens,
-        "total_tokens": a.input_tokens + a.output_tokens,
+        "vision_tokens": a.vision_input_tokens + a.vision_output_tokens,
+        "total_tokens": a.total_tokens,  # agent rounds plus vision calls, like RAG's one call with pictures inside
         "errors": a.errors, "model": a.model, "judge": settings.judge_deployment,
     }
 
@@ -88,7 +89,7 @@ def _error_row(q: dict, source: str, err: Exception) -> dict:
             "verdict": "incorrect", "reason": f"run failed: {type(err).__name__}: {str(err)[:300]}",
             "answer": "", "expected": q.get("answer", ""), "retrieved": [], "cited": [], "queries": [], "images": 0,
             "retrieval_s": 0.0, "generation_s": 0.0, "vision_s": 0.0, "total_s": 0.0, "rounds": 0,
-            "input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "total_tokens": 0,
+            "input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "vision_tokens": 0, "total_tokens": 0,
             "errors": [str(err)[:300]], "model": settings.agent_model, "judge": settings.judge_deployment}
 
 

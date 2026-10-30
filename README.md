@@ -251,15 +251,23 @@ side by side. `agentic/app.py` is unchanged and still compares the two agentic s
 uv run --extra rag --extra agentic streamlit run app.py
 ```
 
-One question goes to every selected solution (sidebar: **Solutions to compare**). Answers appear in two rows, one per
-input format, with agentic and RAG side by side in each. Under every answer you can see which file it came from:
-- a banner names the index or collection and the files its passages came from (an error appears if a passage came from
-  another index or format);
-- the cited passages, with their report, file (`RA02752.docx` or `RA02752.md`) and chunk id;
-- the pictures the model looked at, and for agentic the steps and timings;
+One question goes to every selected solution (sidebar: **Solutions to compare**) **at the same time**, each in its
+own thread, and a tile fills in the moment its answer arrives: a slow solution never holds up the others, and a failed
+one shows its error in its own tile. The tiles sit in one row (or two per row, sidebar: **Tiles**), Word and MarkItDown
+of each approach next to each other, and every tile has the same layout whatever the approach:
+- the answer, then a cost line: seconds, tokens (in, out, reasoning, vision) and passages retrieved / cited;
+- a banner naming the index or collection and the files its passages came from (an error appears if a passage came
+  from another format);
+- **How it got the answer**: the steps (query rewriting, search, picture inspection, answer) with their seconds;
+- the cited passages, with their report, file (`RA02752.docx` or `RA02752.md`) and chunk id, and their pictures;
 - the full list of retrieved passages, in rank order, with the cited ones marked.
 
-A summary table at the bottom gives the time, passage count and cited count for each solution. The sidebar shows the
+The **Side by side** table under the tiles puts the same measures next to each other: total, retrieval, generation and
+vision seconds; tokens in, out, reasoning and vision; **total tokens** with how far each solution is above the lowest;
+passages, cited, pictures and model rounds. RAG sends pictures inside its one answer call, so they are in its input
+tokens; agentic looks at them in separate vision calls, counted as vision tokens, so total tokens compares like for
+like. The sidebar keeps running totals per solution over the session (tokens and seconds per question) and offers the
+numbers of every answer as a CSV. The shapes and tables live in `comparison.py`, which has no Streamlit in it.
 indexes, chunk counts per file and chunk size for each solution. The passage limit applies to both approaches (agentic
 updates the knowledge base before the next question). Each question takes about a minute or more, since the agentic
 solutions run several model calls. Picture answers can differ between runs.
@@ -315,6 +323,7 @@ eval/                  retention.py (evidence retention + BM25 retrieval, token 
                        judge), scores.py (jsonl -> scores table, merges rag and agentic runs)
 agentic/               Azure AI Search knowledge base + Foundry agent over MCP (search_setup.py, foundry.py, app.py)
 app.py                 Streamlit page comparing agentic and RAG, each on docx and markdown (needs both extras)
+comparison.py          what app.py shows: one result shape for both approaches, parallel runner, token table
 golden/                questions.yaml
 reports/               generated comparison reports
 data/raw/              sample reports (git-ignored)
