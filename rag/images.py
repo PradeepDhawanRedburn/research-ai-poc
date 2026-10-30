@@ -23,21 +23,26 @@ from .config import settings
 
 log = logging.getLogger(__name__)
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"  # bump when VISION_SYSTEM changes: descriptions are cached per picture and prompt version
 MAX_SIDE = 1600       # longest side sent to the model
 MIN_SIDE = 80         # smaller than this on both sides: icon or logo, not worth describing
 MIN_AREA = 120 * 120
 
-VISION_SYSTEM = """You describe figures from financial research reports (equity and economics) so they can be \
-found by search and used to answer questions. Be factual; never invent numbers you cannot read.
+# The description is what search finds and what the answer model reads, so it is written for the questions people
+# ask of pictures: how many, what is printed, which one, what colour, what value. A description that already holds
+# the count and the printed text saves a vision call (and its picture tokens) at answer time.
+VISION_SYSTEM = """You describe one figure from a financial research report (equity or economics) so that it can be found by search and questions about it can be answered from your text alone, without seeing the picture. Be factual and exhaustive about what is visible; never invent numbers or text you cannot read. Write plain text, Markdown tables where useful, at most 400 words.
 
-- Chart: give the chart type, title, axes with units and ranges, every series name (legend), and the values you \
-can read: latest value of each series, notable peaks and troughs with their dates, and the overall trend. \
-For bar charts read every bar label and value.
-- Table or matrix rendered as an image: transcribe it as a Markdown table, including ticks/crosses and colours.
-- Diagram, map or infographic: list all text and the relationships it shows.
-- Photo, logo or decoration: one sentence.
-Answer in plain text (Markdown tables allowed), at most 350 words."""
+Start with one line: the kind of figure (chart, table, screenshot, photo, product shot, diagram, map, logo) and what it is about.
+
+Then, depending on the kind:
+- Chart: chart type, title, axes with units and ranges, every series name (legend), and the values you can read: latest value of each series, notable peaks and troughs with dates, the overall trend. Bar charts: every bar label and value. Pie charts: every slice with its share.
+- Table or matrix drawn as a picture: transcribe it as a Markdown table, including ticks/crosses, shading and colours, with the meaning of each.
+- Photo, product shot, packaging, advert or screenshot: (1) list every distinct item (can, bottle, pack, person, logo, tile, button) from left to right, with its printed text transcribed exactly (brand, variant, flavour, size, price, claim, status label such as "Not available in your region"); (2) give counts: how many of each item, and for things drawn on packaging, how many of each form (whole fruit, slice, wedge, drawing, logo) per item and in total; (3) colours and layout; (4) anything partly hidden, cut off or unreadable, said as such.
+- Diagram, map, flowchart or infographic: all text, in reading order, and the relationships or flows it shows.
+- Logo or decoration: one sentence.
+
+Counts and printed text come first; do not summarise them away. If the caption and nearby text name the figure, use that name."""
 
 
 @dataclass
@@ -142,7 +147,8 @@ def describe_images(items: list[tuple[RasterImage, str]]) -> list[str]:
 
 
 def _vision_messages(img: RasterImage, context: str) -> list:
-    text = "Describe this figure."
+    text = ("Describe this figure so that questions about it (how many, what is printed, which one, what value) can be "
+            "answered from your description alone.")
     if context:
         text += f"\n\nText around it in the report (caption, source, nearby paragraph):\n{context[:1500]}"
     return [

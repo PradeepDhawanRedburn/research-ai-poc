@@ -107,6 +107,14 @@ and a local Chroma database. There are two solutions with the same chunking, ret
 | `docx` | the original Word files in `data/raw/` | `rag/loaders/docx_source.py`. Reads the docx on its own: headings, tables, figure grids, native chart data, Wingdings ticks. Every picture, including EMF-pasted Excel charts, is rasterised and described by the vision model |
 | `markdown` | the A+ output in `out/A+/` | `rag/loaders/markdown_source.py`. Uses the plugin's Markdown as is. The vision model only describes pictures that have no digitised values (the "vision description pending" ones) |
 
+Picture descriptions are written for the questions people ask of pictures: the vision prompt in `rag/images.py` asks
+for every item with its printed text transcribed, counts per item and per form (whole fruit, slice, logo), colours and
+layout, before anything else, so most picture questions can be answered from the chunk text without a vision call at
+answer time. Descriptions are cached in `.rag_cache/vision/` per picture and prompt version (`PROMPT_VERSION`); a new
+prompt version re-describes every picture once on the next ingest, shared by both formats and both approaches. After
+changing it, re-ingest all four: `python -m rag ingest --source docx`, `--source markdown`, and
+`python -m agentic index --source docx --reset`, `--source markdown --reset`.
+
 How it works:
 - **Ingest.** Blocks are read in document order. Figures, charts and tables each get their own chunk, and every
   chunk starts with the report and section name. Chunks are embedded with the Azure embedding deployment into
