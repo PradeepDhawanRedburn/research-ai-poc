@@ -99,7 +99,8 @@ def main(srcs: list[Path] | Path, dst: Path) -> None:
         out += ["", "## Time and tokens", "",
                 "Seconds per question, excluding the judge. RAG rows: retrieval = query embedding + vector search + "
                 "BM25 fusion, generation = the answer model call. Agentic rows: retrieval = the agent rounds that "
-                "called the knowledge base, vision = inspect_figure calls, generation = the remaining rounds. "
+                "called the knowledge base (the agent usually writes its answer in that same round, so generation "
+                "shows 0 unless a picture round followed), vision = inspect_figure calls, generation = other rounds. "
                 "Total covers the whole question. Tokens are those of the answer model (judge not counted).", "",
                 "| solution | metric | mean | median | p95 | sum |", "|---|---|---|---|---|---|"]
         for s in sources:
