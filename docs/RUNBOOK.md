@@ -59,8 +59,9 @@ Regression check, no model involved:
 ```bash
 uv run python -m research_qa retention
 ```
-Expect `ALL ... retained <n>/<n>` with zero lost evidence (84 of 84 on the current golden set; the number of questions
-changes when the verified set lands, the "lost" line must stay at 0). Retrieved@5 was 82 of 84 offline.
+Expect `ALL 116 | 116/116` retained with zero lost evidence on the verified golden set (122 questions, 116 answerable;
+see docs/golden_set.md). Retrieved@5 by plain BM25 was 108 of 116 offline; the misses are ranking, not loss, and the
+agent's query planning is what closes them.
 
 ## 3. Markdown+ index
 

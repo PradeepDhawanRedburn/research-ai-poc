@@ -65,7 +65,7 @@ research_qa/
   evaluate/        golden set, judge, retention check, runner, cost, report
   app/             Streamlit: Overview, Ask, Scorecard, Reports
 src/research_ingest/   the Word extractor and the MarkItDown plugin
-golden/questions.yaml  88 questions with expected answers and evidence strings
+golden/questions.yaml  122 verified questions with expected answers and evidence strings (docs/golden_set.md)
 ```
 
 ### Markdown+ in one paragraph

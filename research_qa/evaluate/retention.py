@@ -71,31 +71,44 @@ def bm25_topk(bm25: BM25Okapi, n: int, query: str, k: int, first: list[int] | No
     return ranked[:k]
 
 
+def question_docs(q: dict) -> list[str]:
+    """Reports a question draws on: `docs` for cross-document questions, else `doc`."""
+    return list(q.get("docs") or [q["doc"]])
+
+
 def check(store: Store | None = None, k: int = 5, routed: bool = True, questions: list[dict] | None = None) -> dict:
     """Rows per answerable question plus aggregates. `routed`: a question naming "Fig N" searches that figure's
     chunks first, which is what the agent layer's filters do."""
     store = store or open_store()
     questions = questions or load_questions()
-    docs = sorted({q["doc"] for q in questions})
-    loaded: dict[str, tuple[str, list[dict], BM25Okapi, list[str]]] = {}
+    docs = sorted({d for q in questions for d in question_docs(q)})
+    loaded: dict[str, tuple[str, list[dict], list[str]]] = {}
     for d in docs:
         if not (store.exists(f"{MARKDOWN}/{d}.md") and store.exists(f"{CHUNKS}/{d}.jsonl")):
             continue
-        full = normalise(store.text(f"{MARKDOWN}/{d}.md"))
         chunks = store.jsonl(f"{CHUNKS}/{d}.jsonl")
-        texts = [c.get("text", "") for c in chunks]
-        loaded[d] = (full, chunks, BM25Okapi([toks(t) for t in texts]) if texts else None, [normalise(t) for t in texts])
+        loaded[d] = (normalise(store.text(f"{MARKDOWN}/{d}.md")), chunks, [normalise(c.get("text", "")) for c in chunks])
+    combined: dict[tuple, tuple] = {}
+
+    def corpus(ds: tuple[str, ...]):
+        """Markdown, chunks, BM25 and normalised texts over one report or, for cross-document questions, several."""
+        if ds not in combined:
+            full = " ".join(loaded[d][0] for d in ds)
+            chunks = [c for d in ds for c in loaded[d][1]]
+            norms = [n for d in ds for n in loaded[d][2]]
+            combined[ds] = (full, chunks, BM25Okapi([toks(c.get("text", "")) for c in chunks]) if chunks else None, norms)
+        return combined[ds]
 
     rows = []
     for q in questions:
         items = evidence_items(q)
         if q.get("type") == "unanswerable" or not items:
             continue
-        hit = loaded.get(q["doc"])
-        if not hit:
+        ds = tuple(question_docs(q))
+        if any(d not in loaded for d in ds):
             rows.append({"id": q["id"], "type": q["type"], "doc": q["doc"], "available": False})
             continue
-        full, chunks, bm25, norms = hit
+        full, chunks, bm25, norms = corpus(ds)
         retained = present(items, full)
         first = None
         m = FIG_RE.search(q["question"]) if routed else None
