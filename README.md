@@ -198,6 +198,7 @@ uv run python -m agentic ask "What does the April Money Map expect the Fed to do
 uv run python -m agentic ask --source markdown    # interactive; follow-ups keep context
 uv run python -m agentic cleanup                  # delete agents, connections, knowledge bases, sources, indexes
 uv run streamlit run agentic/app.py               # web UI, see below
+uv run --extra rag --extra agentic streamlit run app.py   # four-way comparison, see below
 ```
 
 Two solutions, as in `rag/`: `docx` reads the Word files, `markdown` reads the A+ output. Each has its own index
@@ -226,6 +227,29 @@ selected solution, with live chunk counts per source file and the chunk size. Un
 Sidebar controls: **Passages the knowledge base returns per search** (stored on the knowledge base, applied before the next
 question; fewer means a shorter prompt and a faster answer) and **Let the agent look at figure pictures** (off: the agent
 reads only the text and the stored descriptions).
+
+### Four-way comparison (`app.py`)
+
+`app.py` at the root compares all four solutions on the same question: **Agentic** and **RAG**, each on **Word (docx)**
+and on **MarkItDown (A+)**. It needs both extras (`--extra rag --extra agentic`), since it runs `rag/` and `agentic/`
+side by side. `agentic/app.py` is unchanged and still compares the two agentic solutions only.
+
+```powershell
+uv run --extra rag --extra agentic streamlit run app.py
+```
+
+One question goes to every selected solution (sidebar: **Solutions to compare**). Answers appear in two rows, one per
+input format, with agentic and RAG side by side in each. Under every answer you can see which file it came from:
+- a banner names the index or collection and the files its passages came from (an error appears if a passage came from
+  another index or format);
+- the cited passages, with their report, file (`RA02752.docx` or `RA02752.md`) and chunk id;
+- the pictures the model looked at, and for agentic the steps and timings;
+- the full list of retrieved passages, in rank order, with the cited ones marked.
+
+A summary table at the bottom gives the time, passage count and cited count for each solution. The sidebar shows the
+indexes, chunk counts per file and chunk size for each solution. The passage limit applies to both approaches (agentic
+updates the knowledge base before the next question). Each question takes about a minute or more, since the agentic
+solutions run several model calls. Picture answers can differ between runs.
 
 ### Pictures, speed and tuning
 
@@ -258,6 +282,7 @@ src/research_ingest/   package.py (OOXML access), extract.py (canonical model), 
 pipelines/             run_markitdown.py (A), run_azure_cu.py (B)
 eval/                  retention.py (evidence retention + BM25 retrieval, token counts)
 agentic/               Azure AI Search knowledge base + Foundry agent over MCP (search_setup.py, foundry.py, app.py)
+app.py                 Streamlit page comparing agentic and RAG, each on docx and markdown (needs both extras)
 golden/                questions.yaml
 reports/               generated comparison reports
 data/raw/              sample reports (git-ignored)
