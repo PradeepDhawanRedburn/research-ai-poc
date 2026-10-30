@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 from .azure_models import chat_model
 from .config import ROOT
-from .pipeline import answer
+from .pipeline import answer, retriever
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,10 @@ correct: states the expected facts (numbers may differ only in rounding or forma
 partial: some expected facts present, some missing or wrong.
 incorrect: wrong, missing, or claims the documents do not say when they do.
 For an unanswerable question the expected answer says the documents do not cover it; then \
-"correct" means the system declined, and any made-up answer is "incorrect"."""
+"correct" means the system declined, and any made-up answer is "incorrect".
+Judge only against the Expected text. If the expected answer states a fact (including "No", "None", "Only X" or \
+"all red crosses"), a system answer that declines or says the documents do not say is "incorrect"; never read an \
+expected "None" or "No" as "the documents do not say"."""
 
 
 class Verdict(BaseModel):
@@ -60,6 +63,8 @@ def run(sources: list[str], ids: set[str] | None = None, types: set[str] | None 
     questions = load_questions(ids, types, limit)
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
+    for source in sources:  # load Chroma and build BM25 now, so the first question's timing does not include it
+        retriever(source)
     for q in questions:
         items = retention.evidence_items(q)
         for source in sources:
@@ -72,7 +77,7 @@ def run(sources: list[str], ids: set[str] | None = None, types: set[str] | None 
                    "evidence_hits": f"{sum(hits)}/{len(hits)}", "verdict": v.verdict, "reason": v.reason,
                    "answer": a.answer, "expected": q.get("answer", ""),
                    "retrieved": [f"{d.metadata.get('doc_id')}#{d.metadata.get('chunk')}" for d in a.sources],
-                   "images": len(a.images)}
+                   "images": len(a.images), **a.timings, **a.usage}
             rows.append(row)
             log.info("%s %-8s retrieved=%s verdict=%s", q["id"], source, row["evidence_hits"], v.verdict)
 
@@ -82,6 +87,34 @@ def run(sources: list[str], ids: set[str] | None = None, types: set[str] | None 
     path = out_dir / "rag_eval.md"
     path.write_text(_report(rows, sources), encoding="utf-8")
     return path
+
+
+def _cost_section(rows: list[dict], sources: list[str]) -> list[str]:
+    """Time and token summary. Time is per question, excluding the judge; tokens are those of the answer call
+    (the query embedding and the judge are not counted)."""
+    if not any("total_s" in r for r in rows):
+        return []
+
+    def stats(xs: list[float]) -> tuple[float, float, float]:
+        xs = sorted(xs)
+        return sum(xs) / len(xs), xs[len(xs) // 2], xs[min(len(xs) - 1, int(0.95 * len(xs)))]
+
+    out = ["", "## Time and tokens", "",
+           "Seconds per question (mean / median / p95). Retrieval = query embedding + vector search + BM25 fusion; "
+           "generation = the answer model call; total = retrieval + context assembly + generation.", "",
+           "| solution | n | retrieval s | generation s | total s | input tokens (mean) | output tokens (mean) "
+           "| total tokens (sum) |", "|---|---|---|---|---|---|---|---|"]
+    for s in sources:
+        rs = [r for r in rows if r["source"] == s and "total_s" in r]
+        if not rs:
+            continue
+        cells = [" / ".join(f"{v:.2f}" for v in stats([r[k] for r in rs]))
+                 for k in ("retrieval_s", "generation_s", "total_s")]
+        out.append(f"| {s} | {len(rs)} | " + " | ".join(cells) +
+                   f" | {sum(r['input_tokens'] for r in rs) / len(rs):,.0f}"
+                   f" | {sum(r['output_tokens'] for r in rs) / len(rs):,.0f}"
+                   f" | {sum(r['total_tokens'] for r in rs):,} |")
+    return out
 
 
 def _report(rows: list[dict], sources: list[str]) -> str:
@@ -106,6 +139,7 @@ def _report(rows: list[dict], sources: list[str]) -> str:
             ret = [r["evidence_retrieved"] for r in rs if r["evidence_retrieved"] is not None]
             cells += [f"{ans:.0%}", f"{sum(ret) / len(ret):.0%}" if ret else "-"]
         out.append(f"| {'**ALL**' if t == 'ALL' else t} | {n} | " + " | ".join(cells) + " |")
+    out += _cost_section(rows, sources)
     out += ["", "## Per question", "", "| id | type | " + " | ".join(sources) + " |",
             "|---|---|" + "---|" * len(sources)]
     per = defaultdict(dict)

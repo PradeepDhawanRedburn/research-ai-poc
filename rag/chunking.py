@@ -97,7 +97,10 @@ def to_documents(info: DocInfo, blocks: list[Block], source: str) -> list[Docume
             for part in splitter.split_text(b.text):
                 pieces.append((part if part.startswith(b.caption) else f"{b.caption} (continued)\n{part}", b))
         else:
-            pieces.append((b.text.strip(), b))
+            body = b.text.strip()
+            if b.kind == "table" and b.caption and b.caption not in body:
+                body = f"{b.caption}\n{body}"
+            pieces.append((body, b))
     flush()
 
     docs = []

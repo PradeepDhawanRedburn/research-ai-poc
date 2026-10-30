@@ -473,3 +473,84 @@
   question: How many people attended CCEP's Great Britain site visit?
   answer: Not stated in the report.
   evidence: []
+# --- image understanding: answers read from the pictures themselves (not stated in the surrounding text).
+# Written by an engineer from the rendered images; verify against the published PDFs. Evidence is the figure caption,
+# so the retrieval score only says whether the right figure was found.
+- id: IMG-01
+  doc: RA02752
+  type: image
+  question: In the Great Britain production footprint map (Fig 10), how many employees and what share of GB volume does the Wakefield site have?
+  answer: Wakefield has 580 employees and 45% of GB volume.
+  evidence: ["Fig 10: Coca-Cola Great Britain production footprint"]
+- id: IMG-02
+  doc: RA02752
+  type: image
+  question: Which production site in Fig 10 is the smallest, and what are its figures?
+  answer: Morpeth, with 1 production line, 34 employees and 1% of GB volume.
+  evidence: ["Fig 10: Coca-Cola Great Britain production footprint"]
+- id: IMG-03
+  doc: RA02752
+  type: image
+  question: According to Fig 10, what share of GB volume do the two sites around London (Edmonton and Sidcup) produce together?
+  answer: About 48% (Edmonton 27% plus Sidcup 21%).
+  evidence: ["Fig 10: Coca-Cola Great Britain production footprint"]
+- id: IMG-04
+  doc: RA02752
+  type: image
+  question: In the annotated aerial view of the Wakefield plant (Fig 11), how many pallets does the largest automated storage (ASRS) hold, and how many the conventional warehouse?
+  answer: The ASRS is labelled 28,000 pallets and the conventional warehouse 9,000 pallets.
+  evidence: ["Fig 11: The Wakefield mega plant"]
+- id: IMG-05
+  doc: RA02752
+  type: image
+  question: Which production lines are coloured green in the Wakefield plant picture (Fig 11)?
+  answer: The two large PET lines, Large PET Line 3 and Large PET Line 11.
+  evidence: ["Fig 11: The Wakefield mega plant"]
+- id: IMG-06
+  doc: RA02752
+  type: image
+  question: Which three cans are shown side by side in Fig 22, and what is printed on them?
+  answer: Vive, Old Fanta and New Fanta; all are Orange, Zero Sugar cans.
+  evidence: ["Fig 22: Flashbacks to Fanta"]
+- id: IMG-07
+  doc: RA02283
+  type: image
+  question: In the Rainbet live casino lobby screenshot (Fig 6), whose games are shown as "Not available in your region"?
+  answer: The Pragmatic Play titles (for example Speed Baccarat, Baccarat, One Blackjack, Mega Roulette); the Evolution titles are playable.
+  evidence: ["Fig 6: Rainbet"]
+- id: IMG-08
+  doc: RA02283
+  type: image
+  question: How many game tiles in the Rainbet lobby screenshot (Fig 6) are greyed out as not available in the region?
+  answer: 10 visible tiles, all of them Pragmatic Play.
+  evidence: ["Fig 6: Rainbet"]
+- id: IMG-09
+  doc: RA02283
+  type: image
+  question: What game and what betting range does the stake.com screenshot in Fig 8 show?
+  answer: Crazy Time, with bets of $0.10 to 25,000 (the screen reads "Next game soon").
+  evidence: ["Fig 8: stake.com"]
+- id: IMG-10
+  doc: RA02283
+  type: image
+  question: In Fig 14, roughly how much of the announced buyback programme had been completed by September 2025?
+  answer: Cumulative buybacks were about SEK 4,400m against a programme of about SEK 5,500m, so roughly 80%.
+  evidence: ["Fig 14: Cumulative Evolution share buybacks"]
+- id: IMG-11
+  doc: RA02283
+  type: image
+  question: In Fig 14, in which period did cumulative buybacks stay flat, and at what level?
+  answer: Between March and April 2025, at roughly SEK 1,700m.
+  evidence: ["Fig 14: Cumulative Evolution share buybacks"]
+- id: IMG-12
+  doc: RA01220
+  type: image
+  question: In the Treasury General Account chart (Fig 4), when was the balance at its highest and roughly how high, and what is the last value shown?
+  answer: Peak of about $1.8tn (1,800,000m) in mid-2020 to early 2021; the last bar (March 2025) is roughly $0.55-0.6tn.
+  evidence: ["Fig 4: Treasury General Account"]
+- id: IMG-13
+  doc: RA01220
+  type: image
+  question: In Fig 4, was the Treasury General Account balance before 2020 generally above or below $500bn?
+  answer: Below, mostly between about $0.1tn and $0.4tn.
+  evidence: ["Fig 4: Treasury General Account"]

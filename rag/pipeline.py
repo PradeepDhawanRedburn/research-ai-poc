@@ -9,7 +9,8 @@ as images, so the chat model can read a chart itself rather than rely only on th
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
@@ -45,6 +46,8 @@ class Answer:
     answer: str
     sources: list[Document]
     images: list[str]
+    timings: dict[str, float] = field(default_factory=dict)  # retrieval_s, generation_s, total_s
+    usage: dict[str, int] = field(default_factory=dict)      # input_tokens, output_tokens, total_tokens
 
 
 class Retriever:
@@ -103,11 +106,18 @@ def _context(docs: list[Document]) -> tuple[list[dict], list[str]]:
 
 def answer(question: str, source: str, k: int | None = None, doc_id: str | None = None,
            hybrid: bool = True, use_images: bool = True) -> Answer:
+    t0 = time.perf_counter()
     docs = retriever(source).retrieve(question, k=k, doc_id=doc_id, hybrid=hybrid)
+    t1 = time.perf_counter()
     parts, images = _context(docs)
     if not use_images:
         parts = [p for p in parts if p["type"] == "text" and not p["text"].startswith("Image belonging")]
         images = []
     content = [{"type": "text", "text": "Sources:"}, *parts, {"type": "text", "text": f"Question: {question}"}]
+    t2 = time.perf_counter()
     msg = chat_model().invoke([SystemMessage(ANSWER_SYSTEM), HumanMessage(content=content)])
-    return Answer(question, str(msg.content).strip(), docs, images)
+    t3 = time.perf_counter()
+    u = msg.usage_metadata or {}
+    return Answer(question, str(msg.content).strip(), docs, images,
+                  timings={"retrieval_s": t1 - t0, "generation_s": t3 - t2, "total_s": t3 - t0},
+                  usage={k: int(u.get(k, 0)) for k in ("input_tokens", "output_tokens", "total_tokens")})

@@ -1,15 +1,17 @@
 """Solution 1: load the original Word reports directly.
 
-A deliberately self-contained reader (python-docx + the OOXML underneath), independent of `research_ingest`, so
-the comparison with solution 2 shows what the A+ preprocessing buys. What it extracts, in reading order:
+A self-contained reader (python-docx + the OOXML underneath). The one thing it takes from `research_ingest` is the
+EMF chart digitiser, so Excel charts pasted as pictures give numbers here too instead of a vision reading.
+What it extracts, in reading order:
 
 - paragraphs, with headings from the template's styles turned into a section breadcrumb;
 - Wingdings ticks and crosses as ✓ / ✗ (with green/red when the run is coloured);
 - tables as Markdown; tables used as figure grids (caption / picture / source) are walked cell by cell;
 - native Word charts ("Excel charts"): chart type, title, series names, categories and cached values from
   the chart XML, so the numbers are exact;
-- pictures (PNG/JPEG, and EMF which is how pasted Excel charts arrive): rasterised and described by the vision
-  model, with the caption and source as context. The PNG is kept for the answer step.
+- pictures (PNG/JPEG, and EMF which is how pasted Excel charts arrive): rasterised, with the PNG kept for the
+  answer step. EMF charts are digitised (values read from the drawing); the other pictures, and with
+  `vision="all"` every picture, are described by the vision model, with the caption and source as context.
 """
 from __future__ import annotations
 
@@ -25,6 +27,11 @@ from lxml import etree
 
 from ..chunking import Block, DocInfo, is_caption
 from ..images import RasterImage, describe_images, rasterise
+
+try:
+    from research_ingest.emf_chart import digitise, digitised_summary_text
+except ImportError:  # not installed: every EMF goes to the vision model
+    digitise = digitised_summary_text = None
 
 log = logging.getLogger(__name__)
 
@@ -252,7 +259,12 @@ class _Walker:
         img = rasterise(part.blob, ext)
         if img is None or img.too_small:
             return
-        b = Block("figure", "", self.section(), image_path=str(img.png_path), meta={"sha": img.sha})
+        meta = {"sha": img.sha}
+        if ext.lower() == ".emf":
+            digitised = _digitise_emf(part.blob)
+            if digitised:
+                meta["digitised"] = digitised
+        b = Block("figure", "", self.section(), image_path=str(img.png_path), meta=meta)
         self.blocks.append(b)
         self.pending_images.append((b, img))
 
@@ -323,6 +335,18 @@ class _Walker:
                     self.walk(content, in_table)
 
 
+def _digitise_emf(blob: bytes) -> str:
+    """Values read from a pasted Excel chart (EMF is a vector drawing), as the plugin's text; "" if not a chart."""
+    if digitise is None:
+        return ""
+    try:
+        d = digitise(blob)
+    except Exception as ex:  # noqa: BLE001
+        log.warning("emf digitise failed: %s", ex)
+        return ""
+    return digitised_summary_text(d) if d else ""
+
+
 def _attach_captions(blocks: list[Block]) -> list[Block]:
     """Merge caption / source paragraphs into the figure or chart they belong to."""
     out: list[Block] = []
@@ -346,7 +370,10 @@ def _attach_captions(blocks: list[Block]) -> list[Block]:
 
 
 def load_docx(path: Path, vision: str = "auto") -> tuple[DocInfo, list[Block]]:
-    """vision: "none" skips picture descriptions (for inspecting chunks offline); otherwise every picture."""
+    """vision: "auto" describes the pictures without digitised values, "all" describes every picture on top of the
+    digitised numbers, "none" skips descriptions (for inspecting chunks offline)."""
+    if digitise is None:
+        log.warning("research_ingest is not installed (pip install -e .): EMF charts are not digitised")
     document = docx.Document(str(path))
     w = _Walker(document, path.stem)
     w.walk(document.element.body)
@@ -361,12 +388,17 @@ def load_docx(path: Path, vision: str = "auto") -> tuple[DocInfo, list[Block]]:
         before = next((x.text for x in reversed(blocks[:i]) if x.kind == "text"), "")
         figures.append(b)
         contexts.append("\n".join(x for x in (b.caption, b.meta.get("source", ""), before[-600:]) if x))
-    descriptions = [""] * len(figures) if vision == "none" else \
-        describe_images([(by_sha[b.meta["sha"]], ctx) for b, ctx in zip(figures, contexts)])
+    descriptions = [""] * len(figures)
+    if vision != "none":
+        todo = [i for i, b in enumerate(figures) if vision == "all" or not b.meta.get("digitised")]
+        for i, desc in zip(todo, describe_images([(by_sha[figures[i].meta["sha"]], contexts[i]) for i in todo])):
+            descriptions[i] = desc
     for b, desc in zip(figures, descriptions):
+        digitised = b.meta.get("digitised", "")
         b.text = "\n".join(x for x in (f"**{b.caption}**" if b.caption else "**Figure**",
+                                       digitised,
                                        f"Image description (vision model): {desc}" if desc else
-                                       "(image could not be described)",
+                                       "" if digitised else "(image could not be described)",
                                        b.meta.get("source", "")) if x)
     for b in blocks:
         if b.kind == "chart":
@@ -374,8 +406,8 @@ def load_docx(path: Path, vision: str = "auto") -> tuple[DocInfo, list[Block]]:
                                            b.meta.get("source", "")) if x)
     if not w.info.title:
         w.info.title = document.core_properties.title or path.stem
-    log.info("%s: %d blocks, %d figures, %d native charts", path.name, len(blocks), len(figures),
-             sum(b.kind == "chart" for b in blocks))
+    log.info("%s: %d blocks, %d figures (%d digitised), %d native charts", path.name, len(blocks), len(figures),
+             sum(bool(b.meta.get("digitised")) for b in figures), sum(b.kind == "chart" for b in blocks))
     return w.info, blocks
 
 

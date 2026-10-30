@@ -122,8 +122,8 @@ def main(argv: list[str] | None = None) -> int:
         source_arg(p, "docx,markdown")
         p.add_argument("inputs", nargs="*", help="files or folders (default: data/raw for docx, out/A+ for markdown)")
         p.add_argument("--vision", choices=("auto", "all", "none"), default="auto",
-                       help="markdown: which pictures to describe (auto = those without digitised values); "
-                            "docx: 'none' skips descriptions, otherwise all pictures are described")
+                       help="which pictures to describe with the vision model (auto = those without digitised "
+                            "values, all = every picture, none = skip)")
         if name == "ingest":
             p.add_argument("--reset", action="store_true", help="empty the collection first")
         p.set_defaults(fn=fn)

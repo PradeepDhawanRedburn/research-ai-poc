@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 ANCHOR_RE = re.compile(r"\s*\[e\d{4,}\]")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
 IMAGE_RE = re.compile(r"^Image:\s*(\S+\.(?:png|jpe?g|gif|bmp|emf|wmf|tiff?))\s*$", re.I | re.M)
+UNNUMBERED_CAPTION_RE = re.compile(r"^\*\*\s*(fig(ure)?|chart|exhibit|table)\s*:", re.I)  # "**Figure: Summary financials**"
 PENDING = "(vision description pending)"
 DIGITISED = "Values digitised from the drawing"
 
@@ -43,6 +44,11 @@ def _kind(block: str) -> str:
     if sum(l.lstrip().startswith("|") for l in lines) >= 2:
         return "table"
     return "text"
+
+
+def _caption_paragraph(b: Block) -> bool:
+    """A lone "**Fig 7: ...**" line: the plugin writes a table's caption as a paragraph of its own."""
+    return b.kind == "text" and "\n" not in b.text and (is_caption(b.text) or bool(UNNUMBERED_CAPTION_RE.match(b.text)))
 
 
 def load_markdown(path: Path, vision: str = "auto") -> tuple[DocInfo, list[Block]]:
@@ -68,6 +74,8 @@ def load_markdown(path: Path, vision: str = "auto") -> tuple[DocInfo, list[Block
         kind = _kind(block)
         first = block.splitlines()[0].strip("* ")
         caption = first if kind != "text" and (is_caption(first) or block.startswith("**")) else ""
+        if kind == "table" and not caption and blocks and _caption_paragraph(blocks[-1]):
+            caption = blocks.pop().text.strip("* ")  # the table's own caption, not the end of the text before it
         blocks.append(Block(kind, block, " > ".join(headings[k] for k in sorted(headings)), caption=caption))
 
     # pictures: rasterise every one (the answer step shows them to the model), describe the ones that need it
