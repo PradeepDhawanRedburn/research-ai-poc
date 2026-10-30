@@ -209,9 +209,6 @@ def show_passage(p, source: str) -> None:
     if p.meta or p.heading:
         st.caption(" · ".join(x for x in (p.meta, p.heading) if x))
     st.text(p.text[:2500])
-    for img in p.images:
-        if Path(img).exists():
-            st.image(img, width=420)
 
 
 def show_tile(r: Result) -> None:
@@ -229,6 +226,22 @@ def show_tile(r: Result) -> None:
                    + ", ".join(r.files))
     else:
         st.info("No passages were retrieved.")
+
+    pics = r.pictures
+    looked = [img for _, img, on in pics if on]
+    with st.expander(f"Pictures behind the retrieved passages ({len(pics)}), {len(looked)} looked at by a model",
+                     expanded=bool(pics)):
+        if not pics:
+            st.caption("None of the retrieved passages has a picture.")
+        for p, img, on in pics:
+            st.markdown(f"**[{p.rank}] {p.heading or p.kind}** · " + ("**looked at**" if on else "not looked at")
+                        + (" · cited" if p.cited else ""))
+            if Path(img).exists():
+                st.image(img, width=420)
+            else:
+                st.caption(f"file not on this machine: {img}")
+        st.caption("RAG sends the pictures of its best figure chunks with the question; the agent decides whether "
+                   "to inspect one, with a separate vision call each.")
 
     with st.expander(f"How it got the answer: {len(r.steps)} steps"):
         for i, s in enumerate(r.steps, 1):
@@ -252,7 +265,9 @@ def show_tile(r: Result) -> None:
             show_passage(p, r.source)
 
     with st.expander(f"All retrieved passages ({len(r.passages)}), in rank order"):
-        st.dataframe([{"#": p.rank, "cited": "yes" if p.cited else "", "picture": "yes" if p.inspected else "",
+        st.dataframe([{"#": p.rank, "cited": "yes" if p.cited else "",
+                       "picture": ("looked at" if (p.inspected or any(i in r.images for i in p.images))
+                                   else "yes" if p.images else ""),
                        "chunk": p.id, "file": p.file, "kind": p.kind, "section / caption": p.heading}
                       for p in r.passages], hide_index=True, width="stretch")
         if show_all_text:

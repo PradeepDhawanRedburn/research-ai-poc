@@ -89,6 +89,7 @@ def load_markdown(path: Path, vision: str = "auto") -> tuple[DocInfo, list[Block
             if img is not None and not img.too_small:
                 images.append(img)
         b.image_path = ";".join(str(img.png_path) for img in images)
+        b.text = "\n".join(l for l in b.text.splitlines() if not IMAGE_RE.match(l))  # file name is noise to a reader
         needs = vision == "all" or (vision == "auto" and DIGITISED not in b.text)
         if needs:
             before = next((x.text for x in reversed(blocks[:i]) if x.kind == "text"), "")

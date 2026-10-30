@@ -225,7 +225,10 @@ def figure_chunk(source: str, chunk_id: str) -> dict:
         doc = search.get_document(key=chunk_id, selected_fields=["image_path", "page_chunk", "kind", "caption"])
     except Exception:  # noqa: BLE001 - unknown chunk id
         return {}
-    return {"paths": [p for p in (doc.get("image_path") or "").split(";") if p], "text": doc.get("page_chunk", ""),
+    from rag.images import local_png  # the index keeps the path as it was at indexing time; find the file here
+
+    paths = [str(lp) for lp in (local_png(p) for p in (doc.get("image_path") or "").split(";") if p) if lp]
+    return {"paths": paths, "text": doc.get("page_chunk", ""),
             "kind": doc.get("kind", ""), "caption": doc.get("caption", "")}
 
 

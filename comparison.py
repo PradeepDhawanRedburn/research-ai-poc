@@ -100,6 +100,12 @@ class Result:
         return sorted({p.file for p in self.passages})
 
     @property
+    def pictures(self) -> list[tuple[Passage, str, bool]]:
+        """Every picture behind a retrieved passage, in rank order, and whether a model looked at it. RAG sends
+        the first few to the answer model; the agent chooses which to inspect, often none."""
+        return [(p, img, img in self.images or p.inspected) for p in self.passages for img in p.images]
+
+    @property
     def leaked(self) -> list[Passage]:
         """Passages recorded as coming from the other format: must be empty for a fair comparison."""
         return [p for p in self.passages if p.source and p.source != self.source]
@@ -107,6 +113,15 @@ class Result:
 
 def cited_numbers(text: str) -> set[int]:
     return {int(n) for n in CITE_RE.findall(text)}
+
+
+def _local(paths: list[str]) -> list[str]:
+    """Picture files as found on this machine (the index may hold paths from the machine that built it)."""
+    try:
+        from rag.images import local_png
+    except ImportError:  # rag extra not installed: show what exists as is
+        return [p for p in paths if p]
+    return [str(lp) for lp in (local_png(p) for p in paths if p) if lp]
 
 
 def from_agentic(a, source: str) -> Result:
@@ -119,18 +134,18 @@ def from_agentic(a, source: str) -> Result:
         images = []
         if s.kind == "look":
             lk = next(looks, None)
-            images = list(lk.paths) if lk else []
+            images = _local(list(lk.paths)) if lk else []
         steps.append(Step(s.kind, s.title, s.detail, list(s.items), images, s.seconds))
     passages = [Passage(p.rank, p.id, p.source_file, p.doc_id, p.kind, p.caption or p.section,
                         " · ".join(x for x in (p.title, p.date) if x), p.text, p.source, p.cited, p.inspected,
-                        list(p.image_paths)) for p in a.passages]
+                        _local(list(p.image_paths))) for p in a.passages]
     timing = [s for s in a.steps if s.kind == "timing"]
     retrieval_s = sum(s.seconds or 0 for s in timing if "knowledge base" in s.title)
     vision_s = sum(lk.seconds for lk in a.looks)
     return Result(
         key=f"agentic-{source}", approach="agentic", source=source, text=a.text, raw_text=a.raw_text, model=a.model,
         store=a.names.index, passages=passages, steps=steps, queries=list(a.queries),
-        images=[p for lk in a.looks for p in lk.paths], errors=list(a.errors),
+        images=_local([p for lk in a.looks for p in lk.paths]), errors=list(a.errors),
         retrieval_s=retrieval_s, generation_s=max(0.0, a.seconds - retrieval_s - vision_s), vision_s=vision_s,
         total_s=a.seconds, input_tokens=a.input_tokens, output_tokens=a.output_tokens,
         reasoning_tokens=a.reasoning_tokens,

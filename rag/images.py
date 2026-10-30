@@ -84,6 +84,17 @@ def rasterise_file(path: Path) -> RasterImage | None:
     return rasterise(path.read_bytes(), path.suffix)
 
 
+def local_png(path: str | Path) -> Path | None:
+    """The PNG behind a path recorded at ingest time. Chunk metadata and the search index store the absolute path of
+    the cached PNG, which breaks when the index was built on another machine or with another RAG_CACHE_DIR; the
+    file name is the content hash, so the same picture is found again in this machine's cache."""
+    pp = Path(path)
+    if pp.exists():
+        return pp
+    local = _png_dir() / pp.name
+    return local if local.exists() else None
+
+
 def data_url(png_path: Path) -> str:
     return "data:image/png;base64," + base64.b64encode(png_path.read_bytes()).decode()
 
