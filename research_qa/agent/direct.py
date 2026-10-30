@@ -1,0 +1,129 @@
+"""Direct mode: one knowledge-base retrieval, one chat completion. No planning, no tools, no agent.
+
+Same knowledge base as the agent mode of the same arm, so the two modes differ only in what sits on top of
+retrieval. The retrieve call goes through the REST API (POST knowledgebases/{name}/retrieve), which is the stable
+part of the preview surface; the SDK's KnowledgeBaseRetrievalClient would do the same.
+"""
+from __future__ import annotations
+
+import json
+import time
+
+from ..config import ARMS, settings
+from ..schema import Answer, Passage, Step
+
+ANSWER_SYSTEM = """You answer questions about financial research reports using only the numbered passages given.
+- Use only facts in the passages. Do not use outside knowledge.
+- Cite every fact with its passage number, e.g. [3]. Quote numbers exactly as written, with units and dates.
+- Chart values marked approximate: say they are approximate.
+- If the passages do not contain the answer, say "I don't know." and stop; do not guess.
+- If the question names a report (by title, month, company or id), answer from that report.
+Be concise: a direct answer first, then a short supporting explanation."""
+
+
+def retrieve(arm: str, question: str, max_docs: int | None = None) -> dict:
+    from ..search.azure import search_rest
+
+    # the passage limit lives on the knowledge base (retrieveDefaults), the same for both modes; `max_docs` is
+    # accepted for symmetry with the agent path and applied there through knowledge.set_max_docs
+    body = {"messages": [{"role": "user", "content": [{"type": "text", "text": question}]}]}
+    return search_rest("POST", f"knowledgebases/{settings.names(arm).knowledge_base}/retrieve", body)
+
+
+def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[str]]:
+    """Passages from a retrieve response: the `references` (with sourceData) when present, else the extractive
+    JSON in the response text. Also returns the query variants the service ran, from `activity`."""
+    out: list[Passage] = []
+    seen: set[str] = set()
+
+    def add(c: dict, fallback_id: str):
+        pid = str(c.get("id") or c.get("chunk_id") or fallback_id)
+        if pid in seen:
+            return
+        seen.add(pid)
+        text = str(c.get("page_chunk") or c.get("content_text") or c.get("chunk") or c.get("content") or "")
+        source_file = str(c.get("source_file") or c.get("metadata_storage_name") or "")
+        out.append(Passage(rank=len(out) + 1, id=pid,
+                           doc_id=str(c.get("doc_id") or (source_file.rsplit(".", 1)[0] if source_file else "")),
+                           source_file=source_file, kind=str(c.get("kind") or ("chunk" if arm == "word" else "")),
+                           heading=str(c.get("caption") or c.get("figure") or c.get("section") or ""), text=text,
+                           assets=[a for a in str(c.get("assets") or "").split(";") if a],
+                           title=str(c.get("title") or ""), date=str(c.get("date") or "")))
+
+    for ref in resp.get("references", []) or []:
+        data = ref.get("sourceData") or {}
+        add(data, str(ref.get("docKey") or ref.get("id") or ""))
+    if not out:
+        for msg in resp.get("response", []) or []:
+            for part in msg.get("content", []) or []:
+                try:
+                    docs = json.loads(part.get("text") or "[]")
+                except (TypeError, ValueError):
+                    continue
+                for d in docs if isinstance(docs, list) else []:
+                    c = d if isinstance(d, dict) else {}
+                    inner = c.get("content")
+                    if isinstance(inner, str):
+                        try:
+                            inner = json.loads(inner)
+                        except ValueError:
+                            inner = {"page_chunk": inner}
+                    add(inner if isinstance(inner, dict) else c, str(c.get("ref_id", len(out) + 1)))
+    queries: list[str] = []
+    for act in resp.get("activity", []) or []:
+        q = act.get("query") or {}
+        if isinstance(q, dict) and q.get("search"):
+            queries.append(str(q["search"]))
+        elif isinstance(act.get("searchQuery"), str):
+            queries.append(act["searchQuery"])
+    return out, queries
+
+
+def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
+    from ..search.azure import openai_client
+
+    if arm not in ARMS:
+        raise ValueError(f"unknown arm {arm!r}")
+    n = settings.names(arm)
+    ans = Answer(arm=arm, mode="direct", question=question, text="", model=settings.answer_model,
+                 store=n.knowledge_base)
+    t0 = time.perf_counter()
+    try:
+        resp = retrieve(arm, question, max_docs)
+    except Exception as e:  # noqa: BLE001 - the answer records the failure
+        ans.errors.append(f"retrieve failed: {type(e).__name__}: {str(e)[:300]}")
+        resp = {}
+    ans.passages, ans.queries = passages_from_retrieve(resp, arm)
+    ans.retrieval_s = time.perf_counter() - t0
+    ans.steps.append(Step("retrieve", f"Knowledge base {n.knowledge_base}: {len(ans.passages)} passages",
+                          "One retrieval, hybrid search with semantic reranking.", items=list(ans.queries),
+                          seconds=ans.retrieval_s))
+
+    sources = "\n\n".join(f"[{p.rank}] ({p.doc_id or p.source_file}{', ' + p.kind if p.kind else ''})\n{p.text}"
+                          for p in ans.passages) or "(no passages)"
+    reasoning = settings.answer_model.startswith(("gpt-5", "o"))
+    kw = {"reasoning_effort": settings.reasoning_effort} if reasoning else {"temperature": 0}
+    t1 = time.perf_counter()
+    r = openai_client().chat.completions.create(
+        model=settings.answer_model, max_completion_tokens=1500,
+        messages=[{"role": "system", "content": ANSWER_SYSTEM},
+                  {"role": "user", "content": f"Passages:\n{sources}\n\nQuestion: {question}"}], **kw)
+    ans.generation_s = time.perf_counter() - t1
+    u = getattr(r, "usage", None)
+    ans.input_tokens = int(getattr(u, "prompt_tokens", 0) or 0)
+    ans.output_tokens = int(getattr(u, "completion_tokens", 0) or 0)
+    ans.reasoning_tokens = int(getattr(getattr(u, "completion_tokens_details", None), "reasoning_tokens", 0) or 0)
+    ans.text = ans.raw_text = (r.choices[0].message.content or "").strip()
+    ans.total_s = time.perf_counter() - t0
+    mark_cited(ans)
+    ans.steps.append(Step("answer", f"{settings.answer_model} wrote the answer and cited {len(ans.cited)} passages",
+                          seconds=ans.generation_s))
+    return ans
+
+
+def mark_cited(ans: Answer) -> None:
+    import re
+
+    nums = {int(x) for x in re.findall(r"\[(\d+)\]", ans.text)}
+    for p in ans.passages:
+        p.cited = p.rank in nums

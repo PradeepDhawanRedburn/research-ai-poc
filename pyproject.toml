@@ -1,7 +1,7 @@
 [project]
 name = "research-ingest"
 version = "0.1.0"
-description = "Deterministic extraction of research .docx reports into a canonical model, with a MarkItDown plugin"
+description = "Research reports Q&A: Word to Markdown+ with a MarkItDown plugin, Azure AI Search knowledge bases, Foundry agents"
 requires-python = ">=3.12"
 dependencies = [
     "lxml>=6.1.3",
@@ -13,29 +13,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Multimodal RAG (rag/): Azure AI Foundry models through LangChain, local Chroma
-rag = [
-    "azure-identity>=1.19",
-    "chromadb>=1.0",
-    "langchain-chroma>=1.0",
-    "langchain-core>=1.0",
-    "langchain-openai>=1.0",
-    "langchain-text-splitters>=1.0",
-    "pillow>=11.0",
-    "python-docx>=1.1",
-    "python-dotenv>=1.0",
-    "streamlit>=1.40",
-    "truststore>=0.10",
-]
-agentic = [
+# Everything beyond the Word extractor: the store, Azure AI Search, Foundry agents, models, the app
+azure = [
     "azure-ai-projects==2.2.0",
     "azure-identity>=1.27.0",
-    "azure-mgmt-cognitiveservices>=14.1.0",
     "azure-search-documents==12.1.0b2",
+    "azure-storage-blob>=12.25",
     "openai>=3.41.0",
-    "python-dotenv>=1.2.4",
-    "requests>=2.34.2",
-    "truststore>=0.10.5",
+    "pillow>=11.0",
+    "python-dotenv>=1.0",
+    "requests>=2.32",
+    "streamlit>=1.50",
+    "truststore>=0.10",
 ]
 
 [project.entry-points."markitdown.plugin"]
@@ -46,7 +35,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/research_ingest"]
+packages = ["src/research_ingest", "research_qa"]
 
 [tool.uv]
 package = true

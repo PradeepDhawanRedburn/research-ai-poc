@@ -1,0 +1,15 @@
+# Prices per million tokens, in `currency`, for the deployments named in .env. Used by the evaluation and the app
+# to show cost per question. Leave a value empty and that deployment is reported as "not priced"; no cost is ever
+# estimated from a guess. Azure OpenAI prices: https://azure.microsoft.com/pricing/details/azure-openai/ (pick the
+# region and the deployment type, Global Standard unless yours differs). Vision calls are priced at the input rate
+# of the vision deployment, because their input and output tokens are recorded together.
+currency: GBP
+prices:
+  gpt-5-mini:                # ANSWER_MODEL / AGENT_MODEL, also the default VISION_DEPLOYMENT
+    input:
+    output:
+  gpt-4.1:                   # if used as JUDGE_DEPLOYMENT or VISION_DEPLOYMENT (the judge is not counted in cost)
+    input:
+    output:
+  text-embedding-3-large:    # AZURE_EMBEDDING_DEPLOYMENT, ingestion only (not part of cost per question)
+    input:

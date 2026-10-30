@@ -1,3 +1,7 @@
+# confidential inputs and generated outputs live in the store (Blob), not in git
+data/
+out/
+.cache/
 reports/
 .tiktoken_cache/
 .venv/

@@ -222,7 +222,9 @@ def render_drawing(d: dict, assets: dict) -> str:
                 bits.append("axis values in image: " + ", ".join(axis))
         if dig and digitised_issue_text(dig):
             bits.append(digitised_issue_text(dig))
-        if a.get("ext") in ("png", "jpeg", "jpg", "svg") or (dig and digitised_issue_text(dig)):
+        if d.get("description"):  # set by an ingest step that ran a vision model over the picture
+            bits.append(f"Image description (vision model): {d['description'].strip()}")
+        elif a.get("ext") in ("png", "jpeg", "jpg", "svg") or (dig and digitised_issue_text(dig)):
             bits.append("(vision description pending)")
         return "\n".join(bits)
     if kind == "shape":
