@@ -10,7 +10,8 @@ Two ways of getting the Word files into Azure are compared on the same questions
 | **Word, Azure default** | Azure AI Search's own Blob pipeline: cracking, chunking, embeddings, image verbalisation | none |
 | **Markdown+** | MarkItDown with the research plugin: charts read as numbers, matrices as states, pictures described once; facts and chunks pushed from the store | the plugin and this package |
 
-Design, decisions and the alternatives considered: [docs/DESIGN.md](docs/DESIGN.md). Phase 0 evidence:
+Design, decisions and the alternatives considered: [docs/DESIGN.md](docs/DESIGN.md). Bringing it up on Azure, step by
+step with expected outputs: [docs/RUNBOOK.md](docs/RUNBOOK.md). Roles: `scripts/setup_access.ps1`. Phase 0 evidence:
 [docs/history](docs/history).
 
 ## How it fits together
