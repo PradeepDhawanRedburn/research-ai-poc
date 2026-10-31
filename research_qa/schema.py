@@ -134,6 +134,7 @@ class Passage:
     assets: list[str] = field(default_factory=list)   # store keys (Markdown+); Word arm chunks have none
     title: str = ""
     date: str = ""
+    url: str = ""               # the reference URL the knowledge base gave, used to resolve citations
 
 
 @dataclass

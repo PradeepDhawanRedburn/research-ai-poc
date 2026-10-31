@@ -263,9 +263,21 @@ def word_sync(wait_s: int = 0) -> dict:
         idx = created.get("index")
         if idx:
             sc = SearchClient(endpoint=settings.search_endpoint, index_name=idx, credential=credential())
-            res = sc.search("*", top=0, include_total_count=True)
+            res = sc.search("*", top=200, include_total_count=True)
             out["index"] = idx
             out["documents_in_index"] = res.get_count()
+            docs = list(res)
+            if docs:
+                first = {k: v for k, v in docs[0].items() if not isinstance(v, list)}
+                out["fields"] = sorted(first.keys())
+                out["sample"] = {k: (str(v)[:160] if isinstance(v, str) else v) for k, v in first.items()
+                                 if not k.startswith("@")}
+                name_key = next((k for k in first if "storage_name" in k or k in ("title", "source_file", "file_name")), None)
+                if name_key:
+                    counts: dict[str, int] = {}
+                    for d in docs:
+                        counts[str(d.get(name_key))] = counts.get(str(d.get(name_key)), 0) + 1
+                    out["chunks_per_file"] = counts
     except Exception as e:  # noqa: BLE001
         out["index_error"] = f"{type(e).__name__}: {str(e)[:160]}"
     return out

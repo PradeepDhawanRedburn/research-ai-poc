@@ -135,18 +135,25 @@ def list_agents() -> list[str]:
 
 # ----------------------------------------------------------------------------- parsing the Responses output
 
+MARKER_RE = re.compile(r"【[^】]*】")
+
+
 def annotations(response) -> list[tuple[int, int, str]]:
-    """(start, end, chunk id) of each citation link in the answer text. The span covers the 【..】 marker."""
+    """(start, end, reference) of each citation in the answer text. The span covers the 【..】 marker. The reference
+    is the chunk key when the citation URL has the /indexes/<index>/docs/<key> form, else the raw URL or file id,
+    which finish() tries to match to a passage and otherwise reports as unmapped."""
     out = []
     for item in getattr(response, "output", []) or []:
         if getattr(item, "type", "") != "message":
             continue
         for c in getattr(item, "content", []) or []:
             for a in getattr(c, "annotations", None) or []:
-                url = getattr(a, "url", "") or ""
-                m = DOC_URL_RE.search(url) if getattr(a, "type", "") == "url_citation" else None
-                if m:
-                    out.append((a.start_index, a.end_index, m.group(2)))
+                start, end = getattr(a, "start_index", None), getattr(a, "end_index", None)
+                if start is None or end is None:
+                    continue
+                url = getattr(a, "url", "") or getattr(a, "file_id", "") or getattr(a, "filename", "") or ""
+                m = DOC_URL_RE.search(url)
+                out.append((start, end, m.group(2) if m else (url or f"{getattr(a, 'type', '')}")))
     return out
 
 
@@ -171,12 +178,17 @@ def add_passages(ans: Answer, item) -> list[Passage]:
         text = str(c.get("page_chunk") or c.get("content_text") or c.get("chunk") or c.get("content") or "")
         source_file = str(c.get("source_file") or c.get("metadata_storage_name") or c.get("title") or "")
         doc_id = str(c.get("doc_id") or (source_file.rsplit(".", 1)[0] if source_file else ""))
+        if ans.arm == "word" and not ans.passages and not new:
+            # first look at Azure's own chunk shape: shown in the steps so the field mapping can be checked
+            ans.steps.append(Step("retrieve", "Fields in Azure's Word chunks",
+                                  "content: " + ", ".join(sorted(c.keys()))[:800] + f"\nurl: {d.get('url', '')}"
+                                  + f"\ntext field used: {'yes' if text else 'NONE MATCHED'}"))
         new.append(Passage(
             rank=len(ans.passages) + len(new) + 1, id=pid, doc_id=doc_id, source_file=source_file,
             kind=str(c.get("kind") or ("chunk" if ans.arm == "word" else "")),
             heading=str(c.get("caption") or c.get("figure") or c.get("section") or ""), text=text,
             assets=[a for a in str(c.get("assets") or "").split(";") if a],
-            title=str(c.get("title") or ""), date=str(c.get("date") or ""),
+            title=str(c.get("title") or ""), date=str(c.get("date") or ""), url=str(d.get("url") or ""),
         ))
     ans.passages.extend(new)
     return new
@@ -238,15 +250,30 @@ def finish(ans: Answer, final) -> None:
     """Replace the agent's citation markers with passage numbers, mark cited passages, add the answer step."""
     raw = (getattr(final, "output_text", "") if final is not None else "") or ""
     notes = annotations(final) if final is not None else []
-    cited_ids = list(dict.fromkeys(cid for _, _, cid in notes))
     rank: dict[str, int] = {}
     for p in ans.passages:
         rank.setdefault(p.id, p.rank)
-        p.cited = p.id in cited_ids
-    text = raw
+        p.cited = False
+    by_url = {p.url: p.id for p in ans.passages if p.url}
+    text, unmapped = raw, []
     for start, end, cid in sorted(notes, reverse=True):
-        if 0 <= start < end <= len(text):
-            text = text[:start] + f"[{rank.get(cid, cid)}]" + text[end:]
+        if not (0 <= start < end <= len(text)):
+            continue
+        pid = cid if cid in rank else by_url.get(cid)
+        if pid is None:  # not one of our passages: drop the marker, remember what it pointed at
+            unmapped.append(cid)
+            text = text[:start] + text[end:]
+            continue
+        ans.passages[rank[pid] - 1].cited = True
+        text = text[:start] + f"[{rank[pid]}]" + text[end:]
+    # markers the Responses API did not annotate: tool-result citations become a word, anything else is dropped
+    text = MARKER_RE.sub(lambda m: " (facts)" if "lookup_facts" in m.group(0) else
+                         (" (picture)" if "inspect_figure" in m.group(0) else ""), text)
+    text = re.sub(r"[ \t]+([.,;:)])", r"\1", text)
+    if unmapped:
+        ans.steps.append(Step("answer", f"{len(unmapped)} citation(s) pointed outside the retrieved passages",
+                              "\n".join(dict.fromkeys(unmapped))[:1500]))
+    cited_ids = [p.id for p in ans.passages if p.cited]
     ans.raw_text, ans.text = raw, text
     ans.steps.append(Step("answer", f"Agent wrote the answer and cited {len(cited_ids)} passages",
                           "I don't know" if raw.strip().lower().startswith("i don't know") else ""))
