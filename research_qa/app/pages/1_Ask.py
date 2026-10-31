@@ -138,6 +138,7 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
 
     results: dict[str, Answer] = {}
     errors: dict[str, str] = {}
+    partials: dict[str, str] = {}   # streamed text so far, per direct tile; drawn on the main thread each tick
     tasks = {}
     for k in ks:
         arm, mode = k.split("/")
@@ -155,8 +156,9 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
             except Exception as e:  # noqa: BLE001
                 errors[k] = f"{type(e).__name__}: {e}"
                 continue
-        tasks[k] = (lambda q=question, a=arm, m=mode, c=chat: ask(q, a, m, use_tools=use_tools, chat=c,
-                                                                  max_docs=max_docs))
+        tasks[k] = (lambda q=question, a=arm, m=mode, c=chat, key=k: ask(
+            q, a, m, use_tools=use_tools, chat=c, max_docs=max_docs,
+            on_token=(lambda text, key=key: partials.__setitem__(key, text)) if m == "direct" else None))
     expected_note(question)
     slots = tile_grid(ks)
     for k in ks:
@@ -185,7 +187,12 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
 
     def on_tick(running: dict):
         for k, secs in running.items():
-            ui.running_tile(slots[k], *k.split("/"), secs=secs)
+            if partials.get(k):
+                with slots[k].container():
+                    st.markdown(partials[k] + " ▌")
+                    st.caption(f"Writing… {secs:.0f} s")
+            else:
+                ui.running_tile(slots[k], *k.split("/"), secs=secs)
 
     if tasks:
         run_parallel(tasks, on_done, on_tick, tick=1.0)

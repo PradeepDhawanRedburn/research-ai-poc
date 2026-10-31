@@ -87,6 +87,7 @@ def recall_rows(rows: list[dict], store: Store, k: int = 10, questions: list[dic
         items = evidence_items(q) if q else []
         rec = {"id": r["id"], "type": r["type"], "arm": r["arm"], "mode": r["mode"],
                "combo": r.get("combo") or combo_key(r["arm"], r["mode"]), "total_s": float(r.get("total_s") or 0),
+               "first_token_s": float(r.get("first_token_s") or 0),
                "total_tokens": int(r.get("total_tokens") or 0), "recall": None, "resolved": True}
         if items:
             ids = list(r.get("retrieved") or [])[:k]
@@ -119,6 +120,7 @@ def summarise(recs: list[dict]) -> dict:
                 "unresolved": sum(1 for r in scored if not r["resolved"]),
                 "p50_s": _p([r["total_s"] for r in rs], 0.5),
                 "p95_s": _p([r["total_s"] for r in rs], 0.95),
+                "p95_first_token_s": _p([r["first_token_s"] for r in rs if r["first_token_s"]], 0.95),
                 "mean_s": statistics.mean([r["total_s"] for r in rs]) if rs else 0.0,
                 "mean_tokens": statistics.mean([r["total_tokens"] for r in rs]) if rs else 0.0,
             }
@@ -140,11 +142,20 @@ def markdown(run_name: str, summary: dict, k: int, config: dict | None = None) -
         n = max((summary[c].get(t, {}).get("n", 0) for c in combos), default=0)
         cells = [pct(summary[c].get(t, {}).get("recall")) for c in combos]
         out.append(f"| {TYPE_LABEL.get(t, t)} | {n} | " + " | ".join(cells) + " |")
-    out += ["", "## Latency (p95 seconds; p50 in brackets)", "",
-            "| type | " + " | ".join(combos) + " |", "|---|" + "---|" * len(combos)]
+    streamed = any(summary[c]["all"].get("p95_first_token_s") for c in combos)
+    out += ["", "## Latency (p95 seconds; p50 in brackets" + ("; p95 to first token after the slash)" if streamed else ")"),
+            "", "| type | " + " | ".join(combos) + " |", "|---|" + "---|" * len(combos)]
     for t in types + ["all"]:
-        cells = [f"{summary[c][t]['p95_s']:.1f} ({summary[c][t]['p50_s']:.1f})" if t in summary[c] else "-"
-                 for c in combos]
+        cells = []
+        for c in combos:
+            s = summary[c].get(t)
+            if not s:
+                cells.append("-")
+                continue
+            cell = f"{s['p95_s']:.1f} ({s['p50_s']:.1f})"
+            if streamed and s.get("p95_first_token_s"):
+                cell += f" / {s['p95_first_token_s']:.1f}"
+            cells.append(cell)
         out.append(f"| {TYPE_LABEL.get(t, t)} | " + " | ".join(cells) + " |")
     out += ["", "## Tokens per question (mean)", "", "| type | " + " | ".join(combos) + " |",
             "|---|" + "---|" * len(combos)]

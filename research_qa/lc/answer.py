@@ -86,7 +86,30 @@ def _shaped_by(info: dict | None) -> str:
 
 # ----------------------------------------------------------------------------- direct
 
-def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None) -> Answer:
+def stream_answer(model, messages, on_token=None, t_start: float | None = None) -> tuple[str, object, float]:
+    """Stream a chat completion: returns (text, final message-like with usage_metadata, first_token_s). Falls back to
+    one invoke() when the model has no stream(). `on_token(text_so_far)` is called as the text grows."""
+    t_start = t_start if t_start is not None else time.perf_counter()
+    if not hasattr(model, "stream"):
+        msg = model.invoke(messages)
+        c = msg.content if isinstance(msg.content, str) else " ".join(
+            p.get("text", "") if isinstance(p, dict) else str(p) for p in msg.content)
+        return c.strip(), msg, time.perf_counter() - t_start
+    text, first, last = "", 0.0, None
+    for chunk in model.stream(messages):
+        last = chunk
+        c = chunk.content if isinstance(chunk.content, str) else " ".join(
+            p.get("text", "") if isinstance(p, dict) else str(p) for p in chunk.content)
+        if c:
+            if not text:
+                first = time.perf_counter() - t_start
+            text += c
+            if on_token is not None:
+                on_token(text)
+    return text.strip(), last, first
+
+
+def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None, on_token=None) -> Answer:
     from langchain_core.messages import HumanMessage, SystemMessage
 
     from .models import chat_model, usage_of
@@ -122,11 +145,17 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=
                                   items=[f"[{p.rank}] {p.heading or p.kind}" for p, _ in shown],
                                   assets=[k for _, k in shown]))
     t1 = time.perf_counter()
-    msg = chat_model().invoke([SystemMessage(system), HumanMessage(content=content)])
+    msgs = [SystemMessage(system), HumanMessage(content=content)]
+    if settings.stream_direct:
+        text, msg, first = stream_answer(chat_model(), msgs, on_token, t_start=t0)
+        ans.first_token_s = first
+    else:
+        msg = chat_model().invoke(msgs)
+        text = str(msg.content if isinstance(msg.content, str) else
+                   " ".join(p.get("text", "") if isinstance(p, dict) else str(p) for p in msg.content)).strip()
     ans.generation_s = time.perf_counter() - t1
     ans.input_tokens, ans.output_tokens, ans.reasoning_tokens = usage_of(msg)
-    ans.text = ans.raw_text = str(msg.content if isinstance(msg.content, str) else
-                                  " ".join(p.get("text", "") if isinstance(p, dict) else str(p) for p in msg.content)).strip()
+    ans.text = ans.raw_text = text
     ans.total_s = time.perf_counter() - t0
     mark_cited(ans)
     ans.steps.append(Step("answer", f"{settings.answer_model} wrote the answer and cited {len(ans.cited)} passages",

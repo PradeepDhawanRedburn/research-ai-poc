@@ -135,6 +135,7 @@ class Settings:
     rerank_api_key: str = _env("RERANK_API_KEY")
     rerank_model: str = _env("RERANK_MODEL")
     # --- direct mode: attach the original pictures behind the top figure passages to the answer call (both engines)
+    stream_direct: bool = _env("STREAM_DIRECT", "1") not in ("0", "false", "no", "off")   # stream direct answers
     direct_images: bool = _env("DIRECT_IMAGES", "0") not in ("0", "false", "no", "off", "")
     direct_images_max: int = int(_env("DIRECT_IMAGES_MAX", "3"))
     # --- the caller's identity for access control: comma-separated principals ("user:<email>", "group:<name>");
