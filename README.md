@@ -7,7 +7,7 @@ Two ways of getting the Word files into Azure are compared on the same questions
 
 | Arm | What happens to the Word file | Custom code |
 |---|---|---|
-| **Word, Azure default** | Azure AI Search's own Blob pipeline: cracking, chunking, embeddings, image verbalisation | none |
+| **Word, default conversion** | azure engine: Azure AI Search's own Blob pipeline (cracking, chunking, embeddings, image verbalisation); langchain engine: stock MarkItDown | none |
 | **Markdown+** | MarkItDown with the research plugin: charts read as numbers, matrices as states, pictures described once; facts and chunks pushed from the store | the plugin and this package |
 
 Design, decisions and the alternatives considered: [docs/DESIGN.md](docs/DESIGN.md). Bringing it up on Azure, step by
@@ -32,31 +32,58 @@ arm is Azure's own Blob ingestion, which skips files above the tier's size cap, 
 MarkItDown conversion with no plugin). Same arms, modes, app and evaluation either way; `uv sync --extra azure
 --extra langchain` installs both.
 
-## Setup
+## Setup on any machine
 
+The Blob container is the system of record and is shared. Whatever one machine ingested, every other machine reads;
+nothing is re-converted. What is per machine is the checkout, `.env`, the sign-in, and, with the LangChain engine,
+the Chroma collections (derived data, rebuilt in minutes from the store).
+
+1. Clone, then install. Corporate TLS inspection needs `UV_SYSTEM_CERTS=1` in front of `uv`.
+   ```bash
+   uv sync --extra azure --extra langchain
+   ```
+2. Copy `.env.example` to `.env` and fill it in (or copy the `.env` from a machine that already works; it holds no
+   per-machine paths). Pick the engine with `RETRIEVAL_BACKEND=azure` or `langchain`. Optional: `prices.yaml` for
+   cost per question.
+3. Sign in: `az login` (Entra ID everywhere unless `AZURE_OPENAI_API_KEY` is set). Roles are granted once per
+   environment, not per machine: `scripts/setup_access.ps1`.
+4. Check what is already there:
+   ```bash
+   uv run python -m research_qa status
+   ```
+   Four raw files, four manifests and about 470 chunks in the store mean ingest is done; skip it.
+5. Bring up the engine you chose. Both read everything from the store.
+
+| | `RETRIEVAL_BACKEND=azure` | `RETRIEVAL_BACKEND=langchain` |
+|---|---|---|
+| Where retrieval runs | Azure AI Search knowledge bases, Foundry agents | Chroma and LangChain in this process |
+| Per-machine bring-up | nothing: the index, knowledge bases and agents are already in Azure if another machine created them (`status` shows them) | `uv run python -m research_qa index --reset` once: builds both collections under `CHROMA_DIR` (default `.cache/chroma`) |
+| First time in an environment | `index`, then `up` (knowledge sources, bases, agents); about 5 minutes plus Azure's Word ingestion | the same `index --reset`; about 5 minutes: downloads the four Word files for the stock conversion and embeds about 750 chunks |
+| Word arm | Azure's own Blob ingestion; files above the tier's cap (16 MB on Basic) are skipped | stock MarkItDown conversion, no size limit, no plugin |
+| Commands not used | | `knowledge`, `agents`, `up`, `word-sync`, `down` (they print a note and exit) |
+| Switching engines later | change the flag; the Azure objects stay | change the flag; Chroma stays on disk, no rebuild |
+
+Then the same commands either way:
 ```bash
-uv sync --extra azure
+uv run python -m research_qa ask "What is the 2030 value for Germany in Fig 27?" --arm markdown-plus --mode agent
+uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct --run <name>
+uv run streamlit run research_qa/app/Overview.py
 ```
+Evaluation runs are written to `eval/<run>/` in the store, so they too are shared: the Scorecard on any machine shows
+every run. Name runs by engine (`baseline-azure`, `baseline-langchain`) to keep them apart.
 
-Corporate TLS inspection: `UV_SYSTEM_CERTS=1` for `uv`. Copy `.env.example` to `.env` and fill in the store, the
-model deployments, the search service and the Foundry project. Sign in with `az login` (Entra ID is used everywhere
-unless a key is given). Optional: fill `prices.yaml` so the app and the evaluation show cost per question.
+`scripts/runbook.ps1` does all of this in order for whichever engine `.env` names, and skips the steps that are
+already done in the store; [docs/RUNBOOK.md](docs/RUNBOOK.md) is the same sheet with expected outputs.
 
-## Run
+## The first time, from Word files
 
+Only when the store is empty (a new container) or a report changes:
 ```bash
 uv run python -m research_qa upload data/raw/*.docx     # Word files into raw/ in the store
-uv run python -m research_qa ingest                     # Word -> Markdown+, assets, facts, chunks, manifest
-uv run python -m research_qa index                      # Markdown+ index (push chunks with embeddings)
-uv run python -m research_qa up                         # azure engine: knowledge sources, bases and agents (langchain: not needed)
-uv run python -m research_qa status                     # what is in the store and in Azure
-uv run python -m research_qa ask "What is the 2030 value for Germany in Fig 27?" --arm markdown-plus --mode agent
-uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct
-uv run streamlit run research_qa/app/Overview.py        # the demo
+uv run python -m research_qa ingest                     # Word -> Markdown+, assets, facts, chunks, manifest (3-5 min, vision calls cached)
+uv run python -m research_qa retention                  # no-model check: every golden evidence string is in the Markdown
 ```
-
-The Word arm's knowledge source ingests `raw/` on the Azure side; `status` shows its progress. `down` removes
-the Azure objects; it never touches the store.
+After an ingest, re-run `index` (azure: pushes the new chunks; langchain: `index --reset` rebuilds the collections).
 
 ## The pieces
 

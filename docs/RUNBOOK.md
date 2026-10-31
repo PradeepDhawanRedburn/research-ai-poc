@@ -4,8 +4,7 @@ For Pradeep. Every step that needs Azure credentials is here, in order, with the
 should see, and what to do if you do not. Steps 0 to 2 were run offline on this branch and are only repeated to
 confirm; steps 3 onward need `az login`.
 
-**Shortcut:** `.\scripts
-unbook.ps1` runs steps 1 to 6 below in order, stops at the first failure and writes a
+**Shortcut:** `scripts/runbook.ps1` runs steps 1 to 6 below in order for the engine named in `.env` (step 4 and `word-sync` are Azure-engine only), stops at the first failure and writes a
 `runbook-<timestamp>.log` to send back; `-Full` adds the full evaluation, `-From N` resumes at a step.
 
 Run from the repo root in the environment that has the Azure packages (`uv sync --extra azure`). Where a command may
@@ -67,7 +66,7 @@ Expect `ALL 116 | 116/116` retained with zero lost evidence on the verified gold
 see docs/golden_set.md). Retrieved@5 by plain BM25 was 108 of 116 offline; the misses are ranking, not loss, and the
 agent's query planning is what closes them.
 
-## 2c. Choosing the engine
+## 2c. Choosing the engine (and what a second machine needs)
 
 `RETRIEVAL_BACKEND=azure` runs steps 3 and 4 below. `RETRIEVAL_BACKEND=langchain` replaces them with one command that
 builds the two Chroma collections on this machine (the Word arm from the stock MarkItDown conversion, Markdown+ from
@@ -75,6 +74,11 @@ the store's chunks); `knowledge`, `agents` and `word-sync` are not used:
 ```bash
 uv run python -m research_qa index --reset
 ```
+On a second machine: the store already holds everything from steps 1 and 2, so do not repeat them. With the Azure
+engine there is nothing to bring up (the index, bases and agents are shared). With the LangChain engine run the
+`index --reset` above once; Chroma lives under `CHROMA_DIR` on each machine and is rebuilt from the store in about
+5 minutes (the four Word files are downloaded for the stock conversion, about 750 chunks are embedded).
+
 Known Azure-engine limit, seen on 31 October 2026: the Blob knowledge source skipped three of the four reports because
 they exceed the Basic tier's per-file cap (16 MB; S1 allows 128 MB). `word-sync --wait 0` shows the skipped files in
 the indexer history. Either raise the tier for the demo or report the cap as the first finding of the comparison.
@@ -140,15 +144,16 @@ and needs the real one.
 ## 6. The evaluation: does the rewrite hold up?
 
 ```bash
-uv run python -m research_qa eval --arm markdown-plus --mode agent --limit 10 --run smoke
+uv run python -m research_qa eval --arm markdown-plus --mode agent --limit 10 --run smoke-<engine>
 ```
-About 2 minutes. Expect 10 rows and a report in `eval/smoke/report.md` in the store. This is the same shape as the
+(`<engine>` is azure or langchain; the runbook script names runs this way so the Scorecard shows both engines side by side.)
+About 2 minutes. Expect 10 rows and a report in `eval/smoke-<engine>/report.md` in the store. This is the same shape as the
 agentic run on `code-v1` that scored 10 of 10; anything below 9 of 10 is a regression to look at before the full run.
 
 ```bash
-uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct --run baseline-1
+uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct --run baseline-<engine>
 ```
-About 25 to 35 minutes for 4 combinations × the golden set (resume with `--resume --run baseline-1` after a token
+About 25 to 35 minutes for 4 combinations × the golden set (resume with `--resume --run baseline-<engine>` after a token
 expiry). The report has, per arm and mode: accuracy by question type, evidence found, seconds, tokens by kind, cost
 per question and per 100 questions, and the per-question disagreements between arms. Reference points from before
 the rewrite: 91% on 88 questions (RAG, both inputs through our extractor), 10 of 10 agentic on the first 10, about
