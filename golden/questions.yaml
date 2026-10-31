@@ -19,7 +19,9 @@
 #             "✓ (green)" -> tick_green and "✗ (red)" -> cross_red. Unanswerable questions have no evidence.
 #   group     links the questions of one cross-document theme
 #
-# Counts: 122 questions; by type: chart_native 14, chart_picture 7, cross_document 10, image 18, relationship 6, symbol_matrix 13, table_lookup 14, text_fact 34, unanswerable 6;
+# Counts: 122 questions; by type: chart_native 15, chart_picture 7, cross_document 10, image 18, relationship 6, symbol_matrix 13, table_lookup 15, text_fact 34, unanswerable 5;
+# v1.1 (31 October 2026): EVO-27 was wrongly marked unanswerable; the FY28E EBITDA (€1,671m) is in the Fig 16 table.
+# EVO-20's answer no longer mentions Pragmatic Play (the question does not ask); EVO-03 accepts "Sell" without "reiterated".
 # by primary report: RA01220 21, RA01734 26, RA02283 41, RA02752 34.
 
 # ---------------------------------------------------------------- RA01220  Money Map, April 2025
@@ -333,7 +335,7 @@
   doc: RA02283
   type: text_fact
   question: "What is the rating on Evolution in this report?"
-  answer: "Sell, reiterated."
+  answer: "Sell."
   evidence: ["Reiterate Sell"]
 - id: EVO-04
   doc: RA02283
@@ -435,7 +437,7 @@
   doc: RA02283
   type: symbol_matrix
   question: "In Fig 3, how do Evolution and Hacksaw compare in the Czech Republic?"
-  answer: "Evolution is restricted in all three checks (May, July and October 2025: red crosses) while Hacksaw and Pragmatic Play are available (green ticks)."
+  answer: "Evolution is restricted in all three checks (May, July and October 2025: red crosses) while Hacksaw is available in all three (green ticks)."
   evidence: ["Czech Republic cross_red cross_red cross_red tick_green tick_green"]
 - id: EVO-21
   doc: RA02283
@@ -475,10 +477,10 @@
   evidence: ["2025-10-20 06:30", "2025-10-16"]
 - id: EVO-27
   doc: RA02283
-  type: unanswerable
+  type: table_lookup
   question: "What is Rothschild & Co Redburn's FY28E EBITDA estimate for Evolution, in EUR m?"
-  answer: "The documents do not say."
-  evidence: []
+  answer: "€1,671m (2028E EBITDA in the Fig 16 summary financials table)."
+  evidence: ["1,671"]
 - id: EVO-28
   doc: RA02283
   type: symbol_matrix
