@@ -22,17 +22,23 @@ ANSWER_SYSTEM = """You answer questions about financial research reports using o
 Be concise: a direct answer first, then a short supporting explanation."""
 
 
-def retrieve_body(arm: str, question: str, doc_id: str | None = None) -> dict:
-    """The `intents` request body. A doc_id becomes an OData filterAddOn on the Markdown+ index (its doc_id field
-    is filterable); the Word arm's Blob-built index has no such field, so the filter is not sent for it."""
+def retrieve_body(arm: str, question: str, doc_id: str | None = None, principals=None) -> dict:
+    """The `intents` request body. On the Markdown+ index (filterable fields) the filterAddOn carries the caller's
+    access rights (acl.json, see research_qa/acl.py) and, when given, the doc_id. The Word arm's Blob-built index
+    has neither field, so no filter is sent for it: access control there is Azure's own, not ours."""
+    from .. import acl as access
+
     params = {
         "knowledgeSourceName": settings.names(arm).knowledge_source,
         "kind": "azureBlob" if arm == "word" else "searchIndex",
         "includeReferences": True,
         "includeReferenceSourceData": True,
     }
-    if doc_id and arm != "word":
-        params["filterAddOn"] = "doc_id eq '%s'" % doc_id.replace("'", "''")
+    if arm != "word":
+        clauses = [access.odata_filter(access.caller_principals(principals))]
+        if doc_id:
+            clauses.append("doc_id eq '%s'" % doc_id.replace("'", "''"))
+        params["filterAddOn"] = " and ".join(clauses)
     return {
         "intents": [{"type": "semantic", "search": question}],
         "retrievalReasoningEffort": {"kind": "minimal"},
@@ -41,7 +47,8 @@ def retrieve_body(arm: str, question: str, doc_id: str | None = None) -> dict:
     }
 
 
-def retrieve(arm: str, question: str, max_docs: int | None = None, doc_id: str | None = None) -> dict:
+def retrieve(arm: str, question: str, max_docs: int | None = None, doc_id: str | None = None,
+             principals=None) -> dict:
     from ..search.azure import search_rest
 
     # the passage limit lives on the knowledge base (retrieveDefaults), the same for both modes; `max_docs` is
@@ -53,7 +60,7 @@ def retrieve(arm: str, question: str, max_docs: int | None = None, doc_id: str |
     # Shape from the REST reference (Knowledge Retrieval - Retrieve, 2025-11-01-preview and later): `intents` with
     # semantic queries, the effort stated on the request, and source data asked for on the references so the
     # passages carry their fields (otherwise only ids and the extractive text come back).
-    intents = retrieve_body(arm, question, doc_id)
+    intents = retrieve_body(arm, question, doc_id, principals)
     try:
         return search_rest("POST", path, intents)
     except RuntimeError as first:
@@ -115,7 +122,7 @@ def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[st
     return out, queries
 
 
-def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
+def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None) -> Answer:
     from ..search.azure import openai_client
 
     if arm not in ARMS:
@@ -125,7 +132,7 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
                  store=n.knowledge_base)
     t0 = time.perf_counter()
     try:
-        resp = retrieve(arm, question, max_docs)
+        resp = retrieve(arm, question, max_docs, principals=principals)
     except Exception as e:  # noqa: BLE001 - the answer records the failure
         ans.errors.append(f"retrieve failed: {type(e).__name__}: {str(e)[:300]}")
         resp = {}

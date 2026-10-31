@@ -137,6 +137,9 @@ class Settings:
     # --- direct mode: attach the original pictures behind the top figure passages to the answer call (both engines)
     direct_images: bool = _env("DIRECT_IMAGES", "0") not in ("0", "false", "no", "off", "")
     direct_images_max: int = int(_env("DIRECT_IMAGES_MAX", "3"))
+    # --- the caller's identity for access control: comma-separated principals ("user:<email>", "group:<name>");
+    # empty means anonymous, which sees public documents only (see research_qa/acl.py)
+    principals: tuple[str, ...] = tuple(p.strip() for p in _env("PRINCIPALS").split(",") if p.strip())
 
     # --- Azure AI Search and Foundry project
     search_endpoint: str = _env("AZURE_SEARCH_ENDPOINT").rstrip("/")

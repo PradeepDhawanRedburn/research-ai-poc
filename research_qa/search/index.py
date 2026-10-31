@@ -53,6 +53,7 @@ def build_index():
             SearchField(name="source_file", type="Edm.String", **meta),
             SearchField(name="assets", type="Edm.String"),            # ';'-joined store keys of the pictures
             SearchField(name="has_facts", type="Edm.Boolean", filterable=True),
+            SearchField(name="acl", type="Collection(Edm.String)", filterable=True),   # who may see it (acl.json)
         ],
         vector_search=VectorSearch(
             profiles=[VectorSearchProfile(name=VECTOR_PROFILE, algorithm_configuration_name="alg",
@@ -109,7 +110,7 @@ def to_document(c: Chunk, vector: list[float]) -> dict:
         "id": c.id, "page_chunk": c.text, VECTOR_FIELD: vector, "doc_id": c.doc_id, "title": c.title,
         "date": c.date or "", "section": c.section or "", "kind": c.kind, "caption": c.caption or "",
         "figure": c.figure or "", "source_file": c.source_file or "", "assets": ";".join(c.assets),
-        "has_facts": bool(c.has_facts),
+        "has_facts": bool(c.has_facts), "acl": list(c.acl),
     }
 
 
@@ -122,9 +123,14 @@ def push(store: Store, doc_ids: list[str] | None = None) -> int:
     name = index_name()
     search = search_client(name)
     ids = doc_ids or [k.rsplit("/", 1)[-1][:-len(".jsonl")] for k in store.keys(f"{CHUNKS}/", ".jsonl")]
+    from .. import acl as access
+
+    acl_map = access.load(store)
     total = 0
     for doc_id in ids:
         chunks = [Chunk.from_dict(r) for r in store.jsonl(f"{CHUNKS}/{doc_id}.jsonl")]
+        for c in chunks:
+            c.acl = access.for_doc(acl_map, doc_id)
         old = [r["id"] for r in search.search("*", filter=f"doc_id eq '{doc_id}'", select=["id"], top=1000)]
         if old:
             search.delete_documents([{"id": i} for i in old])

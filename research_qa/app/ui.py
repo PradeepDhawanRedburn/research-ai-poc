@@ -150,6 +150,7 @@ def sidebar_footer() -> None:
         except Exception:  # noqa: BLE001
             st.caption("Store · not reachable")
         st.caption(f"Engine · {ENGINE_LABEL} · model {settings.answer_model}")
+        st.caption("Acting as · " + (", ".join(settings.principals) if settings.principals else "anonymous (public reports only)"))
 
 
 # ----------------------------------------------------------------------------- formatting

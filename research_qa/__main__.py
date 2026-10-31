@@ -249,9 +249,16 @@ def cmd_status(args) -> int:
         except ImportError as e:
             print(f"  langchain packages not installed ({e.name}); install the project with --extra langchain")
             return 0
+        from .acl import ACL_KEY
+
+        has_acl = open_store().exists(ACL_KEY)
         for arm in ARMS:
             try:
-                print(f"  {arm}: {lc_stats(arm)}")
+                s = lc_stats(arm)
+                print(f"  {arm}: {s}")
+                if has_acl and s.get("chunks_without_acl"):
+                    print(f"  WARNING {arm}: {s['chunks_without_acl']} chunks were indexed before acl.json existed and "
+                          f"count as public; run `index --reset` to apply the access list")
             except Exception as e:  # noqa: BLE001
                 print(f"  {arm}: not available ({type(e).__name__}: {str(e)[:120]})")
         return 0

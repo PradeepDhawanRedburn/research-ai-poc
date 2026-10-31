@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 
+from .. import acl as access
 from ..config import ARMS, settings
 from ..schema import Chunk
 from ..storage import CHUNKS, Store
@@ -50,6 +51,7 @@ def vector_store(arm: str):
 def to_metadata(c: Chunk) -> dict:
     m = {k: str(getattr(c, k, "") or "") for k in META_FIELDS}
     m["assets"] = ";".join(c.assets)
+    m["acl"] = ";".join(c.acl)
     m["has_facts"] = bool(c.has_facts)
     m["chunk"] = int(c.chunk)
     return m
@@ -61,7 +63,8 @@ def from_document(doc) -> Chunk:
                  kind=str(m.get("kind", "")), text=doc.page_content, title=str(m.get("title", "")),
                  date=str(m.get("date", "")), section=str(m.get("section", "")), caption=str(m.get("caption", "")),
                  figure=str(m.get("figure", "")), source_file=str(m.get("source_file", "")),
-                 assets=[a for a in str(m.get("assets", "")).split(";") if a], has_facts=bool(m.get("has_facts")))
+                 assets=[a for a in str(m.get("assets", "")).split(";") if a], has_facts=bool(m.get("has_facts")),
+                 acl=[a for a in str(m.get("acl", "")).split(";") if a])
 
 
 def chunks_for(arm: str, doc_id: str, store: Store) -> list[Chunk]:
@@ -81,8 +84,11 @@ def build(arm: str, store: Store, doc_ids: list[str] | None = None, reset: bool 
     if reset:
         clear(arm)
     vs = vector_store(arm)
+    acl_map = access.load(store)
     for d in doc_ids or store.doc_ids():
         chunks = chunks_for(arm, d, store)
+        for c in chunks:
+            c.acl = access.for_doc(acl_map, d)
         old = vs.get(where={"doc_id": d}, include=[])["ids"]
         if old:
             vs.delete(ids=old)
@@ -123,10 +129,13 @@ def stats(arm: str) -> dict:
     except Exception:  # noqa: BLE001 - missing collection or no chromadb
         return {"collection": collection_name(arm), "chunks": 0, "files": {}}
     files: dict[str, int] = {}
+    unlisted = 0
     for m in got["metadatas"] or []:
         f = str((m or {}).get("source_file", ""))
         files[f] = files.get(f, 0) + 1
-    return {"collection": collection_name(arm), "chunks": len(got["ids"]), "files": files}
+        unlisted += not (m or {}).get("acl")
+    return {"collection": collection_name(arm), "chunks": len(got["ids"]), "files": files,
+            "chunks_without_acl": unlisted}
 
 
 def rrf(rankings: list[list[str]], k: int = RRF_K) -> list[str]:
@@ -209,37 +218,47 @@ class Retriever:
             self._reranker = get_reranker()
         return self._reranker
 
-    # --- legs
-    def _dense(self, query: str, flt: dict | None) -> list[str]:
-        return [str(d.id) for d in self.vs.similarity_search(query, k=FETCH, filter=where_clause(flt))]
+    # --- legs (both apply the metadata filters and the caller's access rights)
+    def _visible(self, c: Chunk, flt: dict | None, principals) -> bool:
+        return matches(c, flt) and access.allowed(c.acl, principals)
 
-    def _sparse(self, query: str, flt: dict | None) -> list[str]:
+    def _dense(self, query: str, flt: dict | None, principals=None) -> list[str]:
+        # Chroma filters the metadata; access is checked here on the over-fetched candidates (a list-valued
+        # field cannot be matched exactly in a Chroma where clause)
+        hits = self.vs.similarity_search(query, k=FETCH * 4, filter=where_clause(flt))
+        return [str(d.id) for d in hits if str(d.id) in self.by_id
+                and access.allowed(self.by_id[str(d.id)].acl, principals)][:FETCH]
+
+    def _sparse(self, query: str, flt: dict | None, principals=None) -> list[str]:
         scores = self.bm25.get_scores(toks(query))
         order = sorted(range(len(self.docs)), key=lambda i: -scores[i])
-        return [self.docs[i].id for i in order if scores[i] > 0 and matches(self.docs[i], flt)][:FETCH]
+        return [self.docs[i].id for i in order if scores[i] > 0 and self._visible(self.docs[i], flt, principals)][:FETCH]
 
-    def fused(self, query: str, flt: dict | None, parallel: bool = True) -> list[str]:
+    def fused(self, query: str, flt: dict | None, parallel: bool = True, principals=None) -> list[str]:
         if parallel:
             from concurrent.futures import ThreadPoolExecutor
 
             with ThreadPoolExecutor(max_workers=2) as pool:
-                dense, sparse = pool.submit(self._dense, query, flt), pool.submit(self._sparse, query, flt)
+                dense = pool.submit(self._dense, query, flt, principals)
+                sparse = pool.submit(self._sparse, query, flt, principals)
                 dense, sparse = dense.result(), sparse.result()
         else:
-            dense, sparse = self._dense(query, flt), self._sparse(query, flt)
+            dense, sparse = self._dense(query, flt, principals), self._sparse(query, flt, principals)
         return [i for i in rrf([dense, sparse]) if i in self.by_id]
 
     def retrieve(self, query: str, k: int | None = None, doc_id: str | None = None, filters: dict | None = None,
-                 info: dict | None = None) -> list[Chunk]:
-        """Top-k chunks. `filters` are exact matches on FILTER_FIELDS (doc_id is the common one). `info`, when a
-        dict is passed, receives what shaped the result: figure_boost ids, reranked, candidates."""
+                 info: dict | None = None, principals=None) -> list[Chunk]:
+        """Top-k chunks the caller may see. `filters` are exact matches on FILTER_FIELDS (doc_id is the common
+        one); `principals` is the caller's identity (default: PRINCIPALS from .env; anonymous sees public only).
+        `info`, when a dict is passed, receives what shaped the result: figure_boost ids, reranked, candidates."""
         k = k or settings.max_docs
+        principals = access.caller_principals(principals)
         flt = {**(filters or {}), **({"doc_id": doc_id} if doc_id else {})}
-        ids = self.fused(query, flt)
+        ids = self.fused(query, flt, principals=principals)
         boosted: list[str] = []
         fig = figure_in(query) if settings.retrieval_figure_boost else ""
         if fig:
-            boosted = [c.id for c in self.docs if figure_in(c.figure or "") == fig and matches(c, flt)][:3]
+            boosted = [c.id for c in self.docs if figure_in(c.figure or "") == fig and self._visible(c, flt, principals)][:3]
             ids = boosted + [i for i in ids if i not in boosted]
         reranked = False
         rr = self.reranker
@@ -253,7 +272,8 @@ class Retriever:
                 if info is not None:
                     info["rerank_error"] = f"{type(e).__name__}: {str(e)[:200]}"
         if info is not None:
-            info.update({"figure_boost": boosted, "reranked": reranked, "candidates": len(ids), "filters": flt})
+            info.update({"figure_boost": boosted, "reranked": reranked, "candidates": len(ids), "filters": flt,
+                         "principals": list(principals)})
         return [self.by_id[i] for i in ids[:k]]
 
 

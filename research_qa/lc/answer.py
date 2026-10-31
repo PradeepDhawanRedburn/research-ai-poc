@@ -11,6 +11,7 @@ import json
 import re
 import time
 
+from .. import acl as access
 from ..agent import tools
 from ..agent.direct import ANSWER_SYSTEM
 from ..agent.foundry import instructions as foundry_instructions
@@ -62,10 +63,11 @@ def mark_cited(ans: Answer) -> None:
         p.cited = p.rank in nums
 
 
-def _retrieve(arm: str, query: str, k: int | None, doc_id: str | None = None, info: dict | None = None):
+def _retrieve(arm: str, query: str, k: int | None, doc_id: str | None = None, info: dict | None = None,
+              principals=None):
     from .index import retriever
 
-    return retriever(arm).retrieve(query, k=k, doc_id=doc_id or None, info=info)
+    return retriever(arm).retrieve(query, k=k, doc_id=doc_id or None, info=info, principals=principals)
 
 
 def _shaped_by(info: dict | None) -> str:
@@ -84,7 +86,7 @@ def _shaped_by(info: dict | None) -> str:
 
 # ----------------------------------------------------------------------------- direct
 
-def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
+def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None) -> Answer:
     from langchain_core.messages import HumanMessage, SystemMessage
 
     from .models import chat_model, usage_of
@@ -96,7 +98,8 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
     t0 = time.perf_counter()
     info: dict = {}
     try:
-        ans.passages = [to_passage(c, i) for i, c in enumerate(_retrieve(arm, question, max_docs, info=info), 1)]
+        ans.passages = [to_passage(c, i) for i, c in enumerate(
+            _retrieve(arm, question, max_docs, info=info, principals=principals), 1)]
     except Exception as e:  # noqa: BLE001 - the answer records the failure
         ans.errors.append(f"retrieve failed: {type(e).__name__}: {str(e)[:300]}")
     ans.queries = [question]
@@ -154,15 +157,16 @@ class Chat:
     """One conversation with one arm; the message history stays on the instance for follow-up questions.
     `model` and `retrieve` can be swapped for tests: model(messages, tool_specs, force_tool) -> AIMessage-like."""
 
-    def __init__(self, arm: str, store: Store | None = None, model=None, retrieve=None):
+    def __init__(self, arm: str, store: Store | None = None, model=None, retrieve=None, principals=None):
         if arm not in ARMS:
             raise ValueError(f"unknown arm {arm!r}")
         self.arm = arm
         self.store = store
+        self.principals = access.caller_principals(principals)
         self.history: list = []
         self._model = model
         self._last_info: dict = {}
-        self._retrieve = retrieve or (lambda q, k, d: _retrieve(arm, q, k, d, self._last_info))
+        self._retrieve = retrieve or (lambda q, k, d: _retrieve(arm, q, k, d, self._last_info, self.principals))
 
     # --- model call, isolated so tests can fake it
     def _call(self, messages: list, specs: list[dict], force: str | None):
@@ -257,6 +261,12 @@ class Chat:
         if name == tools.FACTS_TOOL:
             res = tools.lookup_facts(store, args.get("doc_id"), args.get("figure"), args.get("series"),
                                      args.get("x"), args.get("query"))
+            acl_map = access.load(store)   # facts are per report: the caller sees only reports they may read
+            hidden = [r for r in res["rows"] if not access.allowed(access.for_doc(acl_map, r["doc_id"]), self.principals)]
+            if hidden:
+                res["rows"] = [r for r in res["rows"] if r not in hidden]
+                res["count"] = len(res["rows"])
+                res["note"] = (res.get("note") or "") + f" {len(hidden)} rows withheld: not permitted for this user."
             secs = time.perf_counter() - t0
             ans.tools_s += secs
             shown = ", ".join(f"{k}={v}" for k, v in args.items() if v) or "no filter"
