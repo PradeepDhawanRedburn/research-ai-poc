@@ -50,7 +50,9 @@ st.markdown(f'<p class="lede">{summary.get("questions")} verified questions, eve
             f'ones, one judge for all. Accuracy counts a correct answer as 1 and a partial one as 0.5; evidence '
             f'found means the golden evidence was among the passages the system read.</p>', unsafe_allow_html=True)
 st.caption(f"Run {run} · model {config.get('answer_model')} · judge {config.get('judge')} · "
-           f"passages per retrieval {config.get('max_docs')} · started {str(config.get('started', ''))[:19]}")
+           f"passages per retrieval {config.get('max_docs')} · started {str(config.get('started', ''))[:19]}"
+           + (" · retrieval: " + ", ".join(f"{k} {v}" for k, v in config["retrieval"].items() if v not in (None, ""))
+              if config.get("retrieval") else ""))
 
 # ----------------------------------------------------------------------------- headline
 

@@ -127,6 +127,13 @@ class Settings:
     # runs on any tier; the Word arm is then the stock MarkItDown conversion, with no plugin)
     retrieval_backend: str = _env("RETRIEVAL_BACKEND", "azure").lower()
     chroma_dir: Path = Path(_env("CHROMA_DIR", str(Path(_env("CACHE_DIR", str(ROOT / ".cache"))) / "chroma")))
+    # --- retrieval quality flags (LangChain engine), each one an A/B switch recorded in every evaluation run
+    retrieval_figure_boost: bool = _env("RETRIEVAL_FIGURE_BOOST", "1") not in ("0", "false", "no", "off")
+    reranker: str = _env("RERANKER", "none").lower()               # none | cohere
+    rerank_candidates: int = int(_env("RERANK_CANDIDATES", "40"))  # fused candidates handed to the reranker
+    rerank_endpoint: str = _env("RERANK_ENDPOINT").rstrip("/")     # Foundry serverless endpoint of the rerank model
+    rerank_api_key: str = _env("RERANK_API_KEY")
+    rerank_model: str = _env("RERANK_MODEL")
 
     # --- Azure AI Search and Foundry project
     search_endpoint: str = _env("AZURE_SEARCH_ENDPOINT").rstrip("/")
@@ -155,6 +162,13 @@ class Settings:
             agent=f"{self.base_name}-agent-{arm}",
             mcp_endpoint=f"{self.search_endpoint}/knowledgebases/{kb}/mcp?api-version={self.search_api_version}",
         )
+
+    def retrieval_flags(self) -> dict:
+        """What shaped retrieval, recorded in each evaluation run's config so runs can be compared A against B."""
+        return {"backend": self.retrieval_backend, "max_docs": self.max_docs,
+                "figure_boost": self.retrieval_figure_boost, "reranker": self.reranker,
+                "rerank_candidates": self.rerank_candidates if self.reranker != "none" else None,
+                "rerank_model": self.rerank_model if self.reranker != "none" else None}
 
     @property
     def store_is_local(self) -> bool:

@@ -62,10 +62,24 @@ def mark_cited(ans: Answer) -> None:
         p.cited = p.rank in nums
 
 
-def _retrieve(arm: str, query: str, k: int | None, doc_id: str | None = None):
+def _retrieve(arm: str, query: str, k: int | None, doc_id: str | None = None, info: dict | None = None):
     from .index import retriever
 
-    return retriever(arm).retrieve(query, k=k, doc_id=doc_id or None)
+    return retriever(arm).retrieve(query, k=k, doc_id=doc_id or None, info=info)
+
+
+def _shaped_by(info: dict | None) -> str:
+    """One clause for a step detail: what the retrieval flags did on this call."""
+    if not info:
+        return ""
+    bits = []
+    if info.get("figure_boost"):
+        bits.append(f"figure boost put {len(info['figure_boost'])} figure chunk(s) first")
+    if info.get("reranked"):
+        bits.append(f"reranked {min(info.get('candidates', 0), settings.rerank_candidates)} candidates ({settings.reranker})")
+    if info.get("rerank_error"):
+        bits.append(f"reranker failed, fused order kept: {info['rerank_error']}")
+    return (" " + "; ".join(bits) + ".") if bits else ""
 
 
 # ----------------------------------------------------------------------------- direct
@@ -80,14 +94,16 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
     ans = Answer(arm=arm, mode="direct", question=question, text="", model=settings.answer_model,
                  store=collection_name(arm))
     t0 = time.perf_counter()
+    info: dict = {}
     try:
-        ans.passages = [to_passage(c, i) for i, c in enumerate(_retrieve(arm, question, max_docs), 1)]
+        ans.passages = [to_passage(c, i) for i, c in enumerate(_retrieve(arm, question, max_docs, info=info), 1)]
     except Exception as e:  # noqa: BLE001 - the answer records the failure
         ans.errors.append(f"retrieve failed: {type(e).__name__}: {str(e)[:300]}")
     ans.queries = [question]
     ans.retrieval_s = time.perf_counter() - t0
     ans.steps.append(Step("retrieve", f"Collection {ans.store}: {len(ans.passages)} passages",
-                          "One hybrid retrieval: vector search and BM25 over the same chunks, fused by reciprocal rank.",
+                          "One hybrid retrieval: vector search and BM25 in parallel over the same chunks, fused by "
+                          "reciprocal rank." + _shaped_by(info),
                           items=[question], seconds=ans.retrieval_s))
     t1 = time.perf_counter()
     msg = chat_model().invoke([SystemMessage(ANSWER_SYSTEM),
@@ -133,7 +149,8 @@ class Chat:
         self.store = store
         self.history: list = []
         self._model = model
-        self._retrieve = retrieve or (lambda q, k, d: _retrieve(arm, q, k, d))
+        self._last_info: dict = {}
+        self._retrieve = retrieve or (lambda q, k, d: _retrieve(arm, q, k, d, self._last_info))
 
     # --- model call, isolated so tests can fake it
     def _call(self, messages: list, specs: list[dict], force: str | None):
@@ -198,6 +215,7 @@ class Chat:
         t0 = time.perf_counter()
         if name == SEARCH_TOOL:
             query, doc_id = str(args.get("query") or ans.question), args.get("doc_id") or None
+            self._last_info = {}
             try:
                 found = self._retrieve(query, max_docs, doc_id)
             except Exception as e:  # noqa: BLE001
@@ -215,7 +233,8 @@ class Chat:
             ans.steps.append(Step("retrieve", f"Search over {ans.store}: {len(new)} new passages",
                                   f"Query: {query}" + (f" in {doc_id}" if doc_id else "") + ". "
                                   + ", ".join(f"{v} {k}" for k, v in sorted(kinds.items())) + " from "
-                                  + ", ".join(sorted({p.source_file for p in new})) + ".", items=[query], seconds=secs))
+                                  + ", ".join(sorted({p.source_file for p in new})) + "." + _shaped_by(self._last_info),
+                                  items=[query], seconds=secs))
             ans.tool_calls.append({"tool": name, "args": args, "result": f"{len(new)} passages", "seconds": secs})
             shown = [p for p in ans.passages if p.id in {q.id for q in found}]
             return numbered(shown) if shown else "No passages found; try another query or doc_id."
