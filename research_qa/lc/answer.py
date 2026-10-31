@@ -49,8 +49,11 @@ def to_passage(c, rank: int) -> Passage:
 
 
 def numbered(passages: list[Passage]) -> str:
-    return "\n\n".join(f"[{p.rank}] ({p.doc_id or p.source_file}{', ' + p.kind if p.kind else ''}"
-                       f"{', ' + p.heading if p.heading else ''})\n{p.text}" for p in passages) or "(no passages)"
+    """Passages as the model sees them. The id is shown because inspect_figure takes it (the Azure knowledge base
+    returns the id inside the content; here it must be written out, or the agent never inspects a picture)."""
+    return "\n\n".join(f"[{p.rank}] id={p.id} ({p.doc_id or p.source_file}{', ' + p.kind if p.kind else ''}"
+                       f"{', ' + p.heading if p.heading else ''}{', has picture' if p.assets else ''})\n{p.text}"
+                       for p in passages) or "(no passages)"
 
 
 def mark_cited(ans: Answer) -> None:
