@@ -26,6 +26,12 @@ raw/*.docx ───────────────────────
 
 Everything is read from and written to one Blob container. Nothing on a laptop is needed at run time except `.env`.
 
+Two retrieval engines, one flag: `RETRIEVAL_BACKEND=azure` (AI Search knowledge bases and Foundry agents; the Word
+arm is Azure's own Blob ingestion, which skips files above the tier's size cap, 16 MB on Basic) or
+`RETRIEVAL_BACKEND=langchain` (Chroma and LangChain on this machine, any tier; the Word arm is then the stock
+MarkItDown conversion with no plugin). Same arms, modes, app and evaluation either way; `uv sync --extra azure
+--extra langchain` installs both.
+
 ## Setup
 
 ```bash
@@ -42,7 +48,7 @@ unless a key is given). Optional: fill `prices.yaml` so the app and the evaluati
 uv run python -m research_qa upload data/raw/*.docx     # Word files into raw/ in the store
 uv run python -m research_qa ingest                     # Word -> Markdown+, assets, facts, chunks, manifest
 uv run python -m research_qa index                      # Markdown+ index (push chunks with embeddings)
-uv run python -m research_qa up                         # knowledge sources and bases for both arms, agents
+uv run python -m research_qa up                         # azure engine: knowledge sources, bases and agents (langchain: not needed)
 uv run python -m research_qa status                     # what is in the store and in Azure
 uv run python -m research_qa ask "What is the 2030 value for Germany in Fig 27?" --arm markdown-plus --mode agent
 uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct

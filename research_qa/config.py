@@ -57,9 +57,10 @@ class Arm:
 
 
 ARMS: dict[str, Arm] = {
-    "word": Arm("word", "Word, Azure default", "Word", "blob",
-                "The .docx files as they are, indexed by Azure AI Search's own Blob pipeline: document cracking, "
-                "chunking, embeddings and image verbalisation done by the service. No custom code."),
+    "word": Arm("word", "Word, default conversion", "Word", "blob",
+                "The .docx files as they are, through the default pipeline of the retrieval engine: Azure AI "
+                "Search's Blob ingestion (cracking, chunking, embeddings, image verbalisation by the service) or, "
+                "with the LangChain engine, the stock MarkItDown conversion. No custom code either way."),
     "markdown-plus": Arm("markdown-plus", "Markdown+", "Markdown+", "index",
                          "Word converted with MarkItDown and the research plugin: charts read as numbers, matrices "
                          "as states, pictures described once; chunks, facts and assets pushed from the store."),
@@ -121,6 +122,11 @@ class Settings:
     vision_effort: str = _env("VISION_EFFORT", "medium")
     vision_concurrency: int = int(_env("VISION_CONCURRENCY", "4"))
     judge_deployment: str = _env("JUDGE_DEPLOYMENT") or _env("ANSWER_MODEL") or _env("AGENT_MODEL", "gpt-5-mini")
+
+    # --- retrieval engine: "azure" (AI Search knowledge bases + Foundry agents) or "langchain" (Chroma + LangChain,
+    # runs on any tier; the Word arm is then the stock MarkItDown conversion, with no plugin)
+    retrieval_backend: str = _env("RETRIEVAL_BACKEND", "azure").lower()
+    chroma_dir: Path = Path(_env("CHROMA_DIR", str(Path(_env("CACHE_DIR", str(ROOT / ".cache"))) / "chroma")))
 
     # --- Azure AI Search and Foundry project
     search_endpoint: str = _env("AZURE_SEARCH_ENDPOINT").rstrip("/")

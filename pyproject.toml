@@ -28,6 +28,14 @@ azure = [
     "truststore>=0.10",
 ]
 
+# RETRIEVAL_BACKEND=langchain: Chroma + LangChain in place of Azure AI Search knowledge bases and Foundry agents
+langchain = [
+    "chromadb>=1.0",
+    "langchain-chroma>=1.0",
+    "langchain-core>=1.0",
+    "langchain-openai>=1.0",
+]
+
 [project.entry-points."markitdown.plugin"]
 research_ingest = "research_ingest.markitdown_plugin"
 

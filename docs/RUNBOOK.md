@@ -4,7 +4,8 @@ For Pradeep. Every step that needs Azure credentials is here, in order, with the
 should see, and what to do if you do not. Steps 0 to 2 were run offline on this branch and are only repeated to
 confirm; steps 3 onward need `az login`.
 
-**Shortcut:** `.\scriptsunbook.ps1` runs steps 1 to 6 below in order, stops at the first failure and writes a
+**Shortcut:** `.\scripts
+unbook.ps1` runs steps 1 to 6 below in order, stops at the first failure and writes a
 `runbook-<timestamp>.log` to send back; `-Full` adds the full evaluation, `-From N` resumes at a step.
 
 Run from the repo root in the environment that has the Azure packages (`uv sync --extra azure`). Where a command may
@@ -65,6 +66,18 @@ uv run python -m research_qa retention
 Expect `ALL 116 | 116/116` retained with zero lost evidence on the verified golden set (122 questions, 116 answerable;
 see docs/golden_set.md). Retrieved@5 by plain BM25 was 108 of 116 offline; the misses are ranking, not loss, and the
 agent's query planning is what closes them.
+
+## 2c. Choosing the engine
+
+`RETRIEVAL_BACKEND=azure` runs steps 3 and 4 below. `RETRIEVAL_BACKEND=langchain` replaces them with one command that
+builds the two Chroma collections on this machine (the Word arm from the stock MarkItDown conversion, Markdown+ from
+the store's chunks); `knowledge`, `agents` and `word-sync` are not used:
+```bash
+uv run python -m research_qa index --reset
+```
+Known Azure-engine limit, seen on 31 October 2026: the Blob knowledge source skipped three of the four reports because
+they exceed the Basic tier's per-file cap (16 MB; S1 allows 128 MB). `word-sync --wait 0` shows the skipped files in
+the indexer history. Either raise the tier for the demo or report the cap as the first finding of the comparison.
 
 ## 3. Markdown+ index
 

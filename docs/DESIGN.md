@@ -85,6 +85,19 @@ chunk starts with a context header: report id, title, date, section, figure numb
 queries, calls the knowledge base over MCP, can call tools) and **direct** (one knowledge-base retrieve, one chat
 completion). Chroma, LangChain and the local store go.
 
+### 3.4a Two retrieval engines behind one flag (added 31 October 2026)
+
+*What happened:* the first live run showed Azure AI Search's Blob ingestion skipping three of the four reports: the
+service stops extracting content from a blob above a size cap set by the tier (16 MB on Basic), and analyst reports
+are mostly pictures (11, 18, 29 and 63 MB). That is a finding about the commodity path, and it also makes the Word
+column of the comparison incomplete on this tier.
+*Decision:* keep the Azure engine as it is and add a second engine, **LangChain + Chroma**, selected with
+`RETRIEVAL_BACKEND=langchain`. Same two arms, same two modes, same `Answer`, same app and evaluation. Under this
+engine the Word arm is the **stock MarkItDown conversion** of the .docx (no plugin, no vision, no facts), which is the
+Phase 0 "plain Markdown" baseline that lost 19 of 71 answers; Markdown+ uses the same chunks, facts and pictures from
+the store. The agent mode is a LangChain tool-calling loop with the same tools (search, facts, picture) and the same
+instructions as the Foundry agent. Chroma data is derived and rebuilt by `index`; the store stays the system of record.
+
 ### 3.5 The baseline → raw Word through Azure's own pipeline
 
 *Was:* "docx" meant our extractor reading the Word file, so Word and Markdown+ were the same text.
