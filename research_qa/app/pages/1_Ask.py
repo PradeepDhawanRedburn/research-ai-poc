@@ -107,14 +107,18 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
         if mode == "agent":  # one conversation per arm for follow-up questions; created on the main thread
             try:
                 if arm not in st.session_state.chats:
-                    from research_qa.agent.foundry import Chat
+                    if settings.retrieval_backend == "langchain":
+                        from research_qa.lc.answer import Chat
+                    else:
+                        from research_qa.agent.foundry import Chat
 
                     st.session_state.chats[arm] = Chat(arm)
                 chat = st.session_state.chats[arm]
             except Exception as e:  # noqa: BLE001
                 errors[k] = f"{type(e).__name__}: {e}"
                 continue
-        tasks[k] = (lambda q=question, a=arm, m=mode, c=chat: ask(q, a, m, use_tools=use_tools, chat=c))
+        tasks[k] = (lambda q=question, a=arm, m=mode, c=chat: ask(q, a, m, use_tools=use_tools, chat=c,
+                                                                  max_docs=max_docs))
     slots = tile_grid(ks)
     for k in ks:
         slots[k].error(errors[k]) if k in errors else slots[k].info("Running…")
@@ -142,6 +146,8 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
 
 
 def apply_max_docs(n: int) -> None:
+    if settings.retrieval_backend == "langchain":
+        return  # the number goes straight into each call; nothing is stored in Azure
     from research_qa.search.knowledge import kb_settings, set_max_docs
 
     for arm in {k.split("/")[0] for k in keys}:

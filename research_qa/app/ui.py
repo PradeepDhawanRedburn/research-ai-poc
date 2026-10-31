@@ -46,7 +46,8 @@ def picture_bytes(key: str) -> bytes | None:
 
 def store_note() -> None:
     try:
-        st.caption(f"Store: {store().describe()}")
+        st.caption(f"Store: {store().describe()} · retrieval engine: "
+                   + ("LangChain + Chroma" if settings.retrieval_backend == "langchain" else "Azure AI Search + Foundry"))
     except Exception as e:  # noqa: BLE001
         st.error(f"The store is not reachable: {type(e).__name__}: {str(e)[:200]}. Check STORAGE_* in .env.")
         st.stop()

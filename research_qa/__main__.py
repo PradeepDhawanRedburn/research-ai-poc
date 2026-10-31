@@ -79,10 +79,21 @@ def cmd_ingest(args) -> int:
     return 0
 
 
+LC = settings.retrieval_backend == "langchain"
+LC_SKIP = "not used with RETRIEVAL_BACKEND=langchain; run `index` (Chroma collections are built from the store)"
+
+
 def cmd_index(args) -> int:
+    store = open_store()
+    if LC:
+        from .lc.index import build
+
+        for arm in _arms(getattr(args, "arm", None)):
+            n = _azure("index", build, arm, store, args.doc or None, reset=args.reset)
+            print(f"[{arm}] {n} chunks in Chroma collection research-{arm} ({settings.chroma_dir})")
+        return 0
     from .search.index import create_index, push
 
-    store = open_store()
     _azure("index", create_index, reset=args.reset)
     n = _azure("index", push, store, args.doc or None)
     print(f"{n} chunks in index {settings.names('markdown-plus').index}")
@@ -90,6 +101,9 @@ def cmd_index(args) -> int:
 
 
 def cmd_knowledge(args) -> int:
+    if LC:
+        print(LC_SKIP)
+        return 0
     from .search.knowledge import create_knowledge
 
     for arm in _arms(args.arm):
@@ -98,6 +112,9 @@ def cmd_knowledge(args) -> int:
 
 
 def cmd_agents(args) -> int:
+    if LC:
+        print(LC_SKIP)
+        return 0
     from .agent.foundry import create_agent, create_connection
 
     for arm in _arms(args.arm):
@@ -107,6 +124,9 @@ def cmd_agents(args) -> int:
 
 
 def cmd_up(args) -> int:
+    if LC:
+        print(LC_SKIP)
+        return 0
     args.max_docs = getattr(args, "max_docs", None)
     cmd_knowledge(args)
     cmd_agents(args)
@@ -165,6 +185,9 @@ def cmd_retention(args) -> int:
 
 
 def cmd_word_sync(args) -> int:
+    if LC:
+        print(LC_SKIP)
+        return 0
     import json as _json
 
     from .search.knowledge import word_sync
@@ -191,6 +214,21 @@ def cmd_status(args) -> int:
         print(f"  {d}: " + ", ".join(parts))
     runs = sorted({k.split('/')[1] for k in store.keys('eval/') if k.count('/') >= 2}, reverse=True)
     print(f"  evaluation runs: {len(runs)}" + (f" (latest {runs[0]})" if runs else ""))
+
+    if LC:
+        print(f"\nRetrieval engine: langchain (Chroma at {settings.chroma_dir}, embeddings {settings.embedding_deployment}, "
+              f"answers {settings.answer_model})")
+        try:
+            from .lc.index import stats as lc_stats
+        except ImportError as e:
+            print(f"  langchain packages not installed ({e.name}); install the project with --extra langchain")
+            return 0
+        for arm in ARMS:
+            try:
+                print(f"  {arm}: {lc_stats(arm)}")
+            except Exception as e:  # noqa: BLE001
+                print(f"  {arm}: not available ({type(e).__name__}: {str(e)[:120]})")
+        return 0
 
     print("\nAzure")
     try:
@@ -226,6 +264,14 @@ def cmd_status(args) -> int:
 
 
 def cmd_down(args) -> int:
+    if LC:
+        from .lc.index import clear
+
+        for arm in _arms(args.arm):
+            _azure("down", clear, arm)
+            print(f"[{arm}] Chroma collection research-{arm} removed")
+        print("Chroma collections removed; the store is untouched.")
+        return 0
     from .agent.foundry import delete_agent
     from .search.knowledge import delete_knowledge
 
@@ -270,9 +316,10 @@ def main(argv=None) -> int:
     p.add_argument("--force", action="store_true", help="re-run reports already in the manifest")
     p.set_defaults(fn=cmd_ingest)
 
-    p = sub.add_parser("index", help="build the Markdown+ index and push the chunks")
+    p = sub.add_parser("index", help="build the Markdown+ index and push the chunks (langchain engine: both arms\' Chroma collections)")
     p.add_argument("--reset", action="store_true", help="remove every document first")
     p.add_argument("--doc", nargs="*")
+    p.add_argument("--arm", help="langchain engine only: comma-separated arms; default all")
     p.set_defaults(fn=cmd_index)
 
     for name, fn, help_ in (("knowledge", cmd_knowledge, "knowledge sources and bases"),

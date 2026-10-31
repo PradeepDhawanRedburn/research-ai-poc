@@ -5,7 +5,7 @@ import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from typing import Callable
 
-from ..config import ARMS, MODES, combo_label
+from ..config import ARMS, MODES, combo_label, settings
 from ..schema import Answer
 
 
@@ -15,11 +15,18 @@ def label(arm: str, mode: str) -> str:
 
 def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, chat=None,
         max_docs: int | None = None) -> Answer:
-    """`chat` is an existing foundry.Chat to continue a conversation; otherwise a fresh one is made."""
+    """`chat` is an existing Chat (foundry.Chat or lc.answer.Chat, matching RETRIEVAL_BACKEND) to continue a
+    conversation; otherwise a fresh one is made."""
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}")
     if mode not in MODES:
         raise ValueError(f"unknown mode {mode!r}")
+    if settings.retrieval_backend == "langchain":  # Chroma + LangChain engine, same arms, modes and Answer
+        from ..lc import answer as lc
+
+        if mode == "direct":
+            return lc.ask_direct(question, arm, max_docs)
+        return (chat or lc.Chat(arm)).ask(question, use_tools=use_tools, max_docs=max_docs)
     if mode == "direct":
         from .direct import ask_direct
 
