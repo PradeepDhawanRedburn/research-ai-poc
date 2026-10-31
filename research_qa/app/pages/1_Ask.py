@@ -1,4 +1,4 @@
-"""Ask: one question, every selected arm × mode at once, each tile filled as its answer lands."""
+"""Ask: one question, every selected arm × mode at once, each tile filled the moment its answer lands."""
 from __future__ import annotations
 
 import csv
@@ -11,60 +11,92 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 import streamlit as st  # noqa: E402
 
 from research_qa.app import ui  # noqa: E402
-from research_qa.config import ARMS, DEFAULT_MODES, MODES, combo_key, combo_label, settings  # noqa: E402
+from research_qa.config import ARMS, MODES, combo_key, settings  # noqa: E402
 from research_qa.schema import Answer  # noqa: E402
 
 ui.setup("Ask")
-st.title("Ask the reports")
+ui.require_store()
 st.session_state.setdefault("history", [])
 st.session_state.setdefault("chats", {})
+
+ALL_KEYS = [combo_key(a, m) for a in ARMS for m in MODES]
+LABELS = {k: ui.combo_title(*k.split("/")) for k in ALL_KEYS}
+
+# questions from the verified golden set, one click each; the answers are known so the tiles can be judged live
+DEMO = [("Text", "MM04-01", "What the April Money Map expects the Fed to do in May"),
+        ("Text", "MM07-02", "Which central bank the July Money Map expects to cut, and to what"),
+        ("Chart value", "MM04-06", "Germany's 2030 balance in Fig 27 of the April Money Map"),
+        ("Matrix", "EVO-16", "Is Evolution content available on Stake in Italy (Fig 4)?"),
+        ("Picture", "IMG-06", "The three cans in Fig 22 and what is printed on them"),
+        ("Picture", "CCEP-22", "The promotion on the Pepsi Max sign in Fig 40"),
+        ("Two editions", "MMX-01", "How the ECB view changed between April and July"),
+        ("Table", "EVO-08", "Evolution's FY26E revenue estimate")]
 
 # ----------------------------------------------------------------------------- sidebar
 
 with st.sidebar:
-    st.header("Compare")
-    keys = []
-    for arm in ARMS:
-        st.markdown(f"**{ARMS[arm].label}**")
-        for mode in MODES:
-            if st.checkbox(mode, value=mode in DEFAULT_MODES, key=f"sel-{arm}-{mode}", help=MODES[mode]):
-                keys.append(combo_key(arm, mode))
-    max_docs = st.slider("Passages per question", 3, 30, settings.max_docs,
-                         help="Passages the knowledge base returns per retrieval, the same for both arms. Stored on "
-                              "the knowledge bases in Azure; fewer means fewer tokens, more means more recall.")
-    use_tools = st.checkbox("Let the model use facts and pictures", value=True,
-                            help="Markdown+ only: exact chart values from the facts file and a vision model for "
-                                 "pictures. Off: both arms answer from the retrieved text alone.")
-    show_all_text = st.checkbox("Show the text of every retrieved passage", value=False)
-    if st.button("Clear conversation"):
+    st.markdown("**Compare**")
+    picked = st.pills("Arms and modes", ALL_KEYS, format_func=lambda k: LABELS[k], selection_mode="multi",
+                      default=ALL_KEYS, label_visibility="collapsed")
+    keys = [k for k in ALL_KEYS if k in (picked or [])]
+    with st.expander("What the four are"):
+        st.markdown(ui.arm_help())
+        st.markdown(ui.mode_help())
+    with st.expander("Settings"):
+        max_docs = st.slider("Passages per retrieval", 3, 30, settings.max_docs,
+                             help="The same for every arm. Fewer means fewer tokens; more means more recall.")
+        use_tools = st.checkbox("Markdown+ may use facts and pictures", value=True,
+                                help="Off: both arms answer from the retrieved text alone.")
+        show_all_text = st.checkbox("Show every retrieved passage in Sources", value=False)
+    if st.button("New conversation", width="stretch"):
         st.session_state.history, st.session_state.chats = [], {}
         st.rerun()
-
     totals = ui.session_totals(st.session_state.history, keys)
     if totals:
-        st.header("This session")
-        st.dataframe(totals, hide_index=True, width="stretch")
-        buf = io.StringIO()
-        rows = [{"question": t["question"], **row} for t in st.session_state.history
-                for row in ui.comparison_rows(t["results"], t["errors"], t["keys"])]
-        if rows:
-            fields = list(dict.fromkeys(k for r in rows for k in r))
-            w = csv.DictWriter(buf, fieldnames=fields)
-            w.writeheader()
-            w.writerows(rows)
-            st.download_button("Download every answer's numbers (CSV)", buf.getvalue(), "comparison.csv", "text/csv")
-    with st.expander("How the numbers compare"):
-        st.markdown(
-            "- **Time**: wall clock for the whole question. Retrieval = knowledge-base calls; an agent usually writes "
-            "its answer in the same round, so generation can be 0. Tools = facts lookups and picture inspections.\n"
-            "- **Tokens**: everything the question cost: the answer model's input and output, plus vision calls. "
-            "Total tokens is the like-for-like number; cost comes from prices.yaml.\n"
-            "- **Grounding**: passages retrieved, how many the answer cites, tool calls, pictures looked at.\n"
-            + ui.mode_help())
+        with st.expander(f"This session · {len(st.session_state.history)} question"
+                         f"{'s' if len(st.session_state.history) != 1 else ''}"):
+            st.dataframe(totals, hide_index=True, width="stretch")
+            buf = io.StringIO()
+            rows = [{"question": t["question"], **row} for t in st.session_state.history
+                    for row in ui.comparison_rows(t["results"], t["errors"], t["keys"])]
+            if rows:
+                fields = list(dict.fromkeys(k for r in rows for k in r))
+                w = csv.DictWriter(buf, fieldnames=fields)
+                w.writeheader()
+                w.writerows(rows)
+                st.download_button("Download as CSV", buf.getvalue(), "comparison.csv", "text/csv", width="stretch")
+ui.sidebar_footer()
+
+# ----------------------------------------------------------------------------- header
+
+st.title("Ask the reports")
+st.markdown('<p class="lede">One question, answered by every route at once from the same reports and the same '
+            'model. Each tile shows the answer, what it cost, and what it read.</p>', unsafe_allow_html=True)
 
 if not keys:
     st.info("Pick at least one arm and mode in the sidebar.")
     st.stop()
+
+golden = {q["id"]: q for q in ui.golden_questions()}
+demo = [(tag, golden[i], short) for tag, i, short in DEMO if i in golden]
+if demo and not st.session_state.history:
+    st.markdown("**Try one**")
+    cols = st.columns(4)
+    for i, (tag, q, short) in enumerate(demo):
+        with cols[i % 4]:
+            if st.button(f"**{tag}** · {short}", key=f"demo-{q['id']}", width="stretch",
+                         help=f"{q['question']}  \nExpected: {q['answer']}"):
+                st.session_state.pending = q["question"]
+                st.rerun()
+elif demo:
+    with st.expander("Try one of the verified questions"):
+        cols = st.columns(4)
+        for i, (tag, q, short) in enumerate(demo):
+            with cols[i % 4]:
+                if st.button(f"**{tag}** · {short}", key=f"demo-{q['id']}", width="stretch",
+                             help=f"{q['question']}  \nExpected: {q['answer']}"):
+                    st.session_state.pending = q["question"]
+                    st.rerun()
 
 
 # ----------------------------------------------------------------------------- drawing
@@ -73,26 +105,32 @@ def tile_grid(ks: list[str]) -> dict[str, object]:
     slots = {}
     for col, k in zip(st.columns(len(ks)), ks):
         with col:
-            st.subheader(combo_label(*k.split("/")))
-            slots[k] = st.empty()
+            with st.container(border=True):
+                ui.tile_header(*k.split("/"))
+                slots[k] = st.empty()
     return slots
 
 
-def show_table(slot, results: dict, errors: dict, ks: list[str], running: dict | None = None) -> None:
-    with slot.container():
-        st.markdown("**Side by side**")
-        st.dataframe(ui.comparison_rows(results, errors, ks, running), hide_index=True, width="stretch")
+def expected_note(question: str) -> None:
+    q = next((q for q in golden.values() if q["question"] == question), None)
+    if q:
+        st.markdown(f'<div class="muted">Verified answer from the golden set: <b>{q["answer"]}</b></div>',
+                    unsafe_allow_html=True)
 
 
-def show_turn(turn: dict) -> None:
+def show_turn(turn: dict, compact: bool = False) -> None:
+    """The latest turn in full; earlier turns compact (answer and numbers only, so the page stays light)."""
+    expected_note(turn["question"])
     slots = tile_grid(turn["keys"])
     for k, slot in slots.items():
         with slot.container():
             if k in turn["results"]:
-                ui.show_tile(turn["results"][k], show_all_text)
+                ui.show_tile(turn["results"][k], show_all_text, compact=compact)
             else:
                 st.error(turn["errors"].get(k, "no answer"))
-    show_table(st.empty(), turn["results"], turn["errors"], turn["keys"])
+    if not compact:
+        st.markdown("##### Side by side")
+        ui.comparison(turn["results"], turn["errors"], turn["keys"])
 
 
 def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
@@ -119,11 +157,21 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
                 continue
         tasks[k] = (lambda q=question, a=arm, m=mode, c=chat: ask(q, a, m, use_tools=use_tools, chat=c,
                                                                   max_docs=max_docs))
+    expected_note(question)
     slots = tile_grid(ks)
     for k in ks:
-        slots[k].error(errors[k]) if k in errors else slots[k].info("Running…")
+        if k in errors:
+            slots[k].error(errors[k])
+        else:
+            ui.running_tile(slots[k], *k.split("/"))
+    st.markdown("##### Side by side")
     table = st.empty()
-    show_table(table, results, errors, ks, {k: 0.0 for k in tasks})
+
+    def draw_table(running: dict | None):
+        with table.container():
+            ui.comparison(results, errors, ks, running)
+
+    draw_table({k: 0.0 for k in tasks})
 
     def on_done(k: str, r, err):
         if r is not None:
@@ -133,15 +181,15 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
         else:
             errors[k] = err or "failed"
             slots[k].error(errors[k])
-        show_table(table, results, errors, ks, {x: 0.0 for x in tasks if x not in results and x not in errors})
+        draw_table({x: 0.0 for x in tasks if x not in results and x not in errors})
 
     def on_tick(running: dict):
         for k, secs in running.items():
-            slots[k].info(f"Running… {secs:.0f} s")
-        show_table(table, results, errors, ks, running)
+            ui.running_tile(slots[k], *k.split("/"), secs=secs)
 
     if tasks:
-        run_parallel(tasks, on_done, on_tick)
+        run_parallel(tasks, on_done, on_tick, tick=1.0)
+    draw_table(None)
     return results, errors
 
 
@@ -160,13 +208,17 @@ def apply_max_docs(n: int) -> None:
 
 # ----------------------------------------------------------------------------- conversation
 
-for turn in st.session_state.history:
+history = st.session_state.history
+for i, turn in enumerate(history):
+    last = i == len(history) - 1
     with st.chat_message("user"):
         st.markdown(turn["question"])
     with st.chat_message("assistant"):
-        show_turn(turn)
+        show_turn(turn, compact=not last)
 
 question = st.chat_input("Ask about the reports, for example: what is Germany's 2030 balance in Fig 27 of the April Money Map?")
+pending = st.session_state.pop("pending", None)
+question = question or pending
 if question:
     with st.chat_message("user"):
         st.markdown(question)

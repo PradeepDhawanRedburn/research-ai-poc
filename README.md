@@ -85,6 +85,22 @@ uv run python -m research_qa retention                  # no-model check: every 
 ```
 After an ingest, re-run `index` (azure: pushes the new chunks; langchain: `index --reset` rebuilds the collections).
 
+## The demo
+
+`streamlit run research_qa/app/Overview.py`. Four pages, written for an executive audience with the engineer's view one
+click deeper:
+
+- **Overview**: the question in a paragraph, the latest scorecard as a few numbers per arm, the pipeline in one figure,
+  the reports in the store.
+- **Ask**: one question, the four routes answering at once in identical tiles (answer, seconds, tokens, cost, sources
+  cited, pictures looked at), a side-by-side chart underneath with the best marked. Eight one-click questions from the
+  verified golden set, each with its expected answer shown, so the audience can judge the tiles live. Follow-up
+  questions continue the agents' conversations.
+- **Scorecard**: any evaluation run, headline per arm and mode, by question type, run against run (for instance the
+  two engines), question by question with the judge's reason.
+- **Reports**: per report, the figures redrawn from the facts file, the pictures with their descriptions, the Markdown+,
+  the passages, and what the Word arm sees.
+
 ## The pieces
 
 ```
