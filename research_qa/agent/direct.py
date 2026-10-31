@@ -26,8 +26,19 @@ def retrieve(arm: str, question: str, max_docs: int | None = None) -> dict:
 
     # the passage limit lives on the knowledge base (retrieveDefaults), the same for both modes; `max_docs` is
     # accepted for symmetry with the agent path and applied there through knowledge.set_max_docs
-    body = {"messages": [{"role": "user", "content": [{"type": "text", "text": question}]}]}
-    return search_rest("POST", f"knowledgebases/{settings.names(arm).knowledge_base}/retrieve", body)
+    path = f"knowledgebases/{settings.names(arm).knowledge_base}/retrieve"
+    # Our knowledge bases run with minimal retrieval reasoning (no query planning in the service), and that mode
+    # takes the query as `intents`, not as chat `messages` (the service says so with a 400). Messages are kept as the
+    # fallback for a base configured with reasoning.
+    intents = {"intents": [{"type": "semantic", "search": question}]}
+    try:
+        return search_rest("POST", path, intents)
+    except RuntimeError as e:
+        if "intents" in str(e).lower() and "not supported" in str(e).lower():
+            raise
+        if "400" not in str(e):
+            raise
+        return search_rest("POST", path, {"messages": [{"role": "user", "content": [{"type": "text", "text": question}]}]})
 
 
 def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[str]]:
