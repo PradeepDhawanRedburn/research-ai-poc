@@ -162,7 +162,7 @@ def show_tile(a: Answer, show_all_text: bool = False) -> None:
     shown = [p for p in a.passages if p.cited or p.inspected]
     with st.expander(f"Cited passages ({len(shown)})", expanded=True):
         if not a.cited:
-            st.warning("The answer does not cite any passage.")
+            st.warning("The answer does not cite any passage" + ("; the ones shown were inspected by the vision model." if shown else "."))
         for p in shown:
             show_passage(p)
 

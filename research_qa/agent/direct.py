@@ -30,7 +30,20 @@ def retrieve(arm: str, question: str, max_docs: int | None = None) -> dict:
     # Our knowledge bases run with minimal retrieval reasoning (no query planning in the service), and that mode
     # takes the query as `intents`, not as chat `messages` (the service says so with a 400). Messages are kept as the
     # fallback for a base configured with reasoning.
-    intents = {"intents": [{"type": "semantic", "search": question}]}
+    # Shape from the REST reference (Knowledge Retrieval - Retrieve, 2025-11-01-preview and later): `intents` with
+    # semantic queries, the effort stated on the request, and source data asked for on the references so the
+    # passages carry their fields (otherwise only ids and the extractive text come back).
+    intents = {
+        "intents": [{"type": "semantic", "search": question}],
+        "retrievalReasoningEffort": {"kind": "minimal"},
+        "includeActivity": True,
+        "knowledgeSourceParams": [{
+            "knowledgeSourceName": settings.names(arm).knowledge_source,
+            "kind": "azureBlob" if arm == "word" else "searchIndex",
+            "includeReferences": True,
+            "includeReferenceSourceData": True,
+        }],
+    }
     try:
         return search_rest("POST", path, intents)
     except RuntimeError as first:
