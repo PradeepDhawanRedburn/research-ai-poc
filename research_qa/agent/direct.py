@@ -10,6 +10,7 @@ import json
 import time
 
 from ..config import ARMS, settings
+from .fields import chunk_file, chunk_text
 from ..schema import Answer, Passage, Step
 
 ANSWER_SYSTEM = """You answer questions about financial research reports using only the numbered passages given.
@@ -67,8 +68,8 @@ def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[st
         if pid in seen:
             return
         seen.add(pid)
-        text = str(c.get("page_chunk") or c.get("content_text") or c.get("chunk") or c.get("content") or "")
-        source_file = str(c.get("source_file") or c.get("metadata_storage_name") or "")
+        text = chunk_text(c)
+        source_file = chunk_file(c)
         out.append(Passage(rank=len(out) + 1, id=pid,
                            doc_id=str(c.get("doc_id") or (source_file.rsplit(".", 1)[0] if source_file else "")),
                            source_file=source_file, kind=str(c.get("kind") or ("chunk" if arm == "word" else "")),

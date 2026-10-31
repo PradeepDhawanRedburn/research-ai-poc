@@ -13,6 +13,7 @@ import re
 import time
 
 from ..config import ARMS, settings
+from .fields import chunk_file, chunk_text
 from ..schema import Answer, Passage, Step
 from ..storage import Store, open_store
 from . import tools
@@ -175,8 +176,8 @@ def add_passages(ans: Answer, item) -> list[Passage]:
         if pid in known:
             continue
         known.add(pid)
-        text = str(c.get("page_chunk") or c.get("content_text") or c.get("chunk") or c.get("content") or "")
-        source_file = str(c.get("source_file") or c.get("metadata_storage_name") or c.get("title") or "")
+        text = chunk_text(c)
+        source_file = chunk_file(c)
         doc_id = str(c.get("doc_id") or (source_file.rsplit(".", 1)[0] if source_file else ""))
         if ans.arm == "word" and not ans.passages and not new:
             # first look at Azure's own chunk shape: shown in the steps so the field mapping can be checked
