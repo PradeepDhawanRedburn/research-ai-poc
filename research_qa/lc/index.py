@@ -95,6 +95,19 @@ def build(arm: str, store: Store, doc_ids: list[str] | None = None, reset: bool 
     return stats(arm)["chunks"]
 
 
+def delete_doc(arm: str, doc_id: str) -> int:
+    """Remove one report's chunks from the arm's collection; returns how many. Used by reconcile."""
+    try:
+        vs = vector_store(arm)
+        ids = vs.get(where={"doc_id": doc_id}, include=[])["ids"]
+    except Exception:  # noqa: BLE001 - no collection yet: nothing to delete
+        return 0
+    if ids:
+        vs.delete(ids=ids)
+    Retriever.reset(arm)
+    return len(ids)
+
+
 def clear(arm: str) -> None:
     try:
         _client().delete_collection(collection_name(arm))

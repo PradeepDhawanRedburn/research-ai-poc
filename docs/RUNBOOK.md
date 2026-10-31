@@ -174,6 +174,18 @@ Overview shows the pipeline figure, the five numbers per arm from the latest run
 the arms in parallel. Scorecard reads `eval/`. Reports shows each report's conversion. The pages were written against
 Streamlit 1.66 and compiled but not rendered here; a screenshot of anything that looks wrong is enough for me to fix it.
 
+## 7b. Removing a report
+
+Delete `raw/<doc>.docx` from the container (portal, Storage Explorer or `az storage blob delete`), then:
+```bash
+uv run python -m research_qa reconcile --dry-run
+uv run python -m research_qa reconcile
+```
+The first lists what will go (Markdown, stock conversion, assets, facts, chunks, the manifest entry, and the
+document's chunks in the configured engine); the second removes it. Ingest itself decides by content hash: a
+re-upload of identical bytes is skipped, changed bytes are re-ingested. Azure's own Word index (Blob knowledge
+source) is not touched by reconcile; it keeps deleted documents until that indexer is reset.
+
 ## 8. Taking it down and up again
 
 ```bash

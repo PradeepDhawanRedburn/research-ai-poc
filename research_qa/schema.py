@@ -109,6 +109,7 @@ class ReportManifest:
     facts_figures: int = 0
     warnings: list[str] = field(default_factory=list)
     markdown_chars: int = 0
+    raw_sha: str = ""               # sha256 of the raw .docx this entry was built from; ingest re-runs when it changes
 
     def to_dict(self) -> dict:
         return asdict(self)
