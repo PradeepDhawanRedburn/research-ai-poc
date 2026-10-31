@@ -62,16 +62,17 @@ def _index_knowledge_source() -> None:
 
 def _blob_knowledge_source() -> None:
     """Word arm. SDK path relies on azure-search-documents 12.1.0b2 classes `AzureBlobKnowledgeSource`,
-    `AzureBlobKnowledgeSourceParameters`, `KnowledgeSourceAzureOpenAIVectorizer`, `KnowledgeSourceAzureOpenAIModel`
-    and `AzureOpenAIVectorizerParameters`. If any is missing or takes other arguments, the REST body below is sent
-    instead (api-version 2026-08-01-preview, kind azureBlob with azureBlobParameters)."""
+    `AzureBlobKnowledgeSourceParameters`, `KnowledgeSourceIngestionParameters`, `KnowledgeSourceAzureOpenAIVectorizer`,
+    `KnowledgeBaseAzureOpenAIModel` and `AzureOpenAIVectorizerParameters`. If any is missing or takes other arguments,
+    the REST body below is sent instead (api-version 2026-08-01-preview). In both paths the embedding and chat models
+    sit under ingestionParameters, as in the service's documented example. Verified live on 31 October 2026."""
     n = settings.names(WORD)
     description = ("Research reports as Word files, indexed by Azure AI Search's own pipeline: document cracking, "
                    "chunking, embeddings and image verbalisation")
     try:
         from azure.search.documents.indexes.models import (
             AzureBlobKnowledgeSource, AzureBlobKnowledgeSourceParameters, AzureOpenAIVectorizerParameters,
-            KnowledgeSourceAzureOpenAIModel, KnowledgeSourceAzureOpenAIVectorizer,
+            KnowledgeBaseAzureOpenAIModel, KnowledgeSourceAzureOpenAIVectorizer, KnowledgeSourceIngestionParameters,
         )
 
         params = AzureOpenAIVectorizerParameters(resource_url=settings.search_openai_endpoint,
@@ -86,9 +87,10 @@ def _blob_knowledge_source() -> None:
                 connection_string=_storage_connection(),
                 container_name=settings.storage_container,
                 folder_path=RAW_PREFIX,
-                embedding_model=KnowledgeSourceAzureOpenAIVectorizer(azure_open_ai_parameters=params),
-                chat_completion_model=KnowledgeSourceAzureOpenAIModel(azure_open_ai_parameters=chat),
-                ingestion_schedule=None,
+                ingestion_parameters=KnowledgeSourceIngestionParameters(
+                    embedding_model=KnowledgeSourceAzureOpenAIVectorizer(azure_open_ai_parameters=params),
+                    chat_completion_model=KnowledgeBaseAzureOpenAIModel(azure_open_ai_parameters=chat),
+                ),
             ),
         ))
         return
@@ -102,11 +104,16 @@ def _blob_knowledge_source() -> None:
             "connectionString": _storage_connection(),
             "containerName": settings.storage_container,
             "folderPath": RAW_PREFIX,
-            "embeddingModel": {"kind": "azureOpenAI",
-                               "azureOpenAIParameters": _aoai(settings.embedding_deployment, settings.embedding_model)},
-            "chatCompletionModel": {"kind": "azureOpenAI",
-                                    "azureOpenAIParameters": _aoai(settings.answer_model, settings.answer_model)},
-            "ingestionSchedule": None,
+            "ingestionParameters": {
+                "embeddingModel": {
+                    "kind": "azureOpenAI",
+                    "azureOpenAIParameters": _aoai(settings.embedding_deployment, settings.embedding_model),
+                },
+                "chatCompletionModel": {
+                    "kind": "azureOpenAI",
+                    "azureOpenAIParameters": _aoai(settings.answer_model, settings.answer_model),
+                },
+            },
         },
     }
     search_rest("PUT", f"knowledgesources/{n.knowledge_source}", body)
