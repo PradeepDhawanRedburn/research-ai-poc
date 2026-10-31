@@ -68,7 +68,7 @@ def direct(monkeypatch, store):
     chunks = [Chunk(id="D1-00001", doc_id="D1", chunk=1, kind="figure", text="Report D1 Fig 22 three cans",
                     caption="Fig 22", assets=["assets/D1/aaa.png", "assets/D1/bbb.png"], source_file="D1.md"),
               Chunk(id="D1-00002", doc_id="D1", chunk=2, kind="text", text="Report D1 prose", source_file="D1.md")]
-    monkeypatch.setattr(A, "_retrieve", lambda arm, q, k, d=None, info=None: chunks)
+    monkeypatch.setattr(A, "_retrieve", lambda arm, q, k, d=None, info=None, **kw: chunks)
     return cap
 
 

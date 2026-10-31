@@ -14,9 +14,11 @@ def label(arm: str, mode: str) -> str:
 
 
 def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, chat=None,
-        max_docs: int | None = None) -> Answer:
+        max_docs: int | None = None, principals=None) -> Answer:
     """`chat` is an existing Chat (foundry.Chat or lc.answer.Chat, matching RETRIEVAL_BACKEND) to continue a
-    conversation; otherwise a fresh one is made."""
+    conversation; otherwise a fresh one is made. `principals` is the caller's identity for access control
+    (default PRINCIPALS from .env). The Foundry agent calls its knowledge base itself over MCP and cannot carry a
+    per-user filter, so under the Azure engine only direct mode enforces access; see research_qa/acl.py."""
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}")
     if mode not in MODES:
@@ -25,12 +27,12 @@ def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, ch
         from ..lc import answer as lc
 
         if mode == "direct":
-            return lc.ask_direct(question, arm, max_docs)
-        return (chat or lc.Chat(arm)).ask(question, use_tools=use_tools, max_docs=max_docs)
+            return lc.ask_direct(question, arm, max_docs, principals=principals)
+        return (chat or lc.Chat(arm, principals=principals)).ask(question, use_tools=use_tools, max_docs=max_docs)
     if mode == "direct":
         from .direct import ask_direct
 
-        return ask_direct(question, arm, max_docs)
+        return ask_direct(question, arm, max_docs, principals=principals)
     from .foundry import Chat
 
     return (chat or Chat(arm)).ask(question, use_tools=use_tools)

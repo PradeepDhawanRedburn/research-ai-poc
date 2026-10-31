@@ -35,6 +35,7 @@ class Chunk:
     source_file: str = ""       # RA02752.docx
     assets: list[str] = field(default_factory=list)   # store keys of pictures behind this chunk
     has_facts: bool = False     # lookup_facts has rows for this figure
+    acl: list[str] = field(default_factory=list)      # who may see it; set at index time from acl.json; [] = public
 
     def to_dict(self) -> dict:
         return asdict(self)

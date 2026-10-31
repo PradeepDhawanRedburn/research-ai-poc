@@ -144,7 +144,8 @@ def test_azure_retrieve_body_filter():
     from research_qa.agent.direct import retrieve_body
 
     body = retrieve_body("markdown-plus", "q", doc_id="RA01220")
-    assert body["knowledgeSourceParams"][0]["filterAddOn"] == "doc_id eq 'RA01220'"
+    f = body["knowledgeSourceParams"][0]["filterAddOn"]
+    assert f.endswith(" and doc_id eq 'RA01220'") and f.startswith("acl/any(")   # access clause always, doc on request
     assert "filterAddOn" not in retrieve_body("word", "q", doc_id="RA01220")["knowledgeSourceParams"][0]
-    assert "filterAddOn" not in retrieve_body("markdown-plus", "q")["knowledgeSourceParams"][0]
+    assert "doc_id" not in retrieve_body("markdown-plus", "q")["knowledgeSourceParams"][0]["filterAddOn"]
     assert json.dumps(body)  # serialisable
