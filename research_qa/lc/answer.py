@@ -105,9 +105,21 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None) -> Answer:
                           "One hybrid retrieval: vector search and BM25 in parallel over the same chunks, fused by "
                           "reciprocal rank." + _shaped_by(info),
                           items=[question], seconds=ans.retrieval_s))
+    prompt = f"Passages:\n{numbered(ans.passages)}\n\nQuestion: {question}"
+    system, content = ANSWER_SYSTEM, prompt
+    if settings.direct_images and ARMS[arm].has_tools and ans.passages:
+        blocks, shown = tools.picture_blocks(open_store(), ans.passages, settings.direct_images_max)
+        if shown:
+            for p, _k in shown:
+                p.inspected = True
+            system = ANSWER_SYSTEM + "\n" + tools.PICTURES_NOTE
+            content = [{"type": "text", "text": prompt}] + blocks
+            ans.steps.append(Step("look", f"Original pictures of {len(shown)} figure passage(s) sent with the question",
+                                  "DIRECT_IMAGES is on: the answer model sees the pictures, not only their descriptions.",
+                                  items=[f"[{p.rank}] {p.heading or p.kind}" for p, _ in shown],
+                                  assets=[k for _, k in shown]))
     t1 = time.perf_counter()
-    msg = chat_model().invoke([SystemMessage(ANSWER_SYSTEM),
-                               HumanMessage(f"Passages:\n{numbered(ans.passages)}\n\nQuestion: {question}")])
+    msg = chat_model().invoke([SystemMessage(system), HumanMessage(content=content)])
     ans.generation_s = time.perf_counter() - t1
     ans.input_tokens, ans.output_tokens, ans.reasoning_tokens = usage_of(msg)
     ans.text = ans.raw_text = str(msg.content if isinstance(msg.content, str) else
