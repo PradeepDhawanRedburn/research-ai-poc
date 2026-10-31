@@ -34,7 +34,7 @@ def _cache(ref_el):
     """Return (formula, format_code, [values]) from a numRef/strRef/numLit/strLit."""
     if ref_el is None:
         return None, None, []
-    f = ref_el.find(_c("f"))
+    f = ref_el.find(".//" + _c("f"))  # <c:f> sits inside numRef/strRef, one level below the val/cat/tx element
     formula = f.text if f is not None else None
     cache = None
     for name in ("numCache", "strCache", "numLit", "strLit"):
@@ -72,10 +72,59 @@ def _to_number(v):
         return v
 
 
+RANGE_RE = re.compile(r"^\s*'?(?P<sheet>[^'!]+)'?!\$?(?P<c1>[A-Za-z]+)\$?(?P<r1>\d+)(?::\$?(?P<c2>[A-Za-z]+)\$?(?P<r2>\d+))?\s*$")
+
+
+def _workbook(pkg: DocxPackage, xlsx_part: str):
+    """The embedded workbook behind a chart, opened once per package (openpyxl, cached values only)."""
+    cache = getattr(pkg, "_workbooks", None)
+    if cache is None:
+        cache = pkg._workbooks = {}
+    if xlsx_part not in cache:
+        try:
+            import io
+
+            from openpyxl import load_workbook
+
+            cache[xlsx_part] = load_workbook(io.BytesIO(pkg.read(xlsx_part)), read_only=True, data_only=True)
+        except Exception:  # noqa: BLE001 - a missing or unreadable workbook means no fallback, not a failure
+            cache[xlsx_part] = None
+    return cache[xlsx_part]
+
+
+def workbook_values(pkg: DocxPackage, xlsx_part: str | None, formula: str | None) -> list:
+    """Cells of a chart reference formula ("Sheet1!$B$2:$B$4") read from the embedded workbook, in row-major
+    order; [] when there is no workbook, no formula, or the range cannot be resolved."""
+    m = RANGE_RE.match(formula or "")
+    if not xlsx_part or m is None:
+        return []
+    wb = _workbook(pkg, xlsx_part)
+    if wb is None or m.group("sheet") not in wb.sheetnames:
+        return []
+    ws = wb[m.group("sheet")]
+    from openpyxl.utils import column_index_from_string
+
+    c1, r1 = column_index_from_string(m.group("c1").upper()), int(m.group("r1"))
+    c2 = column_index_from_string(m.group("c2").upper()) if m.group("c2") else c1
+    r2 = int(m.group("r2")) if m.group("r2") else r1
+    out = []
+    for row in ws.iter_rows(min_row=min(r1, r2), max_row=max(r1, r2), min_col=min(c1, c2), max_col=max(c1, c2),
+                            values_only=True):
+        for v in row:
+            if isinstance(v, (dt.date, dt.datetime)):
+                v = v.date().isoformat() if isinstance(v, dt.datetime) else v.isoformat()
+            out.append(v)
+    return out
+
+
 def parse_chart(pkg: DocxPackage, part: str) -> dict:
     root = pkg.xml(part)
     chart = root.find(_c("chart"))
     out: dict = {"part": part, "title": None, "kinds": [], "series": [], "axes": {}, "external_data": None}
+    ext = root.find(_c("externalData"))
+    if ext is not None:
+        rid = ext.get("{%s}id" % NS["r"])
+        out["external_data"] = pkg.rels(part).target(rid) if rid else None
     if chart is None:
         return out
     out["title"] = _text_of(chart.find(_c("title")))
@@ -106,15 +155,29 @@ def parse_chart(pkg: DocxPackage, part: str) -> dict:
                 name = tv[0] if tv else (direct.text if direct is not None else _text_of(tx))
             cat_f, cat_fmt, cats = _cache(ser.find(_c("cat")))
             val_f, val_fmt, vals = _cache(ser.find(_c("val")))
-            # scatter charts use xVal / yVal
-            if not vals:
+            # scatter charts use xVal / yVal (only when they exist, or an uncached <c:val> loses its formula)
+            if not vals and ser.find(_c("yVal")) is not None:
                 cat_f, cat_fmt, cats = _cache(ser.find(_c("xVal")))
                 val_f, val_fmt, vals = _cache(ser.find(_c("yVal")))
+            # no cached values (Word wrote the chart without a cache, or it was stripped): the embedded workbook
+            # still has them, addressed by the same reference formulas
+            source = "cache"
+            if not [v for v in vals if v not in (None, "")] and val_f and out["external_data"]:
+                wb_vals = workbook_values(pkg, out["external_data"], val_f)
+                if wb_vals:
+                    vals, source = [str(v) if v is not None else None for v in wb_vals], "workbook"
+                    if not [c for c in cats if c not in (None, "")]:
+                        cats = [("" if c is None else str(c)) for c in workbook_values(pkg, out["external_data"], cat_f)]
+                    if not name and tx is not None:
+                        tx_f = tx.find(_c("strRef") + "/" + _c("f"))
+                        wb_name = workbook_values(pkg, out["external_data"], tx_f.text if tx_f is not None else None)
+                        name = str(wb_name[0]) if wb_name and wb_name[0] is not None else name
             if _is_date_format(cat_fmt):
                 cats = [(_excel_serial_to_date(float(c)) if c not in (None, "") else None) for c in cats]
             numeric_vals = [_to_number(v) for v in vals]
             out["series"].append({
                 "name": name,
+                "values_source": source,
                 "chart_kind": tag,
                 "grouping": grouping.get("val") if grouping is not None else None,
                 "bar_direction": bar_dir.get("val") if bar_dir is not None else None,
@@ -126,10 +189,6 @@ def parse_chart(pkg: DocxPackage, part: str) -> dict:
                 "values": numeric_vals,
                 "n_points": len(numeric_vals),
             })
-    ext = root.find(_c("externalData"))
-    if ext is not None:
-        rid = ext.get("{%s}id" % NS["r"])
-        out["external_data"] = pkg.rels(part).target(rid) if rid else None
     return out
 
 

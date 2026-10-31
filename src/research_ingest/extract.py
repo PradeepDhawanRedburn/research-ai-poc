@@ -100,6 +100,9 @@ class Para:
     links: list[dict] = field(default_factory=list)
     drawings: list[dict] = field(default_factory=list)
     bold_all: bool = False
+    comments: list[str] = field(default_factory=list)   # comment ids anchored in this paragraph
+    inserted: list[str] = field(default_factory=list)   # tracked insertions (also part of `text`)
+    deleted: list[str] = field(default_factory=list)    # tracked deletions (not part of `text`)
 
     def to_json(self):
         d = {"style": self.style, "role": self.role, "text": self.text}
@@ -127,6 +130,7 @@ class Extractor:
         self._eid = 0
         self.footnotes = self._load_notes("word/footnotes.xml", "footnote")
         self.endnotes = self._load_notes("word/endnotes.xml", "endnote")
+        self.comments = self._load_comments()
         self.warnings: list[str] = []
 
     # ------------------------------------------------------------------ helpers
@@ -144,6 +148,19 @@ class Extractor:
                 continue
             text = " ".join(self.para_text_simple(p) for p in n.findall("w:p", NS)).strip()
             out[wval(n, "id")] = text
+        return out
+
+    def _load_comments(self) -> dict[str, dict]:
+        """word/comments.xml: id -> {author, date, text}. Editorial, kept in the JSON, left out of chunks."""
+        out: dict[str, dict] = {}
+        if not self.pkg.has("word/comments.xml"):
+            return out
+        for c in self.pkg.xml("word/comments.xml").findall("w:comment", NS):
+            cid = c.get(q("w:id"))
+            text = " ".join(self.para_text_simple(p) for p in c.findall(".//w:p", NS)).strip()
+            if cid is not None:
+                out[cid] = {"id": cid, "author": c.get(q("w:author")) or "", "date": c.get(q("w:date")) or "",
+                            "text": re.sub(r"\s+", " ", text)}
         return out
 
     def para_text_simple(self, p) -> str:
@@ -204,6 +221,10 @@ class Extractor:
                 fid = wval(ch, "id")
                 para.footnotes.append("end" + fid)
                 out.append(f"[^end{fid}]")
+            elif tag == q("w:commentReference"):
+                cid = wval(ch, "id")
+                if cid is not None and cid not in para.comments:
+                    para.comments.append(cid)
             elif tag == q("w:drawing"):
                 para.drawings.extend(self.parse_drawing(ch))
             elif tag == q("w:pict"):
@@ -246,7 +267,17 @@ class Extractor:
                 for r in child.findall("w:r", NS):
                     self.run_segments(r, para)
                 para.links.append({"text": para.text[start:], "href": href})
-            elif child.tag in (q("w:ins"), q("w:smartTag"), q("w:sdt")):
+            elif child.tag == q("w:ins"):  # tracked insertion: part of the text, and recorded as tracked
+                start = len(para.text)
+                for r in child.iter(q("w:r")):
+                    self.run_segments(r, para)
+                if para.text[start:].strip():
+                    para.inserted.append(para.text[start:])
+            elif child.tag == q("w:del"):  # tracked deletion: recorded, never part of the text
+                gone = "".join(t.text or "" for t in child.iter(q("w:delText")))
+                if gone.strip():
+                    para.deleted.append(gone)
+            elif child.tag in (q("w:smartTag"), q("w:sdt")):
                 for r in child.iter(q("w:r")):
                     self.run_segments(r, para)
             elif child.tag == q("w:fldSimple"):
@@ -623,7 +654,7 @@ class Extractor:
 
     def handle_paragraph(self, p):
         para = self.parse_paragraph(p)
-        if not para.text and not para.drawings:
+        if not para.text and not para.drawings and not para.deleted:
             return
         if para.role == "heading":
             level = self.heading_level(para.style)
@@ -631,8 +662,15 @@ class Extractor:
             self.emit({"type": "heading", "level": level, "text": para.text, "style": para.style})
             return
         if para.drawings and para.role != "caption":
-            # a picture or chart sitting directly in the body, not in a figure grid
-            self.emit({"type": "figure", "figure_no": None, "caption": para.text or None, "content": para.drawings,
+            # a picture or chart sitting directly in the body, not in a figure grid; a Caption paragraph just
+            # before it is its caption ("Fig 3: ..."), as in a figure grid
+            figure_no, caption = None, para.text or None
+            if self.elements and self.elements[-1]["type"] == "caption" and not para.text:
+                cap = self.elements.pop()
+                m = CAPTION_RE.match(cap["text"])
+                figure_no = m.group(1).strip() if m else None
+                caption = (m.group(2).strip() if m else cap["text"]).strip() or None
+            self.emit({"type": "figure", "figure_no": figure_no, "caption": caption, "content": para.drawings,
                        "style": para.style})
             return
         el = {"type": {"list": "list_item", "key_data": "key_data", "caption": "caption", "source": "source",
@@ -649,6 +687,10 @@ class Extractor:
             el["footnotes"] = {f: self.footnotes.get(f) or self.endnotes.get(f.replace("end", "")) for f in para.footnotes}
         if para.links:
             el["links"] = para.links
+        if para.comments:
+            el["comments"] = [self.comments.get(c, {"id": c, "author": "", "date": "", "text": ""}) for c in para.comments]
+        if para.inserted or para.deleted:
+            el["tracked"] = {"inserted": list(para.inserted), "deleted": list(para.deleted)}
         self.emit(el)
 
     def handle_table(self, tbl):
@@ -758,8 +800,17 @@ class Extractor:
             "warnings": self.warnings,
         }
 
+    def emit_header_footer(self) -> None:
+        """Page header and footer text as elements of their own kind, after the body. They are boilerplate (sector
+        line, confidentiality marking, page numbers): in the JSON, out of the chunks."""
+        hf = self.header_footer_text()
+        for kind in ("header", "footer"):
+            for text in hf[kind + "s"]:
+                self.emit({"type": kind, "role": kind, "text": text, "boilerplate": True})
+
     def run(self) -> dict:
         self.walk_body()
+        self.emit_header_footer()
         return {
             "doc_id": self.doc_id,
             "metadata": self.build_metadata(),

@@ -23,10 +23,9 @@ def features(fixtures):
 
 PRESENT = ["headings with levels", "nested list (levels 0 and 1)", "table: merged header (colspan)",
            "table: merged down (rowspan)", "footnote text", "tracked insertion (kept)", "text box content",
-           "captioned picture: image saved"]
-GAPS = {"comment text": "PR 3: read comments.xml", "tracked deletion (recorded as deleted)": "PR 3: surface deletions",
-        "header text": "PR 3: emit header text", "footer text": "PR 3: emit footer text",
-        "captioned picture: caption linked (figure_no)": "PR 3: link a body figure to the Caption paragraph before it"}
+           "captioned picture: image saved", "comment text", "tracked deletion (recorded as deleted)", "header text",
+           "footer text", "captioned picture: caption linked (figure_no)"]
+GAPS: dict[str, str] = {}  # closed in PR 3; a new gap goes here with the PR that will close it
 
 
 @pytest.mark.parametrize("feature", PRESENT)
@@ -49,12 +48,43 @@ def test_chart_values_exact(fixtures):
     assert not bad, bad
 
 
-def test_chart_values_without_cache(fixtures):
+def test_chart_values_without_cache_come_from_the_workbook(fixtures):
     res = checks.chart_checks(fixtures["charts_nocache"], "no cache")
-    exact = [k for k, v in res.items() if "exact" in k and v[0]]
-    if exact:
-        pytest.fail("workbook fallback now works: turn this test into a plain assertion")
-    pytest.xfail("PR 3: read series from the embedded workbook when caches are absent")
+    bad = {k: v[3] for k, v in res.items() if not v[0]}
+    assert not bad, bad
+    doc = checks.extract_doc(fixtures["charts_nocache"])
+    sources = {s["values_source"] for f in checks.elements(doc, "figure") for i in f["content"]
+               if i.get("kind") == "chart" for s in i["chart"]["series"]}
+    assert sources == {"workbook"}, sources
+    doc = checks.extract_doc(fixtures["charts"])
+    sources = {s["values_source"] for f in checks.elements(doc, "figure") for i in f["content"]
+               if i.get("kind") == "chart" for s in i["chart"]["series"]}
+    assert sources == {"cache"}, sources
+
+
+def test_editorial_content_stays_out_of_chunks(fixtures):
+    """Comments, deletions, header and footer text are in the JSON for audit, never in what gets indexed."""
+    from research_qa.ingest.chunks import build_chunks
+
+    doc = checks.extract_doc(fixtures["features"])
+    chunks = build_chunks(doc, "FIX", "features.docx", {}, {}, [])
+    text = "\n".join(c.text for c in chunks if c.kind != "metadata")
+    for key in ("comment", "deleted", "header", "footer"):
+        assert EXPECTED[key] not in text, key
+    # the one place a short header line is allowed: the metadata chunk's sector field (existing behaviour)
+    meta = next(c.text for c in chunks if c.kind == "metadata")
+    assert EXPECTED["comment"] not in meta and EXPECTED["deleted"] not in meta and EXPECTED["footer"] not in meta
+    for key in ("paragraph", "inserted", "footnote", "textbox"):
+        assert EXPECTED[key] in text, key
+    comments = [e for e in checks.elements(doc, "paragraph") if e.get("comments")]
+    assert comments and comments[0]["comments"][0]["text"] == EXPECTED["comment"]
+    assert comments[0]["comments"][0]["author"] == "Reviewer"
+    tracked = [e for e in checks.elements(doc, "paragraph") if e.get("tracked")]
+    assert tracked and tracked[0]["tracked"] == {"inserted": [EXPECTED["inserted"]], "deleted": [EXPECTED["deleted"]]}
+    assert EXPECTED["deleted"] not in tracked[0]["text"] and EXPECTED["inserted"] in tracked[0]["text"]
+    fig = next(f for f in checks.elements(doc, "figure") if any(i.get("kind") == "picture" for i in f["content"]))
+    assert fig["figure_no"] == "Fig 1" and fig["caption"] == EXPECTED["caption"]
+    assert not checks.elements(doc, "caption"), "the linked Caption paragraph is folded into the figure"
 
 
 def test_pptx_control_converts(fixtures):
