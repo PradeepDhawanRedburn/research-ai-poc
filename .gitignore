@@ -11,3 +11,5 @@ __pycache__/
 .env
 .chroma/
 .rag_cache/
+.env.old.txt
+runbook-*.log

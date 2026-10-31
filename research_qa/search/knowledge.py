@@ -14,7 +14,6 @@ with the installed SDK is a one-place fix.
 """
 from __future__ import annotations
 
-
 from ..config import ARMS, settings
 from .azure import index_client, search_rest
 from .index import SEMANTIC_CONFIG, SOURCE_DATA_FIELDS, index_name
