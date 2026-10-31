@@ -251,7 +251,15 @@ def word_sync(wait_s: int = 0) -> dict:
         if not running or time.time() >= deadline:
             break
         time.sleep(10)
-    out = {"indexer": indexer, "status": str(st.status),
+    history = []
+    for ex in list(getattr(st, "execution_history", None) or [])[:5]:
+        history.append({"status": str(getattr(ex, "status", "")), "start": str(getattr(ex, "start_time", "")),
+                        "items": getattr(ex, "item_count", None), "failed": getattr(ex, "failed_item_count", None),
+                        "errors": [f"{getattr(e, 'key', '')}: {getattr(e, 'error_message', '')}"[:300]
+                                   for e in (getattr(ex, "errors", None) or [])][:10],
+                        "warnings": [f"{getattr(w, 'key', '')}: {getattr(w, 'message', '')}"[:300]
+                                     for w in (getattr(ex, "warnings", None) or [])][:10]})
+    out = {"indexer": indexer, "status": str(st.status), "history": history,
            "last_run": {"status": str(getattr(last, "status", "")), "items": getattr(last, "item_count", None),
                         "failed": getattr(last, "failed_item_count", None), "end": str(getattr(last, "end_time", "")),
                         "error": getattr(last, "error_message", None)} if last else None,
