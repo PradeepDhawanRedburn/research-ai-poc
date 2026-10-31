@@ -22,7 +22,26 @@ ANSWER_SYSTEM = """You answer questions about financial research reports using o
 Be concise: a direct answer first, then a short supporting explanation."""
 
 
-def retrieve(arm: str, question: str, max_docs: int | None = None) -> dict:
+def retrieve_body(arm: str, question: str, doc_id: str | None = None) -> dict:
+    """The `intents` request body. A doc_id becomes an OData filterAddOn on the Markdown+ index (its doc_id field
+    is filterable); the Word arm's Blob-built index has no such field, so the filter is not sent for it."""
+    params = {
+        "knowledgeSourceName": settings.names(arm).knowledge_source,
+        "kind": "azureBlob" if arm == "word" else "searchIndex",
+        "includeReferences": True,
+        "includeReferenceSourceData": True,
+    }
+    if doc_id and arm != "word":
+        params["filterAddOn"] = "doc_id eq '%s'" % doc_id.replace("'", "''")
+    return {
+        "intents": [{"type": "semantic", "search": question}],
+        "retrievalReasoningEffort": {"kind": "minimal"},
+        "includeActivity": True,
+        "knowledgeSourceParams": [params],
+    }
+
+
+def retrieve(arm: str, question: str, max_docs: int | None = None, doc_id: str | None = None) -> dict:
     from ..search.azure import search_rest
 
     # the passage limit lives on the knowledge base (retrieveDefaults), the same for both modes; `max_docs` is
@@ -34,17 +53,7 @@ def retrieve(arm: str, question: str, max_docs: int | None = None) -> dict:
     # Shape from the REST reference (Knowledge Retrieval - Retrieve, 2025-11-01-preview and later): `intents` with
     # semantic queries, the effort stated on the request, and source data asked for on the references so the
     # passages carry their fields (otherwise only ids and the extractive text come back).
-    intents = {
-        "intents": [{"type": "semantic", "search": question}],
-        "retrievalReasoningEffort": {"kind": "minimal"},
-        "includeActivity": True,
-        "knowledgeSourceParams": [{
-            "knowledgeSourceName": settings.names(arm).knowledge_source,
-            "kind": "azureBlob" if arm == "word" else "searchIndex",
-            "includeReferences": True,
-            "includeReferenceSourceData": True,
-        }],
-    }
+    intents = retrieve_body(arm, question, doc_id)
     try:
         return search_rest("POST", path, intents)
     except RuntimeError as first:

@@ -122,6 +122,7 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
         "run": run_name, "arms": arms, "modes": modes, "questions": len(questions), "resume": resume,
         "answer_model": settings.answer_model, "vision_deployment": settings.vision_deployment,
         "judge": settings.judge_deployment, "max_docs": settings.max_docs, "use_tools": use_tools,
+        "retrieval": settings.retrieval_flags(),
         "started": datetime.now(timezone.utc).isoformat(), "currency": prices().currency,
     })
 

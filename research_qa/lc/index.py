@@ -125,26 +125,55 @@ def rrf(rankings: list[list[str]], k: int = RRF_K) -> list[str]:
     return sorted(score, key=lambda i: -score[i])
 
 
+FILTER_FIELDS = ("doc_id", "kind", "figure", "source_file", "date")   # metadata both legs can filter on
+FIG_RE = re.compile(r"\b(?:fig(?:ure)?|chart|exhibit)\.?\s*(\d+[a-z]?)\b", re.I)
+
+
+def where_clause(filters: dict | None) -> dict | None:
+    """Chroma `where` for exact-match filters; None when there are none."""
+    items = [{k: v} for k, v in (filters or {}).items() if k in FILTER_FIELDS and v not in (None, "")]
+    return None if not items else (items[0] if len(items) == 1 else {"$and": items})
+
+
+def matches(c: Chunk, filters: dict | None) -> bool:
+    return all(str(getattr(c, k, "")) == str(v) for k, v in (filters or {}).items()
+               if k in FILTER_FIELDS and v not in (None, ""))
+
+
+def figure_in(query: str) -> str:
+    """'27' for 'Fig 27 of the April Money Map', '' when the query names no figure."""
+    m = FIG_RE.search(query)
+    return m.group(1).lower() if m else ""
+
+
 class Retriever:
-    """All chunks of one arm in memory (for BM25) plus the Chroma collection (for vectors)."""
+    """All chunks of one arm in memory (for BM25) plus the Chroma collection (for vectors).
+
+    retrieve() runs both legs in parallel, fuses them by reciprocal rank, applies the same metadata filters to both,
+    puts the chunks of a figure the question names first (settings.retrieval_figure_boost), and hands the fused
+    candidates to a reranker when one is configured (settings.reranker). `docs`, `vs` and `reranker` can be given
+    for tests."""
 
     _cache: dict[str, "Retriever"] = {}
 
-    def __init__(self, arm: str):
+    def __init__(self, arm: str, docs: list[Chunk] | None = None, vs=None, reranker=None):
         from rank_bm25 import BM25Okapi
 
         self.arm = arm
-        self.vs = vector_store(arm)
-        got = self.vs.get(include=["documents", "metadatas"])
-        from langchain_core.documents import Document
+        self.vs = vs if vs is not None else vector_store(arm)
+        if docs is None:
+            got = self.vs.get(include=["documents", "metadatas"])
+            from langchain_core.documents import Document
 
-        self.docs = [from_document(Document(page_content=t, metadata=m or {}, id=i))
-                     for i, t, m in zip(got["ids"], got["documents"], got["metadatas"])]
+            docs = [from_document(Document(page_content=t, metadata=m or {}, id=i))
+                    for i, t, m in zip(got["ids"], got["documents"], got["metadatas"])]
+        self.docs = docs
         if not self.docs:
             raise RuntimeError(f"collection {collection_name(arm)} is empty; run: python -m research_qa index "
                                f"--arm {arm}")
         self.by_id = {c.id: c for c in self.docs}
         self.bm25 = BM25Okapi([toks(c.text) for c in self.docs])
+        self._reranker = reranker
 
     @classmethod
     def get(cls, arm: str) -> "Retriever":
@@ -159,14 +188,60 @@ class Retriever:
         else:
             cls._cache.pop(arm, None)
 
-    def retrieve(self, query: str, k: int | None = None, doc_id: str | None = None) -> list[Chunk]:
-        k = k or settings.max_docs
-        flt = {"doc_id": doc_id} if doc_id else None
-        dense = [str(d.id) for d in self.vs.similarity_search(query, k=FETCH, filter=flt)]
+    @property
+    def reranker(self):
+        if self._reranker is None and settings.reranker != "none":
+            from .rerank import get_reranker
+
+            self._reranker = get_reranker()
+        return self._reranker
+
+    # --- legs
+    def _dense(self, query: str, flt: dict | None) -> list[str]:
+        return [str(d.id) for d in self.vs.similarity_search(query, k=FETCH, filter=where_clause(flt))]
+
+    def _sparse(self, query: str, flt: dict | None) -> list[str]:
         scores = self.bm25.get_scores(toks(query))
         order = sorted(range(len(self.docs)), key=lambda i: -scores[i])
-        sparse = [self.docs[i].id for i in order if not doc_id or self.docs[i].doc_id == doc_id][:FETCH]
-        return [self.by_id[i] for i in rrf([dense, sparse]) if i in self.by_id][:k]
+        return [self.docs[i].id for i in order if scores[i] > 0 and matches(self.docs[i], flt)][:FETCH]
+
+    def fused(self, query: str, flt: dict | None, parallel: bool = True) -> list[str]:
+        if parallel:
+            from concurrent.futures import ThreadPoolExecutor
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                dense, sparse = pool.submit(self._dense, query, flt), pool.submit(self._sparse, query, flt)
+                dense, sparse = dense.result(), sparse.result()
+        else:
+            dense, sparse = self._dense(query, flt), self._sparse(query, flt)
+        return [i for i in rrf([dense, sparse]) if i in self.by_id]
+
+    def retrieve(self, query: str, k: int | None = None, doc_id: str | None = None, filters: dict | None = None,
+                 info: dict | None = None) -> list[Chunk]:
+        """Top-k chunks. `filters` are exact matches on FILTER_FIELDS (doc_id is the common one). `info`, when a
+        dict is passed, receives what shaped the result: figure_boost ids, reranked, candidates."""
+        k = k or settings.max_docs
+        flt = {**(filters or {}), **({"doc_id": doc_id} if doc_id else {})}
+        ids = self.fused(query, flt)
+        boosted: list[str] = []
+        fig = figure_in(query) if settings.retrieval_figure_boost else ""
+        if fig:
+            boosted = [c.id for c in self.docs if figure_in(c.figure or "") == fig and matches(c, flt)][:3]
+            ids = boosted + [i for i in ids if i not in boosted]
+        reranked = False
+        rr = self.reranker
+        if rr is not None and ids:
+            pool_ids = ids[:settings.rerank_candidates]
+            try:
+                order = rr.rerank(query, [(i, self.by_id[i].text) for i in pool_ids], top_n=k)
+                ids = [i for i in order if i in self.by_id] + [i for i in ids if i not in order]
+                reranked = True
+            except Exception as e:  # noqa: BLE001 - a reranker outage degrades to the fused order
+                if info is not None:
+                    info["rerank_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+        if info is not None:
+            info.update({"figure_boost": boosted, "reranked": reranked, "candidates": len(ids), "filters": flt})
+        return [self.by_id[i] for i in ids[:k]]
 
 
 @lru_cache(maxsize=None)
