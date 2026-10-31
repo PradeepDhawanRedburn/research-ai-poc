@@ -33,12 +33,14 @@ def retrieve(arm: str, question: str, max_docs: int | None = None) -> dict:
     intents = {"intents": [{"type": "semantic", "search": question}]}
     try:
         return search_rest("POST", path, intents)
-    except RuntimeError as e:
-        if "intents" in str(e).lower() and "not supported" in str(e).lower():
+    except RuntimeError as first:
+        if "400" not in str(first):
             raise
-        if "400" not in str(e):
-            raise
-        return search_rest("POST", path, {"messages": [{"role": "user", "content": [{"type": "text", "text": question}]}]})
+        try:
+            return search_rest("POST", path,
+                               {"messages": [{"role": "user", "content": [{"type": "text", "text": question}]}]})
+        except RuntimeError as second:
+            raise RuntimeError(f"intents body rejected: {first} | messages body rejected: {second}") from second
 
 
 def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[str]]:
