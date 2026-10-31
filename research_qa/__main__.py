@@ -173,6 +173,16 @@ def cmd_eval(args) -> int:
     return 0
 
 
+def cmd_report(args) -> int:
+    from .evaluate.baseline import report
+
+    store = open_store()
+    md, _ = _azure("report", report, args.run, store, args.k)
+    print(md)
+    print(f"written to eval/{args.run}/baseline-k{args.k}.md in {store.describe()}")
+    return 0
+
+
 def cmd_retention(args) -> int:
     from .evaluate.retention import check, report_markdown
 
@@ -351,6 +361,10 @@ def main(argv=None) -> int:
     p.add_argument("--no-tools", action="store_true")
     p.set_defaults(fn=cmd_eval)
 
+    p = sub.add_parser("report", help="recall@k and p95 latency by question type from a run's rows, no model")
+    p.add_argument("--run", required=True, help="run name under eval/")
+    p.add_argument("--k", type=int, default=10)
+    p.set_defaults(fn=cmd_report)
     p = sub.add_parser("retention", help="evidence retention of Markdown+, no model")
     p.add_argument("--k", type=int, default=5)
     p.set_defaults(fn=cmd_retention)
