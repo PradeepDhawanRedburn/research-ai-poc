@@ -4,6 +4,9 @@ For Pradeep. Every step that needs Azure credentials is here, in order, with the
 should see, and what to do if you do not. Steps 0 to 2 were run offline on this branch and are only repeated to
 confirm; steps 3 onward need `az login`.
 
+**Shortcut:** `.\scriptsunbook.ps1` runs steps 1 to 6 below in order, stops at the first failure and writes a
+`runbook-<timestamp>.log` to send back; `-Full` adds the full evaluation, `-From N` resumes at a step.
+
 Run from the repo root in the environment that has the Azure packages (`uv sync --extra azure`). Where a command may
 take more than a minute it says so.
 
