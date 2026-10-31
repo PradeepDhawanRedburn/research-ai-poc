@@ -168,6 +168,7 @@ class Answer:
     generation_s: float = 0.0
     tools_s: float = 0.0        # facts lookups and vision calls
     total_s: float = 0.0
+    first_token_s: float = 0.0  # direct mode, streamed: seconds from the question to the first answer token
     input_tokens: int = 0
     output_tokens: int = 0
     reasoning_tokens: int = 0

@@ -35,7 +35,8 @@ def chat_model(deployment: str | None = None, max_tokens: int = 1500):
     settings.require("openai_endpoint")
     name = deployment or settings.answer_model
     kw: dict = {"azure_endpoint": settings.openai_endpoint, "azure_deployment": name,
-                "api_version": settings.api_version, "max_retries": 6, **_auth(settings.openai_api_key)}
+                "api_version": settings.api_version, "max_retries": 6, **_auth(settings.openai_api_key),
+                "stream_usage": True}   # usage arrives on the last streamed chunk (off by default on Azure endpoints)
     if is_reasoning(name):
         kw["reasoning_effort"] = settings.reasoning_effort
         kw["max_completion_tokens"] = max_tokens

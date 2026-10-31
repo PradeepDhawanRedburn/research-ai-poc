@@ -122,7 +122,28 @@ def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[st
     return out, queries
 
 
-def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None) -> Answer:
+def stream_text(chunks, on_token=None, t_start: float | None = None) -> tuple[str, object, float]:
+    """Accumulate an OpenAI chat-completion stream: (text, usage object or None, first_token_s). The usage arrives
+    on the final chunk when stream_options.include_usage is set."""
+    t_start = t_start if t_start is not None else time.perf_counter()
+    text, first, usage = "", 0.0, None
+    for ch in chunks:
+        u = getattr(ch, "usage", None)
+        if u is not None:
+            usage = u
+        choices = getattr(ch, "choices", None) or []
+        delta = getattr(choices[0], "delta", None) if choices else None
+        c = getattr(delta, "content", None) if delta is not None else None
+        if c:
+            if not text:
+                first = time.perf_counter() - t_start
+            text += c
+            if on_token is not None:
+                on_token(text)
+    return text.strip(), usage, first
+
+
+def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None, on_token=None) -> Answer:
     from ..search.azure import openai_client
 
     if arm not in ARMS:
@@ -163,15 +184,21 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=
                                   items=[f"[{p.rank}] {p.heading or p.kind}" for p, _ in shown],
                                   assets=[k for _, k in shown]))
     t1 = time.perf_counter()
-    r = openai_client().chat.completions.create(
-        model=settings.answer_model, max_completion_tokens=1500,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": content}], **kw)
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
+    if settings.stream_direct:
+        stream = openai_client().chat.completions.create(
+            model=settings.answer_model, max_completion_tokens=1500, messages=messages, stream=True,
+            stream_options={"include_usage": True}, **kw)
+        text, u, ans.first_token_s = stream_text(stream, on_token, t_start=t0)
+    else:
+        r = openai_client().chat.completions.create(
+            model=settings.answer_model, max_completion_tokens=1500, messages=messages, **kw)
+        u, text = getattr(r, "usage", None), (r.choices[0].message.content or "").strip()
     ans.generation_s = time.perf_counter() - t1
-    u = getattr(r, "usage", None)
     ans.input_tokens = int(getattr(u, "prompt_tokens", 0) or 0)
     ans.output_tokens = int(getattr(u, "completion_tokens", 0) or 0)
     ans.reasoning_tokens = int(getattr(getattr(u, "completion_tokens_details", None), "reasoning_tokens", 0) or 0)
-    ans.text = ans.raw_text = (r.choices[0].message.content or "").strip()
+    ans.text = ans.raw_text = text
     ans.total_s = time.perf_counter() - t0
     mark_cited(ans)
     ans.steps.append(Step("answer", f"{settings.answer_model} wrote the answer and cited {len(ans.cited)} passages",

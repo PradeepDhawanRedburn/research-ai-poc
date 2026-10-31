@@ -14,7 +14,7 @@ def label(arm: str, mode: str) -> str:
 
 
 def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, chat=None,
-        max_docs: int | None = None, principals=None) -> Answer:
+        max_docs: int | None = None, principals=None, on_token=None) -> Answer:
     """`chat` is an existing Chat (foundry.Chat or lc.answer.Chat, matching RETRIEVAL_BACKEND) to continue a
     conversation; otherwise a fresh one is made. `principals` is the caller's identity for access control
     (default PRINCIPALS from .env). The Foundry agent calls its knowledge base itself over MCP and cannot carry a
@@ -27,12 +27,12 @@ def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, ch
         from ..lc import answer as lc
 
         if mode == "direct":
-            return lc.ask_direct(question, arm, max_docs, principals=principals)
+            return lc.ask_direct(question, arm, max_docs, principals=principals, on_token=on_token)
         return (chat or lc.Chat(arm, principals=principals)).ask(question, use_tools=use_tools, max_docs=max_docs)
     if mode == "direct":
         from .direct import ask_direct
 
-        return ask_direct(question, arm, max_docs, principals=principals)
+        return ask_direct(question, arm, max_docs, principals=principals, on_token=on_token)
     from .foundry import Chat
 
     return (chat or Chat(arm)).ask(question, use_tools=use_tools)

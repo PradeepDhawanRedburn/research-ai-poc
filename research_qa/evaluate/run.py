@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 ROW_FIELDS = ["id", "type", "doc", "arm", "mode", "combo", "evidence_retrieved", "evidence_hits", "verdict", "reason",
               "answer", "expected", "retrieved", "cited", "queries", "tools", "images", "retrieval_s", "generation_s",
-              "tools_s", "total_s", "rounds", "input_tokens", "output_tokens", "reasoning_tokens", "vision_tokens",
+              "tools_s", "total_s", "first_token_s", "rounds", "input_tokens", "output_tokens", "reasoning_tokens", "vision_tokens",
               "total_tokens", "cost", "errors", "model", "judge"]
 
 
@@ -63,6 +63,7 @@ def _row(q: dict, arm: str, mode: str, a: Answer, verdict: dict, items: list[lis
         "retrieved": [p.id for p in a.passages], "cited": [p.id for p in a.cited],
         "queries": list(a.queries), "tools": tools, "images": len(a.inspected_assets) or sum(t == "inspect_figure" for t in tools),
         "retrieval_s": a.retrieval_s, "generation_s": a.generation_s, "tools_s": a.tools_s, "total_s": a.total_s,
+        "first_token_s": a.first_token_s,
         "rounds": a.rounds,
         "input_tokens": a.input_tokens, "output_tokens": a.output_tokens, "reasoning_tokens": a.reasoning_tokens,
         "vision_tokens": a.vision_tokens, "total_tokens": a.total_tokens,
@@ -77,7 +78,8 @@ def _error_row(q: dict, arm: str, mode: str, err: Exception) -> dict:
             "evidence_retrieved": False if n else None, "evidence_hits": f"0/{n}",
             "verdict": "incorrect", "reason": f"run failed: {type(err).__name__}: {str(err)[:300]}",
             "answer": "", "expected": q.get("answer", ""), "retrieved": [], "cited": [], "queries": [], "tools": [],
-            "images": 0, "retrieval_s": 0.0, "generation_s": 0.0, "tools_s": 0.0, "total_s": 0.0, "rounds": 0,
+            "images": 0, "retrieval_s": 0.0, "generation_s": 0.0, "tools_s": 0.0, "total_s": 0.0, "first_token_s": 0.0,
+            "rounds": 0,
             "input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "vision_tokens": 0, "total_tokens": 0,
             "cost": None, "errors": [str(err)[:300]], "model": settings.answer_model, "judge": settings.judge_deployment}
 
