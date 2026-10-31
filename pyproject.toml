@@ -53,6 +53,7 @@ packages = ["src/research_ingest", "research_qa"]
 
 [tool.uv]
 package = true
+native-tls = true  # trust the Windows certificate store (corporate TLS inspection)
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
