@@ -169,6 +169,31 @@ def data_url(png: bytes) -> str:
     return "data:image/png;base64," + base64.b64encode(png).decode()
 
 
+PICTURES_NOTE = ("Pictures attached to this message are the originals behind the figure passages named next to them. "
+                 "Read them for counts, printed text, colours and layout; when an answer rests on a picture, say so "
+                 "and cite that passage.")
+
+
+def picture_blocks(store: Store, passages: list, max_n: int) -> tuple[list[dict], list[tuple]]:
+    """OpenAI-style content blocks with the original pictures behind the top-ranked figure passages, at most
+    `max_n` pictures in rank order, each preceded by a line naming its passage. Returns (blocks, [(passage, key)]).
+    Used by direct mode when settings.direct_images is on; the agent has inspect_figure instead."""
+    blocks: list[dict] = []
+    shown: list[tuple] = []
+    seen: set[str] = set()
+    for p in sorted(passages, key=lambda p: p.rank):
+        for key in p.assets:
+            if len(shown) >= max_n:
+                return blocks, shown
+            if key in seen or not store.exists(key):
+                continue
+            seen.add(key)
+            blocks.append({"type": "text", "text": f"Picture of passage [{p.rank}] ({p.heading or p.kind}):"})
+            blocks.append({"type": "image_url", "image_url": {"url": data_url(store.get(key)), "detail": "high"}})
+            shown.append((p, key))
+    return blocks, shown
+
+
 def inspect_figure(store: Store, chunk_id: str, chunk_assets: list[str], caption_and_text: str,
                    question: str) -> FigureLook:
     """A vision model looks at up to MAX_PICTURES pictures of the chunk (fetched from the store) and answers."""

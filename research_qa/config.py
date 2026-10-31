@@ -134,6 +134,9 @@ class Settings:
     rerank_endpoint: str = _env("RERANK_ENDPOINT").rstrip("/")     # Foundry serverless endpoint of the rerank model
     rerank_api_key: str = _env("RERANK_API_KEY")
     rerank_model: str = _env("RERANK_MODEL")
+    # --- direct mode: attach the original pictures behind the top figure passages to the answer call (both engines)
+    direct_images: bool = _env("DIRECT_IMAGES", "0") not in ("0", "false", "no", "off", "")
+    direct_images_max: int = int(_env("DIRECT_IMAGES_MAX", "3"))
 
     # --- Azure AI Search and Foundry project
     search_endpoint: str = _env("AZURE_SEARCH_ENDPOINT").rstrip("/")
@@ -168,7 +171,8 @@ class Settings:
         return {"backend": self.retrieval_backend, "max_docs": self.max_docs,
                 "figure_boost": self.retrieval_figure_boost, "reranker": self.reranker,
                 "rerank_candidates": self.rerank_candidates if self.reranker != "none" else None,
-                "rerank_model": self.rerank_model if self.reranker != "none" else None}
+                "rerank_model": self.rerank_model if self.reranker != "none" else None,
+                "direct_images": self.direct_images_max if self.direct_images else False}
 
     @property
     def store_is_local(self) -> bool:
