@@ -97,7 +97,7 @@ def stream_answer(model, messages, on_token=None, t_start: float | None = None) 
         return c.strip(), msg, time.perf_counter() - t_start
     text, first, last = "", 0.0, None
     for chunk in model.stream(messages):
-        last = chunk
+        last = chunk if last is None else last + chunk   # Azure sends an empty chunk after the usage chunk
         c = chunk.content if isinstance(chunk.content, str) else " ".join(
             p.get("text", "") if isinstance(p, dict) else str(p) for p in chunk.content)
         if c:

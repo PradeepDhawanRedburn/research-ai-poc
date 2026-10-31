@@ -85,6 +85,25 @@ uv run python -m research_qa retention                  # no-model check: every 
 ```
 After an ingest, re-run `index` (azure: pushes the new chunks; langchain: `index --reset` rebuilds the collections).
 
+## Adding or removing a report
+
+Add one report; the others are not reconverted (`ingest` skips reports already in the manifest):
+```bash
+uv run python -m research_qa upload data/raw/<new doc>.docx
+uv run python -m research_qa ingest                     # or --doc <report id>; --force re-runs a changed report
+uv run python -m research_qa index                      # langchain engine: index --doc <report id>
+```
+Then add its questions to `golden/questions.yaml`; the evaluation and `retention` only cover documents named there.
+On the azure engine the Word arm picks the file up from `raw/` by itself (`word-sync` shows the result). On the
+langchain engine every other machine runs `index` once for its own Chroma.
+
+Remove one report: delete `raw/<doc>.docx` from the store (Blob container, or `STORE_LOCAL_DIR/raw`), then
+```bash
+uv run python -m research_qa reconcile --dry-run        # lists what would go
+uv run python -m research_qa reconcile                  # removes its markdown, assets, facts, chunks, manifest entry and index/Chroma chunks
+```
+and delete its questions from `golden/questions.yaml`. `ingest` never deletes anything; `reconcile` is the only removal path.
+
 ## The demo
 
 `streamlit run research_qa/app/Overview.py`. Four pages, written for an executive audience with the engineer's view one

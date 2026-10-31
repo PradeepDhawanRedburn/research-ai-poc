@@ -6,6 +6,7 @@ Ported from the Phase 0 `rag/` package. BM25 matters because many questions hing
 from __future__ import annotations
 
 import re
+import threading
 from functools import lru_cache
 
 from .. import acl as access
@@ -31,12 +32,21 @@ def toks(s: str) -> list[str]:
     return TOKEN_RE.findall(s.lower())
 
 
-def _client():
-    import chromadb
+_client_lock = threading.Lock()
+_client_cache = None
 
-    settings.chroma_dir.mkdir(parents=True, exist_ok=True)
-    return chromadb.PersistentClient(path=str(settings.chroma_dir),
-                                     settings=chromadb.config.Settings(anonymized_telemetry=False))
+
+def _client():
+    """One client per process: chromadb's client construction is not thread-safe, and the app asks arms in parallel threads."""
+    global _client_cache
+    with _client_lock:
+        if _client_cache is None:
+            import chromadb
+
+            settings.chroma_dir.mkdir(parents=True, exist_ok=True)
+            _client_cache = chromadb.PersistentClient(
+                path=str(settings.chroma_dir), settings=chromadb.config.Settings(anonymized_telemetry=False))
+        return _client_cache
 
 
 def vector_store(arm: str):
