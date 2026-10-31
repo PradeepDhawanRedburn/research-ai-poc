@@ -114,6 +114,25 @@ def delete_agent(arm: str) -> None:
     print(f"[{arm}] deleted connection '{n.connection}' ({resp.status_code})")
 
 
+def list_agents() -> list[str]:
+    """Names of this system's agents present in the project (those with the base name prefix)."""
+    client = project_client()
+    names: list[str] = []
+    try:
+        for a in client.agents.list():
+            name = getattr(a, "name", None) or (a.get("name") if isinstance(a, dict) else None)
+            if name and name.startswith(settings.base_name):
+                names.append(name)
+    except Exception:  # noqa: BLE001 - older SDK: probe each expected agent
+        for arm in ARMS:
+            try:
+                if list(client.agents.list_versions(agent_name=settings.names(arm).agent)):
+                    names.append(settings.names(arm).agent)
+            except Exception:  # noqa: BLE001
+                continue
+    return sorted(set(names))
+
+
 # ----------------------------------------------------------------------------- parsing the Responses output
 
 def annotations(response) -> list[tuple[int, int, str]]:

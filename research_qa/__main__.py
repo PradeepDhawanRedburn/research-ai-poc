@@ -164,6 +164,16 @@ def cmd_retention(args) -> int:
     return 0
 
 
+def cmd_word_sync(args) -> int:
+    import json as _json
+
+    from .search.knowledge import word_sync
+
+    out = _azure("word-sync", word_sync, args.wait)
+    print(_json.dumps(out, indent=1, default=str))
+    return 0
+
+
 def cmd_status(args) -> int:
     store = open_store()
     print(f"Store: {store.describe()}")
@@ -297,6 +307,10 @@ def main(argv=None) -> int:
     p.set_defaults(fn=cmd_retention)
 
     sub.add_parser("status", help="what is in the store and in Azure").set_defaults(fn=cmd_status)
+
+    p = sub.add_parser("word-sync", help="make Azure ingest raw/ for the Word arm now and show the per-document result")
+    p.add_argument("--wait", type=int, default=600, help="seconds to wait for the run to finish (default 600)")
+    p.set_defaults(fn=cmd_word_sync)
 
     p = sub.add_parser("down", help="delete the Azure objects (not the store)")
     p.add_argument("--arm", help="comma-separated; default all")

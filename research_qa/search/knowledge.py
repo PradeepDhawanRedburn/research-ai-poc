@@ -226,6 +226,51 @@ def blob_ingestion_status(arm: str = WORD) -> dict:
         return {"source": f"indexer {indexer}", "status": "unknown", "detail": f"{type(e).__name__}: {str(e)[:200]}"}
 
 
+def word_sync(wait_s: int = 0) -> dict:
+    """Make the Word arm's Blob knowledge source ingest raw/ now. On creation the service runs once and then only on
+    its schedule (a day); this runs the indexer it created on demand and returns the status, with per-document
+    errors and warnings. `wait_s` > 0 polls until the run ends or the time is up."""
+    import time
+
+    from azure.search.documents.indexes import SearchIndexerClient
+
+    from .azure import credential
+
+    ks = knowledge_source_json(WORD)
+    created = (ks.get("azureBlobParameters") or {}).get("createdResources") or {}
+    indexer = created.get("indexer")
+    if not indexer:
+        return {"status": "unknown", "detail": "the Word knowledge source has no indexer recorded; create it first"}
+    client = SearchIndexerClient(endpoint=settings.search_endpoint, credential=credential())
+    client.run_indexer(indexer)
+    deadline = time.time() + wait_s
+    while True:
+        st = client.get_indexer_status(indexer)
+        last = st.last_result
+        running = str(getattr(last, "status", "")).lower() in ("inprogress", "running") or st.status == "running"
+        if not running or time.time() >= deadline:
+            break
+        time.sleep(10)
+    out = {"indexer": indexer, "status": str(st.status),
+           "last_run": {"status": str(getattr(last, "status", "")), "items": getattr(last, "item_count", None),
+                        "failed": getattr(last, "failed_item_count", None), "end": str(getattr(last, "end_time", "")),
+                        "error": getattr(last, "error_message", None)} if last else None,
+           "errors": [f"{getattr(e, 'key', '')}: {getattr(e, 'error_message', '')}" for e in (getattr(last, "errors", None) or [])][:20],
+           "warnings": [f"{getattr(w, 'key', '')}: {getattr(w, 'message', '')}" for w in (getattr(last, "warnings", None) or [])][:20]}
+    try:
+        from azure.search.documents import SearchClient
+
+        idx = created.get("index")
+        if idx:
+            sc = SearchClient(endpoint=settings.search_endpoint, index_name=idx, credential=credential())
+            res = sc.search("*", top=0, include_total_count=True)
+            out["index"] = idx
+            out["documents_in_index"] = res.get_count()
+    except Exception as e:  # noqa: BLE001
+        out["index_error"] = f"{type(e).__name__}: {str(e)[:160]}"
+    return out
+
+
 def delete_knowledge(arm: str) -> None:
     """Knowledge base, then knowledge source (the service refuses the other order)."""
     n, client = settings.names(arm), index_client()
