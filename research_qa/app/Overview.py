@@ -103,7 +103,7 @@ if runs:
             costs[arm] = (f"{s['tokens']['total_tokens']['mean']:,.0f} tokens · "
                           f"{ui.fmt_cost(s['cost_per_question'])} per question")
 
-st.markdown(pipeline_figure(costs), unsafe_allow_html=True)
+st.html(pipeline_figure(costs))
 
 st.subheader("Latest scorecard")
 if not runs:
