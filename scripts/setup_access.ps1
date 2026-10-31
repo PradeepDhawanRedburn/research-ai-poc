@@ -17,12 +17,18 @@ $storageId = "/subscriptions/$Subscription/resourceGroups/$ResourceGroup/provide
 # The search service needs a managed identity: to call the embedding deployment (vectorizer), to verbalise images
 # (Word arm) and to read raw/ in the store (Blob knowledge source).
 $searchMi = az search service update -g $ResourceGroup -n $SearchService --identity-type SystemAssigned --query identity.principalId -o tsv
+if (-not $searchMi) {
+    throw "Could not enable the search service identity. If the error above says MFA, run the exact 'az login ... --claims-challenge ...' command Azure printed, then run this script again."
+}
 # The project managed identity authenticates the MCP connection from the agent to Azure AI Search.
 $projectMi = az rest --method get --url "https://management.azure.com$accountId/projects/$FoundryProject`?api-version=2025-06-01" --query identity.principalId -o tsv
+if (-not $projectMi) { throw "Could not read the Foundry project's managed identity; check -FoundryAccount and -FoundryProject." }
 
+$failed = 0
 function Grant($principal, $type, $role, $scope) {
     Write-Host "$role -> $principal on $($scope.Split('/')[-1])"
-    az role assignment create --assignee-object-id $principal --assignee-principal-type $type --role $role --scope $scope -o none
+    $out = az role assignment create --assignee-object-id $principal --assignee-principal-type $type --role $role --scope $scope -o none 2>&1
+    if ($LASTEXITCODE -ne 0 -and "$out" -notmatch "already exists") { $script:failed++; Write-Host "  FAILED: $out" }
 }
 
 # You, on the store: upload Word files, write Markdown+, assets, facts, chunks, evaluation runs
@@ -40,5 +46,6 @@ Grant $projectMi ServicePrincipal "Search Index Data Reader" $searchId
 Grant $searchMi ServicePrincipal "Cognitive Services User" $accountId
 Grant $searchMi ServicePrincipal "Cognitive Services OpenAI User" $accountId
 Grant $searchMi ServicePrincipal "Storage Blob Data Reader" $storageId
+if ($failed) { throw "$failed role assignment(s) failed; see above. Nothing else to do until they succeed." }
 Write-Host "Done. Role assignments can take a few minutes to take effect."
 Write-Host "STORAGE_RESOURCE_ID=$storageId"
