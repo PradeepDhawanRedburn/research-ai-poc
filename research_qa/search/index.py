@@ -139,6 +139,15 @@ def push(store: Store, doc_ids: list[str] | None = None) -> int:
     return total
 
 
+def delete_doc(doc_id: str) -> int:
+    """Remove one report's chunks from the Markdown+ index; returns how many. Used by reconcile."""
+    search = search_client(index_name())
+    old = [r["id"] for r in search.search("*", filter=f"doc_id eq '{doc_id}'", select=["id"], top=1000)]
+    if old:
+        search.delete_documents([{"id": i} for i in old])
+    return len(old)
+
+
 def stats(arm: str = ARM) -> dict:
     """Chunk count and chunks per source file, read from the live index. For the Word arm the index is the one
     the Blob knowledge source created; its name is read from the knowledge source (knowledge.py)."""

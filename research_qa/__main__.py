@@ -173,6 +173,22 @@ def cmd_eval(args) -> int:
     return 0
 
 
+def cmd_reconcile(args) -> int:
+    from .ingest.reconcile import orphans, reconcile
+
+    store = open_store()
+    gone = orphans(store)
+    if not gone:
+        print("nothing to reconcile: every derived document still has its raw/ file")
+        return 0
+    res = _azure("reconcile", reconcile, store, dry_run=args.dry_run)
+    for d, r in res.items():
+        verb = "would remove" if args.dry_run else "removed"
+        print(f"[{d}] {verb} {len(r['keys'])} store objects" + (" and the manifest entry" if r["manifest"] else "")
+              + ("" if args.dry_run else f"; index: {r['index']}"))
+    return 0
+
+
 def cmd_report(args) -> int:
     from .evaluate.baseline import report
 
@@ -361,6 +377,9 @@ def main(argv=None) -> int:
     p.add_argument("--no-tools", action="store_true")
     p.set_defaults(fn=cmd_eval)
 
+    p = sub.add_parser("reconcile", help="remove everything left behind by documents deleted from raw/ (store and engine)")
+    p.add_argument("--dry-run", action="store_true", help="list what would be removed, remove nothing")
+    p.set_defaults(fn=cmd_reconcile)
     p = sub.add_parser("report", help="recall@k and p95 latency by question type from a run's rows, no model")
     p.add_argument("--run", required=True, help="run name under eval/")
     p.add_argument("--k", type=int, default=10)

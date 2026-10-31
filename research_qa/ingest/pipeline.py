@@ -7,6 +7,7 @@ descriptions are cached per picture, so a re-run costs no vision calls.
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import time
 from datetime import datetime, timezone
@@ -68,7 +69,8 @@ def _inject_descriptions(conv: Converted, descriptions: dict[str, dict]) -> int:
     return n
 
 
-def _manifest_entry(conv: Converted, descriptions: dict, chunks, facts, seconds: float) -> ReportManifest:
+def _manifest_entry(conv: Converted, descriptions: dict, chunks, facts, seconds: float,
+                    raw_sha: str = "") -> ReportManifest:
     md = conv.doc.get("metadata", {})
     figures = [e for e in conv.doc.get("elements", []) if e.get("type") == "figure"]
     pics = [p for e in figures for p in pictures_of(e) if (p.get("asset") or "") in conv.assets]
@@ -90,14 +92,22 @@ def _manifest_entry(conv: Converted, descriptions: dict, chunks, facts, seconds:
         pictures_described=sum(1 for p in pics if conv.assets[p["asset"]] in descriptions),
         vision_calls=sum(1 for d in descriptions.values() if d.get("called")),
         matrices=kinds.get("matrix", 0), tables=kinds.get("table", 0), facts_figures=len(facts),
-        warnings=list(conv.warnings), markdown_chars=len(conv.markdown),
+        warnings=list(conv.warnings), markdown_chars=len(conv.markdown), raw_sha=raw_sha,
     )
 
 
-def _is_current(store: Store, doc_id: str, manifest: dict) -> bool:
+def raw_sha(store: Store, doc_id: str) -> str:
+    return hashlib.sha256(store.get(f"{RAW}/{doc_id}.docx")).hexdigest()
+
+
+def _is_current(store: Store, doc_id: str, manifest: dict, sha: str | None = None) -> bool:
+    """Up to date when the manifest entry was built from the very bytes now in raw/ (content hash). Entries
+    written before the hash existed fall back to the timestamp rule once; their next ingest records the hash."""
     entry = manifest.get(doc_id)
     if not entry or not store.exists(f"{MARKDOWN}/{doc_id}.md") or not store.exists(f"{CHUNKS}/{doc_id}.jsonl"):
         return False
+    if entry.get("raw_sha"):
+        return entry["raw_sha"] == (sha or raw_sha(store, doc_id))
     raw = next((e for e in store.list(f"{RAW}/{doc_id}.docx") if e.key == f"{RAW}/{doc_id}.docx"), None)
     if raw is None or raw.modified is None:
         return True
@@ -107,8 +117,9 @@ def _is_current(store: Store, doc_id: str, manifest: dict) -> bool:
         return False
 
 
-def ingest_one(doc_id: str, store: Store, vision: str = "auto") -> ReportManifest:
+def ingest_one(doc_id: str, store: Store, vision: str = "auto", sha: str | None = None) -> ReportManifest:
     t0 = time.perf_counter()
+    sha = sha or raw_sha(store, doc_id)
     conv = convert(doc_id, store)
     descriptions = describe(_picture_items(conv, vision), store, vision)
     _inject_descriptions(conv, descriptions)
@@ -119,7 +130,7 @@ def ingest_one(doc_id: str, store: Store, vision: str = "auto") -> ReportManifes
     store.put(f"{MARKDOWN}/{doc_id}.md", markdown, "text/markdown")
     store.put_json(f"{FACTS}/{doc_id}.json", [f.to_dict() for f in facts])
     store.put_jsonl(f"{CHUNKS}/{doc_id}.jsonl", (c.to_dict() for c in chunks))
-    return _manifest_entry(conv, descriptions, chunks, facts, time.perf_counter() - t0)
+    return _manifest_entry(conv, descriptions, chunks, facts, time.perf_counter() - t0, raw_sha=sha)
 
 
 def ingest(doc_ids: list[str] | None, store: Store, vision: str = "auto", force: bool = False) -> list[ReportManifest]:
@@ -131,10 +142,11 @@ def ingest(doc_ids: list[str] | None, store: Store, vision: str = "auto", force:
         if not store.exists(f"{RAW}/{doc_id}.docx"):
             print(f"[{doc_id}] no raw/{doc_id}.docx in the store, skipped")
             continue
-        if not force and _is_current(store, doc_id, manifest):
-            print(f"[{doc_id}] up to date, skipped (use force to redo)")
+        sha = raw_sha(store, doc_id)
+        if not force and _is_current(store, doc_id, manifest, sha):
+            print(f"[{doc_id}] up to date (same content hash), skipped (use force to redo)")
             continue
-        m = ingest_one(doc_id, store, vision)
+        m = ingest_one(doc_id, store, vision, sha)
         manifest[doc_id] = m.to_dict()
         store.put_json(MANIFEST, manifest)
         done.append(m)
