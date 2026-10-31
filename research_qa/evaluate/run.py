@@ -84,7 +84,7 @@ def _error_row(q: dict, arm: str, mode: str, err: Exception) -> dict:
 
 def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | None = None, resume: bool = False,
         run_name: str | None = None, store: Store | None = None, ask_fn=None, judge_fn=None, use_tools: bool = True,
-        progress=print) -> str:
+        progress=print, redo: bool = False) -> str:
     """Returns the run key (eval/<run>). `ask_fn(question, arm, mode)` and `judge_fn(q, text)` can be swapped for
     tests; by default they are the agent/direct pipeline and the Azure OpenAI judge."""
     for a in arms:
@@ -106,6 +106,12 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
     run_name = run_name or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H%M%SZ")
     key = run_key(run_name)
     rows_key = f"{key}/rows.jsonl"
+    if redo and store.exists(rows_key):
+        # keep the other arms' and modes' rows of this run, rerun the selected combinations from scratch
+        kept = [l for l in store.text(rows_key).splitlines()
+                if l.strip() and not (json.loads(l).get("arm") in arms and json.loads(l).get("mode") in modes)]
+        store.put(rows_key, "".join(k + "\n" for k in kept), "application/x-ndjson")
+        resume = True
     done = _done(store, rows_key) if resume else set()
     if not resume and store.exists(rows_key):
         store.delete(rows_key)

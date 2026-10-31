@@ -147,7 +147,7 @@ def cmd_eval(args) -> int:
     store = open_store()
     key = _azure("eval", run, _arms(args.arm), _modes(args.mode), ids=args.ids.split(",") if args.ids else None,
                  types=args.types.split(",") if args.types else None, limit=args.limit, resume=args.resume,
-                 run_name=args.run, store=store, use_tools=not args.no_tools)
+                 run_name=args.run, store=store, use_tools=not args.no_tools, redo=args.redo)
     print(f"\nrun written to {key}/ (rows.jsonl, summary.json, report.md) in {store.describe()}")
     print(store.text(f"{key}/report.md").split("## By question type")[0])
     return 0
@@ -298,6 +298,8 @@ def main(argv=None) -> int:
     p.add_argument("--types", help="comma-separated question types")
     p.add_argument("--limit", type=int)
     p.add_argument("--resume", action="store_true", help="continue the run named by --run")
+    p.add_argument("--redo", action="store_true",
+                   help="in the run named by --run, drop and rerun the rows of the selected arms and modes, keep the rest")
     p.add_argument("--run", help="run name (default: UTC timestamp)")
     p.add_argument("--no-tools", action="store_true")
     p.set_defaults(fn=cmd_eval)
