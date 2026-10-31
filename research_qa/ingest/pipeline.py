@@ -19,7 +19,7 @@ from .chunks import build_chunks
 from .convert import Converted, convert
 from .describe import describe
 from .elements import clean_text, pictures_of
-from .facts import facts_for
+from .facts import facts_for, picture_facts
 
 log = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ def ingest_one(doc_id: str, store: Store, vision: str = "auto") -> ReportManifes
     conv = convert(doc_id, store)
     descriptions = describe(_picture_items(conv, vision), store, vision)
     _inject_descriptions(conv, descriptions)
-    facts = facts_for(conv.doc, doc_id)
+    facts = facts_for(conv.doc, doc_id) + picture_facts(conv.doc, doc_id, descriptions, conv.assets)
     chunks = build_chunks(conv.doc, doc_id, f"{doc_id}.docx", descriptions, conv.assets, facts)
     markdown = render_document(conv.doc)
     conv.markdown = markdown

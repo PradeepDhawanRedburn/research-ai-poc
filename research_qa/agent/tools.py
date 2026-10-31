@@ -23,8 +23,10 @@ FACTS_TOOL = "lookup_facts"
 FACTS_DESCRIPTION = (
     "Exact values read from the reports' charts and matrices at ingestion: every series point of a native Word "
     "chart or a digitised Excel chart (value, unit, date or category) and every cell of a tick/cross matrix "
-    "(row, column, state such as tick_green or cross_red). Use it for any number from a chart or any state from "
-    "a matrix before looking at a picture. Filter by report id (doc_id, e.g. RA01220), figure (e.g. 'Fig 27'), "
+    "(row, column, state such as tick_green or cross_red), plus what a vision model read from each picture at "
+    "ingestion (per item: its printed text and count; every labelled number such as employees or a share). Use it "
+    "for any number from a chart, any state from a matrix, and any printed text, count or number from a picture "
+    "before looking at the picture. Filter by report id (doc_id, e.g. RA01220), figure (e.g. 'Fig 27'), "
     "series name (substring), x (a year such as 2030, a month such as 2025-06, or a category label) or a free-text "
     "query over captions and series names. Returns rows {doc_id, figure, caption, series, x, value, unit, "
     "approximate}; approximate=true means the value was read from a drawing to within about 1% of the axis range."
@@ -90,6 +92,8 @@ def lookup_facts(store: Store, doc_id: str | None = None, figure: str | None = N
         if q and q not in f.caption.lower() and not any(q in s.name.lower() for s in f.series) \
                 and not any(q in c.row.lower() or q in c.col.lower() for c in f.cells):
             continue
+        # a query that matched only through cell rows/columns (picture or matrix facts) narrows to those cells
+        cell_only = bool(q) and q not in f.caption.lower() and not any(q in s.name.lower() for s in f.series)
         base = {"doc_id": f.doc_id, "figure": f.figure, "caption": f.caption, "approximate": f.approximate}
         for s in f.series:
             if ser and ser not in s.name.lower():
@@ -102,6 +106,8 @@ def lookup_facts(store: Store, doc_id: str | None = None, figure: str | None = N
                     rows.append({**base, "series": s.name, "x": px, "value": py, "unit": s.unit})
         for c in f.cells:
             if ser and ser not in c.row.lower():
+                continue
+            if cell_only and q not in c.row.lower() and q not in c.col.lower():
                 continue
             if x and not _x_matches(c.col, x):
                 continue

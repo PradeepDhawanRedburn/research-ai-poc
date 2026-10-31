@@ -43,6 +43,11 @@ report "not created" rather than errors.
 ```bash
 uv run python -m research_qa ingest
 ```
+
+**After the 31 October 2026 ingestion changes** (structured picture descriptions v3 with picture facts, table
+header cleanup, alt-text removal) run `ingest --force` once: it re-describes the pictures that have no digitised
+values (about 50 vision calls; the v2 cache is not reused because the prompt and the JSON shape changed) and
+rewrites markdown, facts and chunks. Then `index --reset` (langchain) or `index` (azure) to push the new chunks.
 About 3 to 5 minutes the first time: one vision call per picture (about 180 pictures across the four reports,
 4 at a time), cached in `descriptions/` so a re-run costs nothing. Expect per report:
 

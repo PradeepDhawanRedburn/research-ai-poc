@@ -80,7 +80,8 @@ with tab_figs:
         pick = st.selectbox("Figure", names, label_visibility="collapsed")
         f = facts[names.index(pick)]
         kind = {"native_chart": "native Word chart", "digitised_chart": "Excel chart pasted as a picture, digitised",
-                "matrix": "tick/cross matrix", "table": "table"}.get(f.get("kind"), f.get("kind"))
+                "matrix": "tick/cross matrix", "table": "table",
+                "picture": "picture read by the vision model at ingestion"}.get(f.get("kind"), f.get("kind"))
         st.caption(f"{kind}" + (" · approximate (read from the drawing)" if f.get("approximate") else "")
                    + (f" · {f.get('method')}" if f.get("method") else "") + (f" · {f.get('note')}" if f.get("note") else ""))
         if f.get("series"):

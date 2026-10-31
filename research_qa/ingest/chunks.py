@@ -10,7 +10,7 @@ import re
 
 from research_ingest.charts import chart_summary_text
 from research_ingest.emf_chart import digitised_issue_text, digitised_summary_text
-from research_ingest.render import render_table, table_row_groups
+from research_ingest.render import render_table, table_row_groups, useful_alt_text
 
 from ..config import settings
 from ..schema import Chunk, FactFigure
@@ -71,8 +71,8 @@ def _picture_text(pic: dict, assets: dict, descriptions: dict, asset_map: dict) 
     """(lines, kind) for one picture: digitised values, description, issues."""
     a = assets.get(pic.get("asset") or "", {})
     lines, kind = [], "figure"
-    if pic.get("alt_text"):
-        lines.append(f"Alt text: {pic['alt_text']}")
+    if useful_alt_text(pic.get("alt_text")):
+        lines.append(f"Alt text: {useful_alt_text(pic['alt_text'])}")
     dig = a.get("digitised")
     if dig and digitised_summary_text(dig):
         lines.append(digitised_summary_text(dig))

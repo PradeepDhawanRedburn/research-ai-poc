@@ -18,35 +18,91 @@ from ..storage import DESCRIPTIONS, Store
 
 log = logging.getLogger(__name__)
 
-PROMPT_VERSION = "v2"  # bump when VISION_SYSTEM changes
+PROMPT_VERSION = "v3"  # bump when VISION_SYSTEM or the JSON shape changes
 
-VISION_SYSTEM = """You describe one figure from a financial research report (equity or economics) so that it can be \
-found by search and questions about it can be answered from your text alone, without seeing the picture. \
-Be factual and exhaustive about what is visible; never invent numbers or text you cannot read. Write plain text, \
-Markdown tables where useful, at most 400 words.
+VISION_SYSTEM = """You read one figure from a financial research report (equity or economics) and return JSON, so \
+that questions about it (how many, what is printed, which one, what value) can be answered from your output alone, \
+without seeing the picture. Be factual and exhaustive about what is visible; never invent numbers or text you cannot \
+read; say "unreadable" where you cannot. Return exactly this JSON object:
 
-Start with one line: the kind of figure (chart, table, screenshot, photo, product shot, diagram, map, logo) and \
-what it is about.
+{
+ "kind": one of "chart", "table", "matrix", "screenshot", "photo", "product shot", "packaging", "advert", "map", \
+"diagram", "infographic", "logo", "other",
+ "about": one line saying what the figure is about (use the caption's name if given),
+ "items": [ for photos, packaging, adverts, screenshots and maps: every distinct item from left to right (can, \
+bottle, pack, person, logo, tile, button, site, label): {"name": ..., "printed_text": [every piece of text printed \
+on or next to it, exactly as printed: brand, variant, flavour, size, price, claim, status label], "count": how \
+many of this item are shown, "forms": {form such as "whole fruit", "slice", "wedge", "drawing", "logo": count} \
+for things drawn on packaging, else {}} ],
+ "text": [all other printed text in reading order: titles, axis labels, legend entries, buttons, banners, \
+footers],
+ "numbers": [ every number that has a label: {"label": what it refers to (e.g. "Wakefield employees", "Pepsi Max \
+share Dec 2024", "latest CPI"), "value": the number as printed, "unit": "%", "£", "m", "" ...} ; for charts: the \
+latest value of each series, notable peaks and troughs with their dates, every bar or slice ],
+ "table": for a table or matrix drawn as a picture, a Markdown transcription including ticks and crosses with \
+their colours, else "",
+ "summary": 2 to 5 sentences: chart type, axes and units, series names and trend; or layout, colours, what is \
+partly hidden, cut off or unreadable
+}
 
-Then, depending on the kind:
-- Chart: chart type, title, axes with units and ranges, every series name (legend), and the values you can read: \
-latest value of each series, notable peaks and troughs with dates, the overall trend. Bar charts: every bar label \
-and value. Pie charts: every slice with its share.
-- Table or matrix drawn as a picture: transcribe it as a Markdown table, including ticks/crosses, shading and \
-colours, with the meaning of each.
-- Photo, product shot, packaging, advert or screenshot: (1) list every distinct item (can, bottle, pack, person, \
-logo, tile, button) from left to right, with its printed text transcribed exactly (brand, variant, flavour, size, \
-price, claim, status label such as "Not available in your region"); (2) give counts: how many of each item, and for \
-things drawn on packaging, how many of each form (whole fruit, slice, wedge, drawing, logo) per item and in total; \
-(3) colours and layout; (4) anything partly hidden, cut off or unreadable, said as such.
-- Diagram, map, flowchart or infographic: all text, in reading order, and the relationships or flows it shows.
-- Logo or decoration: one sentence.
+Counts and printed text come first; do not summarise them away. Consider the whole picture, not only the item the \
+caption names."""
 
-Counts and printed text come first; do not summarise them away. If the caption and nearby text name the figure, \
-use that name."""
+USER_TEXT = ("Read this figure and return the JSON object described in the instructions.")
 
-USER_TEXT = ("Describe this figure so that questions about it (how many, what is printed, which one, what value) can "
-             "be answered from your description alone.")
+
+def render_description(s: dict) -> str:
+    """The structured record as compact text for the chunk and the Markdown (one line per fact)."""
+    if not isinstance(s, dict):
+        return ""
+    lines = []
+    head = " · ".join(x for x in (str(s.get("kind") or "").strip(), str(s.get("about") or "").strip()) if x)
+    if head:
+        lines.append(head)
+    for it in s.get("items") or []:
+        if not isinstance(it, dict):
+            continue
+        bits = [str(it.get("name") or "item")]
+        if it.get("count") not in (None, "", 0):
+            bits[0] += f" ×{it['count']}"
+        printed = [str(t) for t in (it.get("printed_text") or []) if str(t).strip()]
+        if printed:
+            bits.append("printed: " + " | ".join(printed))
+        forms = it.get("forms") or {}
+        if isinstance(forms, dict) and forms:
+            bits.append("forms: " + ", ".join(f"{k} {v}" for k, v in forms.items()))
+        lines.append("- " + "; ".join(bits))
+    nums = [n for n in (s.get("numbers") or []) if isinstance(n, dict) and str(n.get("value", "")).strip()]
+    if nums:
+        lines.append("Numbers: " + "; ".join(f"{n.get('label', '')}: {n.get('value')}{n.get('unit', '') or ''}".strip()
+                                             for n in nums))
+    text = [str(t) for t in (s.get("text") or []) if str(t).strip()]
+    if text:
+        lines.append("Text in the picture: " + " | ".join(text))
+    if str(s.get("table") or "").strip():
+        lines.append(str(s["table"]).strip())
+    if str(s.get("summary") or "").strip():
+        lines.append(str(s["summary"]).strip())
+    return "\n".join(lines)
+
+
+def parse_structured(content: str) -> dict:
+    """The model's JSON, tolerant of a code fence; {} when it is not JSON."""
+    t = (content or "").strip()
+    if t.startswith("```"):
+        t = t.strip("`")
+        t = t[4:] if t.lower().startswith("json") else t
+    try:
+        obj = json.loads(t)
+    except ValueError:
+        start, end = t.find("{"), t.rfind("}")
+        if start < 0 or end <= start:
+            return {}
+        try:
+            obj = json.loads(t[start:end + 1])
+        except ValueError:
+            return {}
+    return obj if isinstance(obj, dict) else {}
 
 
 def cache_key(asset_key: str) -> str:
@@ -81,11 +137,13 @@ def describe_one(client, png: bytes, context: str) -> dict:
         messages=[{"role": "system", "content": VISION_SYSTEM},
                   {"role": "user", "content": [{"type": "text", "text": text},
                                                {"type": "image_url", "image_url": {"url": url, "detail": "high"}}]}],
-        max_completion_tokens=1500, **kw,
+        max_completion_tokens=2500, response_format={"type": "json_object"}, **kw,
     )
     u = getattr(resp, "usage", None)
-    return {"description": (resp.choices[0].message.content or "").strip(), "model": settings.vision_deployment,
-            "prompt_version": PROMPT_VERSION,
+    raw = (resp.choices[0].message.content or "").strip()
+    structured = parse_structured(raw)
+    return {"description": render_description(structured) or raw, "structured": structured,
+            "model": settings.vision_deployment, "prompt_version": PROMPT_VERSION,
             "input_tokens": int(getattr(u, "prompt_tokens", 0) or 0),
             "output_tokens": int(getattr(u, "completion_tokens", 0) or 0),
             "seconds": round(time.perf_counter() - t0, 2)}

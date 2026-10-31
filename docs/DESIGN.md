@@ -62,6 +62,15 @@ B, C and the duplicate loader are removed. The stock-MarkItDown baseline is no l
   Described once per picture, cached by content hash and prompt version in the store.
 - **A facts file next to the Markdown**: every native chart series, every digitised series, every matrix cell as a
   row. Markdown is for reading and searching; facts are for exact lookups.
+- **Pictures are read into facts too** (31 October 2026, prompt v3): the vision model returns a fixed JSON shape
+  (items with their printed text and counts, every labelled number, printed text, a table transcription, a short
+  summary) instead of prose. The chunk carries it rendered one fact per line; the facts file carries it as cells, so
+  "how many employees at Wakefield" or "what is printed on the Vive can" is a `lookup_facts` call, not a vision call
+  at question time. The first live run showed every picture question that needed the picture failing in the
+  LangChain engine, and vision calls at question time are the single most expensive step; this removes most of them.
+- **Tables are rendered as the author meant them**: header cells duplicated by layout spacer columns are collapsed,
+  and a side-by-side table (P&L next to cash flow under the same years) is split into one block per header repeat.
+  Word's automatic alt text ("A aerial view of a warehouse", the AI-generated disclaimer) is dropped.
 - **A metadata block that is also a chunk**: title, subtitle, date, analysts, ticker, rating, target price, sector.
   "Who wrote the July Money Map" is a lookup, not a search.
 - **Noise removed**: anchors and image file names stay out of chunk text; the digitised series summary is compact

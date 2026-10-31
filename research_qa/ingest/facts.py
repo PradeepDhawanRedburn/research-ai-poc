@@ -68,6 +68,44 @@ def facts_for(doc: dict, doc_id: str, chunk_ids: dict[str, str] | None = None) -
     return out
 
 
+def picture_facts(doc: dict, doc_id: str, descriptions: dict[str, dict], asset_map: dict[str, str]) -> list[FactFigure]:
+    """What the vision model read from each picture at ingestion, as cells: per item its printed text and count,
+    and every labelled number. `lookup_facts` then answers "how many employees at Wakefield" or "what is printed on
+    the Vive can" without a vision call at question time."""
+    out: list[FactFigure] = []
+    for el in doc.get("elements", []):
+        if el.get("type") != "figure":
+            continue
+        key = figure_key(el)
+        caption = (el.get("caption") or "").strip()
+        for pic in pictures_of(el):
+            akey = asset_map.get(pic.get("asset") or "")
+            rec = descriptions.get(akey) if akey else None
+            s = (rec or {}).get("structured") or {}
+            cells: list[FactCell] = []
+            for it in s.get("items") or []:
+                if not isinstance(it, dict) or not str(it.get("name") or "").strip():
+                    continue
+                name = str(it["name"]).strip()
+                printed = [str(t).strip() for t in (it.get("printed_text") or []) if str(t).strip()]
+                if printed:
+                    cells.append(FactCell(name, "printed text", " | ".join(printed)))
+                if it.get("count") not in (None, ""):
+                    cells.append(FactCell(name, "count", str(it["count"])))
+                forms = it.get("forms") or {}
+                if isinstance(forms, dict):
+                    for form, n in forms.items():
+                        cells.append(FactCell(name, f"count of {form}", str(n)))
+            for n in s.get("numbers") or []:
+                if isinstance(n, dict) and str(n.get("value", "")).strip():
+                    cells.append(FactCell(str(n.get("label") or "").strip() or "value", "value",
+                                          f"{n['value']}{n.get('unit') or ''}".strip()))
+            if cells:
+                out.append(FactFigure(doc_id, key, caption, "picture", "", "vision model read the picture at ingestion",
+                                      False, str(s.get("about") or ""), [], cells))
+    return out
+
+
 def lookup(facts: list[FactFigure], figure: str = "", series: str = "", x: str = "", row: str = "",
            col: str = "", limit: int = 60) -> list[dict]:
     """Case-insensitive substring filter over facts; the agent's lookup_facts tool uses this."""

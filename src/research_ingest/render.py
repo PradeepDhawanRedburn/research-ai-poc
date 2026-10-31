@@ -118,13 +118,58 @@ def guess_header_rows(table: dict, leaf: list[int], at) -> list[int]:
     return hdr
 
 
+AUTO_ALT_RE = re.compile(r"^(a|an)\s+[a-z][a-z ,'-]*$", re.I)
+PUBLISHING_ID_RE = re.compile(r"^P\d+C\d+T\d+#", re.I)   # "P97C6T6#yIS1": the publishing system's picture id
+
+
+def useful_alt_text(s: str | None) -> str:
+    """Alt text worth keeping. Word writes its own ("A aerial view of a warehouse", often followed by an
+    "AI-generated content may be incorrect" disclaimer) and the publishing system writes ids; both are noise next
+    to a real description."""
+    s = (s or "").strip()
+    if not s or "ai-generated" in s.lower() or PUBLISHING_ID_RE.match(s):
+        return ""
+    if AUTO_ALT_RE.match(s) and len(s.split()) <= 8:
+        return ""
+    return s
+
+
+def _collapse_split_columns(headers: list[str], rows: list[list[str]]) -> None:
+    """Merge adjacent columns that are one visual column cut by a layout spacer: identical non-empty header and
+    never both filled on the same row ("| 2024 | 2024 |" over "| 1,776 |  |"). In place."""
+    c = 0
+    while c + 1 < len(headers):
+        h = headers[c].strip()
+        both = any(r[c].strip() and r[c + 1].strip() and r[c].strip() != r[c + 1].strip() for r in rows)
+        if h and h == headers[c + 1].strip() and not both:
+            headers.pop(c + 1)
+            for r in rows:
+                r[c] = r[c] or r[c + 1]
+                r.pop(c + 1)
+        else:
+            c += 1
+
+
+def _split_blocks(headers: list[str], rows: list[list[str]]) -> list[tuple[list[str], list[list[str]]]]:
+    """A side-by-side table (P&L next to cash flow, each under the same years) becomes one block per repeat of
+    the header sequence, so a value sits under one unambiguous header."""
+    n = len(headers)
+    for j in range(2, n - 2):
+        if not headers[j].strip():
+            continue
+        for m in range(min(j - 1, n - j - 1), 1, -1):   # longest repeat of the run just before column j
+            run = headers[j - m:j]
+            if all(h.strip() for h in run) and headers[j + 1:j + 1 + m] == run:
+                return [(headers[:j], [r[:j] for r in rows])] + _split_blocks(headers[j:], [r[j:] for r in rows])
+    return [(headers, rows)]
+
+
 def render_table(table: dict, indent: str = "", row_range: tuple[int, int] | None = None) -> str:
     """Pipe table over the visible columns. row_range limits the body rows (for row-group chunks)."""
     if table["n_rows"] == 0 or table["n_cols"] == 0:
         return ""
     leaf, at = _layout(table)
     hdr_rows = guess_header_rows(table, leaf, at)
-    lines = []
     headers = []
     for c in leaf:
         parts: list[str] = []
@@ -133,16 +178,12 @@ def render_table(table: dict, indent: str = "", row_range: tuple[int, int] | Non
             if txt and (not parts or parts[-1] != txt):
                 parts.append(txt)
         headers.append(" / ".join(parts))
-    if any(headers):
-        lines.append(indent + "| " + " | ".join(h or " " for h in headers) + " |")
-    else:
-        lines.append(indent + "|" + " |" * len(leaf))  # empty header: renderers need one, and none of the rows is one
-    lines.append(indent + "|" + "---|" * len(leaf))
     body_start = (max(hdr_rows) + 1) if hdr_rows and any(headers) else 0
     nested: list[dict] = []
     body_rows = range(body_start, table["n_rows"])
     if row_range is not None:
         body_rows = range(max(body_start, row_range[0]), min(table["n_rows"], row_range[1]))
+    rows: list[list[str]] = []
     for r in body_rows:
         row = []
         prev = None
@@ -157,9 +198,23 @@ def render_table(table: dict, indent: str = "", row_range: tuple[int, int] | Non
             prev = cell
             if cell and cell.get("tables") and cell not in nested:
                 nested.append(cell)
-        if any(x.strip() for x in row):
-            lines.append(indent + "| " + " | ".join(row) + " |")
-    out = "\n".join(lines)
+        rows.append(row)
+    _collapse_split_columns(headers, rows)
+    blocks = _split_blocks(headers, rows) if any(headers) else [(headers, rows)]
+    parts_out = []
+    for hs, rs in blocks:
+        lines = []
+        if any(hs):
+            lines.append(indent + "| " + " | ".join(h or " " for h in hs) + " |")
+        else:
+            lines.append(indent + "|" + " |" * len(hs))  # empty header: renderers need one, and none of the rows is one
+        lines.append(indent + "|" + "---|" * len(hs))
+        for row in rs:
+            if any(x.strip() for x in row):
+                lines.append(indent + "| " + " | ".join(row) + " |")
+        if len(lines) > 2 or len(blocks) == 1:
+            parts_out.append("\n".join(lines))
+    out = "\n\n".join(parts_out)
     if row_range is not None:
         return out
     for cell in nested:
@@ -203,8 +258,8 @@ def render_drawing(d: dict, assets: dict) -> str:
     if kind == "picture":
         a = assets.get(d.get("asset") or "", {})
         bits = [f"Image: {a.get('file', d.get('asset'))}"]
-        if d.get("alt_text"):
-            bits.append(f"alt text: {d['alt_text']}")
+        if useful_alt_text(d.get("alt_text")):
+            bits.append(f"alt text: {useful_alt_text(d['alt_text'])}")
         dig = a.get("digitised")
         emf = a.get("emf_text")
         if dig and digitised_summary_text(dig):
