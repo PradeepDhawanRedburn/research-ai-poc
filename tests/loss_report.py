@@ -35,9 +35,11 @@ def main(out: Path = Path("docs/audit/02-loss-report.md")) -> None:
     for k, (a, b, c, note) in rows.items():
         lines.append(f"| {k} | {y(a)} | {y(b)} | {y(c)} | {note} |")
     lost = [k for k, v in rows.items() if not v[0] and not k.startswith("pptx")]
-    lines += ["", f"**Lost or flattened in the extractor JSON: {len(lost)}.** " + "; ".join(lost) + ".", "",
-              "These are the work items for PR 3. `tests/test_fixtures.py` asserts everything marked yes and carries "
-              "each gap as a strict xfail that fails the moment the gap is closed without updating the test.", ""]
+    lines += ["", f"**Lost or flattened in the extractor JSON: {len(lost)}.**" + (" " + "; ".join(lost) + "." if lost else ""), "",
+              "`tests/test_fixtures.py` asserts everything marked yes in the extractor JSON column; any gap is carried "
+              "as a strict xfail that fails the moment the gap is closed without updating the test. Comments, tracked "
+              "deletions, header and footer text are in the JSON by design and excluded from chunks (editorial and "
+              "boilerplate), which is why our Markdown shows no for the first two.", ""]
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
