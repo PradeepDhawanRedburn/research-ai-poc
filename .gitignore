@@ -13,3 +13,4 @@ __pycache__/
 .rag_cache/
 .env.old.txt
 runbook-*.log
+tests/fixtures/out/
