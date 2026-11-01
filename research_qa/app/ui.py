@@ -448,9 +448,9 @@ SCORE = {"correct": 1.0, "partial": 0.5, "incorrect": 0.0}
 def winners(results: dict[str, Answer], grades: dict[str, dict] | None, keys: list[str]) -> dict[str, tuple[str, str]]:
     """Overall, balanced (accuracy against tokens) and cheapest (tokens) winners among the answered tiles.
 
-    Overall: 60% accuracy, 20% speed, 20% tokens (50/50 speed and tokens when nothing is graded), each as best/value.
-    Balanced: accuracy divided by the square root of tokens relative to the leanest answer. Cheapest: fewest tokens,
-    skipping wrong answers when the tiles are graded. Returns category -> (key, one-line reason).
+    Only answers in the best verdict tier compete (correct beats partial beats incorrect); speed and tokens decide
+    among equals. Overall: 50/50 speed and tokens. Balanced: speed times the square root of leanness. Cheapest:
+    fewest tokens. Nothing graded: everything competes. Returns category -> (key, one-line reason).
     """
     score = {k: SCORE[grades[k]["verdict"]] for k in keys if grades and k in grades and grades[k].get("verdict") in SCORE}
     done = [k for k in keys if k in results and results[k].text.strip() and results[k].total_tokens > 0]
@@ -465,17 +465,15 @@ def winners(results: dict[str, Answer], grades: dict[str, dict] | None, keys: li
     def lean(k): return min_t / results[k].total_tokens
     def note(k): return f"{results[k].total_s:.1f} s · {results[k].total_tokens:,} tokens"
 
-    pool = [k for k in done if not graded or score[k] > 0] or done
+    top = max(score[k] for k in done) if graded else 0.0
+    pool = [k for k in done if not graded or score[k] == top]
     cheapest = max(pool, key=lean)
+    overall = max(pool, key=lambda k: 0.5 * speed(k) + 0.5 * lean(k))
     out["Cheapest"] = (cheapest, note(cheapest))
+    out["Overall"] = (overall, note(overall))
     if graded:
-        overall = max(done, key=lambda k: 0.6 * score[k] + 0.2 * speed(k) + 0.2 * lean(k))
-        balanced = max(done, key=lambda k: score[k] * lean(k) ** 0.5)
-        out["Overall"] = (overall, note(overall))
+        balanced = max(pool, key=lambda k: speed(k) * lean(k) ** 0.5)
         out["Balanced"] = (balanced, note(balanced))
-    else:
-        overall = max(done, key=lambda k: 0.5 * speed(k) + 0.5 * lean(k))
-        out["Overall"] = (overall, note(overall))
     return {c: out[c] for c in ("Overall", "Balanced", "Cheapest") if c in out}
 
 

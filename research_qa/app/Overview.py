@@ -20,6 +20,8 @@ store = ui.require_store()
 ui.sidebar_footer()
 
 st.title("Research reports, asked in plain language")
+st.markdown("---")
+st.caption("Built by Christopher Penney, Klaudia Lemiec and Pradeep Dhawan.")
 st.markdown('<p class="lede">Analysts write in Word: prose, tables, charts, pictures, tick-and-cross matrices. '
             'This system makes those reports answerable with exact, cited answers. It compares two ways in on the '
             'same questions and the same model: <b>the default conversion of the Word file</b>, and '
