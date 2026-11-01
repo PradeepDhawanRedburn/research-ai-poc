@@ -30,7 +30,7 @@ flowchart LR
     P2 --> P3["Phase 3<br/>Production<br/>service"]
     P3 --> P4["Phase 4<br/>Scale and extend"]
     P1 -.gate: accuracy,<br/>sign-off.-> P2
-    P2 -.gate: adoption,<br/>value, cost.-> P3
+    P2 -.gate: adoption,<br/>value.-> P3
 ```
 
 ### Phase 1: Harden and prove quality
@@ -54,7 +54,7 @@ unanswerable question refused correctly; ingest succeeds on at least 95% of the 
 |---|---|---|
 | 2.1 | Deploy a hosted, authenticated web app (Azure Container Apps or App Service) in place of laptop-run Streamlit | URL for pilot users |
 | 2.2 | In-app feedback (thumbs, wrong-answer flag, free text) stored with question, answer and sources | Real-world quality signal |
-| 2.3 | Usage and cost telemetry (Application Insights): questions, latency p50/p95, tokens, cost, refusals | Dashboard |
+| 2.3 | Usage telemetry (Application Insights): questions, latency p50/p95, tokens, refusals | Dashboard |
 | 2.4 | Automated ingestion on upload (storage event triggers ingest and index) with failure alerts | No manual steps for analysts |
 | 2.5 | Weekly regression run of the golden set plus new questions harvested from feedback | Quality never silently drops |
 | 2.6 | 10 to 30 pilot users from one team; structured interviews at the midpoint and end | Adoption evidence |
@@ -70,7 +70,7 @@ unanswerable question refused correctly; ingest succeeds on at least 95% of the 
 | 3.3 | Choose the engine: Azure AI Search tier sized for the largest Word file (or rely on Markdown+ only), or LangChain on a managed vector store |
 | 3.4 | Service levels, support model, on-call, runbooks for ingest failures and model deprecations |
 | 3.5 | Model governance: pinned model versions, content-safety settings, re-evaluation before every model change |
-| 3.6 | Cost controls: budgets and alerts, prompt/response caching, quotas per user group |
+| 3.6 | Usage controls: prompt/response caching, token quotas per user group |
 
 ### Phase 4: Scale and extend (options, sequenced by value)
 
@@ -89,11 +89,11 @@ unanswerable question refused correctly; ingest succeeds on at least 95% of the 
 |---|---|---|---|
 | Quality on a broader corpus is lower than on four reports | Medium | High | Phase 1.4 and 1.5 before any user exposure; gate on accuracy |
 | Test set is biased because engineers wrote it | Medium | High | Analyst sign-off and real-user questions (1.1, 2.2) |
-| Model deprecation or price change alters results | Medium | Medium | Pinned versions, price table, regression run on every change |
+| Model deprecation alters results | Medium | Medium | Pinned versions, regression run on every change |
 | Sensitive reports visible to the wrong people | Low if 1.6 done | High | Entra-based ACL, security review, audit logs |
 | Hallucinated answer reaches a client | Low | High | Cite-or-refuse instruction, unanswerable tests, visible sources, feedback flag, pilot users internal only |
 | Service tier limits skip large reports | Known | Medium | Markdown+ path has no size limit; size the tier or drop the Word arm in production |
-| Cost per question grows with agent mode | Medium | Medium | Direct mode as default, agent for hard questions, per-question cost already measured |
+| Token use and latency grow with the agentic mode | Medium | Medium | Single-pass as default, agentic for hard questions, tokens and seconds already measured per question |
 | Analyst formatting varies (new templates) | Medium | Medium | Manifest warnings, loss-report fixtures, retention check on every ingest |
 | Key-person dependency on the extractor | Medium | Medium | Documentation (this set), tests, hand-over sessions |
 
@@ -106,23 +106,22 @@ To be agreed with the sponsor; the numbers below are placeholders.
 | Accuracy | Judge score on signed-off golden set | to agree (for example 90% or higher) |
 | Safety | Unanswerable questions correctly refused | 100% |
 | Grounding | Answers with at least one correct source | to agree |
-| Speed | p95 seconds to answer (direct mode) | to agree (prototype direct mode is about 3 s typical) |
-| Cost | Cost per question | to agree, from the measured price table |
+| Speed | p95 seconds to answer (single-pass mode) | to agree (prototype single-pass mode is about 3 s typical) |
+| Efficiency | Tokens per question | to agree, from the measured token counts |
 | Adoption | Weekly active pilot users; questions per user | to agree |
 | Value | Self-reported time saved; share of answers marked useful | to agree |
 | Trust | Share of answers flagged wrong by users | to agree |
 
-## 6. Cost drivers (no figures committed)
+## 6. Resource drivers (no figures committed)
 
 | Driver | What moves it |
 |---|---|
 | One-off ingest per report | Number of pictures needing vision, model choice; cached by content hash so re-runs are free |
-| Per question | Mode (direct vs agent), reasoning effort, passages retrieved, pictures attached |
+| Per question | Mode (single-pass vs agentic), reasoning effort, passages retrieved, pictures attached |
 | Platform | AI Search tier and replicas (or vector store), storage, hosting, monitoring |
 | People | Analyst time for sign-off and feedback review; engineering for hardening and operations |
 
-The system already reports tokens by kind and cost per question from `prices.yaml`, so these can be turned into a
-budget from measured data after Phase 1.2.
+The system already reports tokens by kind and seconds per question, so these can be sized from measured data after Phase 1.2.
 
 ## 7. What we need from leadership
 
@@ -135,7 +134,7 @@ budget from measured data after Phase 1.2.
 ## 8. Immediate actions (next two weeks of work, in order)
 
 1. Run the two baseline evaluations and publish the tables.
-2. Restart the app and re-run any evaluation rows recorded with zero direct-mode tokens (`--redo`).
+2. Restart the app and re-run any evaluation rows recorded with zero single-pass-mode tokens (`--redo`).
 3. Schedule the analyst review of the golden set.
 4. Request the larger report sample and the security review.
 5. Agree pilot scope, sponsor and success criteria.

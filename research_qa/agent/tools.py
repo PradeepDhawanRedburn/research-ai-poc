@@ -177,7 +177,7 @@ PICTURES_NOTE = ("Pictures attached to this message are the originals behind the
 def picture_blocks(store: Store, passages: list, max_n: int) -> tuple[list[dict], list[tuple]]:
     """OpenAI-style content blocks with the original pictures behind the top-ranked figure passages, at most
     `max_n` pictures in rank order, each preceded by a line naming its passage. Returns (blocks, [(passage, key)]).
-    Used by direct mode when settings.direct_images is on; the agent has inspect_figure instead."""
+    Used by single-pass mode when settings.single_pass_images is on; the agentic mode has inspect_figure instead."""
     blocks: list[dict] = []
     shown: list[tuple] = []
     seen: set[str] = set()

@@ -1,4 +1,4 @@
-"""Direct mode sends the original pictures behind the top figure passages when DIRECT_IMAGES is on."""
+"""Single-pass mode sends the original pictures behind the top figure passages when SINGLE_PASS_IMAGES is on."""
 import io
 from dataclasses import replace
 
@@ -73,8 +73,8 @@ def direct(monkeypatch, store):
 
 
 def test_flag_off_sends_text_only(monkeypatch, direct):
-    monkeypatch.setattr(A, "settings", replace(settings, direct_images=False))
-    a = A.ask_direct("Which cans?", "markdown-plus")
+    monkeypatch.setattr(A, "settings", replace(settings, single_pass_images=False))
+    a = A.ask_single_pass("Which cans?", "markdown-plus")
     human = direct.messages[1]
     assert isinstance(human.content, str) and "Passages:" in human.content
     assert not [s for s in a.steps if s.kind == "look"] and not a.inspected_assets
@@ -82,12 +82,12 @@ def test_flag_off_sends_text_only(monkeypatch, direct):
 
 
 def test_flag_on_attaches_pictures_in_rank_order(monkeypatch, direct):
-    monkeypatch.setattr(A, "settings", replace(settings, direct_images=True, direct_images_max=1))
-    a = A.ask_direct("Which cans?", "markdown-plus")
+    monkeypatch.setattr(A, "settings", replace(settings, single_pass_images=True, single_pass_images_max=1))
+    a = A.ask_single_pass("Which cans?", "markdown-plus")
     human = direct.messages[1]
     assert isinstance(human.content, list) and human.content[0]["type"] == "text"
     images = [b for b in human.content if b["type"] == "image_url"]
-    assert len(images) == 1, "capped by DIRECT_IMAGES_MAX"
+    assert len(images) == 1, "capped by SINGLE_PASS_IMAGES_MAX"
     assert tools.PICTURES_NOTE in direct.messages[0].content
     look = next(s for s in a.steps if s.kind == "look")
     assert look.assets == ["assets/D1/aaa.png"]   # exactly what was sent; inspected_assets lists the passage's pictures
@@ -96,11 +96,11 @@ def test_flag_on_attaches_pictures_in_rank_order(monkeypatch, direct):
 
 
 def test_word_arm_never_gets_pictures(monkeypatch, direct):
-    monkeypatch.setattr(A, "settings", replace(settings, direct_images=True))
-    a = A.ask_direct("Which cans?", "word")
+    monkeypatch.setattr(A, "settings", replace(settings, single_pass_images=True))
+    a = A.ask_single_pass("Which cans?", "word")
     assert isinstance(direct.messages[1].content, str) and not a.inspected_assets
 
 
 def test_flag_recorded_in_retrieval_flags():
-    assert replace(settings, direct_images=True, direct_images_max=2).retrieval_flags()["direct_images"] == 2
-    assert replace(settings, direct_images=False).retrieval_flags()["direct_images"] is False
+    assert replace(settings, single_pass_images=True, single_pass_images_max=2).retrieval_flags()["single_pass_images"] == 2
+    assert replace(settings, single_pass_images=False).retrieval_flags()["single_pass_images"] is False

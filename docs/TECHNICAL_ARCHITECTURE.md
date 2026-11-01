@@ -37,7 +37,7 @@ flowchart LR
 | Concept | Values | Meaning |
 |---|---|---|
 | **Arm** | `word`, `markdown-plus` | Input format. `word` = commodity baseline (Azure Blob ingestion, or stock MarkItDown under langchain). `markdown-plus` = our extraction with facts, assets, vision |
-| **Mode** | `agent`, `direct` | `agent`: planning loop with tools. `direct`: one retrieval + one completion (streams tokens) |
+| **Mode** | `agentic`, `single-pass` | `agentic`: planning loop with tools. `single-pass`: one retrieval + one completion (streams tokens). Rows stored under the old names `agent`/`direct` are read as the new names |
 | **Engine** | `azure`, `langchain` | `RETRIEVAL_BACKEND`. `azure`: AI Search knowledge bases + Foundry agents. `langchain`: Chroma (vector + BM25, RRF) + a LangChain tool-calling loop |
 
 ```mermaid
@@ -54,8 +54,8 @@ flowchart TB
     end
     subgraph Modes
         direction LR
-        AG["agent"]
-        DI["direct"]
+        AG["agentic"]
+        DI["single-pass"]
     end
     Engines --- Arms --- Modes
 ```
@@ -125,7 +125,7 @@ flowchart LR
     EMB --> IDX["Markdown+ index<br/>vector + semantic + filters"]
     IDX --> KSI["Index knowledge source"] --> KBM["Knowledge base: markdown-plus"]
     KBW & KBM --> MCP["MCP endpoint<br/>retrieve"]
-    MCP --> AG["Foundry agent / direct"]
+    MCP --> AG["Foundry agent (agentic) / single-pass"]
 ```
 
 - Markdown+ index: `page_chunk`, vector `page_embedding_text_3_large` (HNSW), semantic config, filterable `doc_id`, `date`,
@@ -145,18 +145,18 @@ flowchart LR
 
 ## 7. Answering flows
 
-### 7.1 Direct mode
+### 7.1 Single-pass mode
 
 ```mermaid
 sequenceDiagram
     participant U as Caller
-    participant D as ask_direct
+    participant D as ask_single_pass
     participant R as Retrieval
     participant L as Chat model
     U->>D: question, arm, principals
     D->>R: retrieve(question, max_docs, ACL filter)
     R-->>D: passages (+ store keys of pictures)
-    opt DIRECT_IMAGES=1
+    opt SINGLE_PASS_IMAGES=1
         D->>D: attach pictures behind top figure passages
     end
     D->>L: instructions + passages + question (stream)
@@ -164,7 +164,7 @@ sequenceDiagram
     D-->>U: Answer (text, passages, tokens, seconds)
 ```
 
-### 7.2 Agent mode (Markdown+ arm)
+### 7.2 Agentic mode (Markdown+ arm)
 
 ```mermaid
 sequenceDiagram
@@ -221,7 +221,6 @@ flowchart LR
     ASK --> J["Judge model<br/>one prompt, one scale"]
     ASK --> EV["Evidence retrieved?"]
     J & EV --> ROWS["eval/run/rows.jsonl"]
-    COST["prices.yaml"] --> ROWS
     ROWS --> REP["report.py<br/>summary + Markdown"]
     ROWS --> BASE["report --run --k<br/>recall@k, p50/p95"]
     REP & BASE --> UI["Scorecard page"]
@@ -238,7 +237,7 @@ flowchart LR
 | File | Page |
 |---|---|
 | `app/Overview.py` | Question, latest scorecard per arm, pipeline figure, reports in store |
-| `app/pages/1_Ask.py` | Four tiles in parallel threads, streaming for direct, follow-ups, eight golden one-click questions |
+| `app/pages/1_Ask.py` | Four tiles in parallel threads, streaming for single-pass, follow-ups, eight golden one-click questions |
 | `app/pages/2_Scorecard.py` | Run selection, by type, run vs run, per-question with judge reason |
 | `app/pages/3_Reports.py` | Figures redrawn from facts, pictures + descriptions, Markdown, passages, Word-arm view |
 
@@ -264,9 +263,8 @@ flowchart LR
 |---|---|
 | Store | `STORAGE_ACCOUNT_URL`, `STORAGE_CONTAINER`, `STORAGE_RESOURCE_ID`, or `STORE_LOCAL_DIR` |
 | Models | `AZURE_OPENAI_ENDPOINT`, `ANSWER_MODEL` (default gpt-5-mini), `AGENT_REASONING_EFFORT`, `VISION_DEPLOYMENT`, `JUDGE_DEPLOYMENT`, `AZURE_EMBEDDING_*` (text-embedding-3-large, 3072 dims) |
-| Engine | `RETRIEVAL_BACKEND`, `CHROMA_DIR`, `RETRIEVAL_FIGURE_BOOST`, `RERANKER` + `RERANK_*`, `DIRECT_IMAGES(_MAX)`, `STREAM_DIRECT` |
+| Engine | `RETRIEVAL_BACKEND`, `CHROMA_DIR`, `RETRIEVAL_FIGURE_BOOST`, `RERANKER` + `RERANK_*`, `SINGLE_PASS_IMAGES(_MAX)`, `STREAM_SINGLE_PASS` |
 | Security | `PRINCIPALS`, `AZURE_OPENAI_API_KEY` (optional; Entra ID otherwise) |
-| Cost | `prices.yaml` |
 
 Corporate TLS inspection: `native-tls = true` under `[tool.uv]`; `truststore` is injected at runtime.
 
@@ -296,5 +294,5 @@ idempotently.
 | Word arm on Azure engine skips files above tier cap | [DESIGN.md](DESIGN.md) 3.4a |
 | Golden set verified against Word, not published PDFs; four reports only | [golden_set.md](golden_set.md) |
 | Principals come from configuration, not a validated token | section 8 |
-| Direct-mode token counts rely on usage metadata of the final streamed chunk; rows recorded before that fix have zero tokens and need `--redo` | operations note |
+| Single-pass-mode token counts rely on usage metadata of the final streamed chunk; rows recorded before that fix have zero tokens and need `--redo` | operations note |
 | Streamlit and eval processes must be restarted to pick up code changes | operations note |

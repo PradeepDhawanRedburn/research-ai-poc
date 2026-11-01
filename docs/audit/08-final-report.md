@@ -12,8 +12,8 @@ and a results note in this folder. The vector stores were not replaced; two fiel
 | 1 | `audit/01-baseline-report` | `report --run` : recall@k, p50/p95 latency, tokens per question type from a run's rows | 4 tests; runs on the preview rows end to end | `report --run baseline-langchain --k 10` gives the "before" |
 | 2 | `audit/02-fixtures` | synthetic DOCX fixtures (merged cells, footnotes, comments, tracked changes, header/footer, text box, charts with and without caches) + PPTX control; loss report | extractor JSON lost 9 of 27 feature checks; stock MarkItDown lost Word chart values entirely but kept PPTX ones | — |
 | 3 | `audit/03-extractor-gaps` | comments, tracked deletions, header/footer text, caption linking for body figures, chart values from the embedded workbook; two latent chart-formula defects fixed | loss report 0 lost; four real reports: 467 chunks, 121/14 charts digitised, chunk text identical in size, retention 0 lost | — |
-| 4 | `audit/04-retrieval` | filters on both hybrid legs, parallel legs, figure boost, pluggable reranker (Cohere via Foundry), flags recorded per run; Azure `filterAddOn` | 7 tests over fake stores; parallel = sequential fusion | A/B `RETRIEVAL_FIGURE_BOOST=0/1`, direct mode; reranker once an endpoint exists |
-| 5 | `audit/05-picture-at-answer` | `DIRECT_IMAGES`: original pictures with the question in direct mode, both engines | 5 tests | `--types image,chart_picture` with the flag on, against the baseline |
+| 4 | `audit/04-retrieval` | filters on both hybrid legs, parallel legs, figure boost, pluggable reranker (Cohere via Foundry), flags recorded per run; Azure `filterAddOn` | 7 tests over fake stores; parallel = sequential fusion | A/B `RETRIEVAL_FIGURE_BOOST=0/1`, single-pass mode; reranker once an endpoint exists |
+| 5 | `audit/05-picture-at-answer` | `SINGLE_PASS_IMAGES`: original pictures with the question in single-pass mode, both engines | 5 tests | `--types image,chart_picture` with the flag on, against the baseline |
 | 6 | `audit/06-hash-and-deletions` | ingest decides by content hash; `reconcile` removes deleted documents from store and engine | 6 tests; four reports: hashes recorded, all four skipped on re-run, nothing to reconcile | delete one blob, `reconcile --dry-run`, `reconcile` |
 | 7 | `audit/07-access-control` | `acl.json` → `acl` on every chunk → enforced in both legs, the boost, the facts tool, the Azure filter; `PRINCIPALS` identity | 7 tests incl. two users with different groups | write `acl.json`, `index --reset`, ask as two `PRINCIPALS` |
 | 8 | `audit/08-streaming-and-report` | direct answers stream (both engines), first-token time recorded in rows and the report, the Ask page shows text as it arrives | 5 tests | p95 to first token appears in `report` once a run exists |
@@ -47,7 +47,7 @@ uv run python -m research_qa eval --arm markdown-plus --mode direct,agent --run 
 uv run python -m research_qa report --run after-ingest-v3 --k 10
 RETRIEVAL_FIGURE_BOOST=0 uv run python -m research_qa eval --arm markdown-plus --mode direct --run boost-off
 uv run python -m research_qa report --run boost-off --k 10
-DIRECT_IMAGES=1 uv run python -m research_qa eval --arm markdown-plus --mode direct --types image,chart_picture --run images-on
+SINGLE_PASS_IMAGES=1 uv run python -m research_qa eval --arm markdown-plus --mode direct --types image,chart_picture --run images-on
 uv run python -m research_qa report --run images-on --k 10
 ```
 

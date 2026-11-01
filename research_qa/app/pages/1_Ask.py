@@ -16,6 +16,8 @@ from research_qa.schema import Answer  # noqa: E402
 
 ui.setup("Ask")
 ui.require_store()
+if st.session_state.pop("clear_expected", False):
+    st.session_state["typed_expected"] = ""  # a typed expected answer belongs to one question only
 st.session_state.setdefault("history", [])
 st.session_state.setdefault("chats", {})
 
@@ -23,14 +25,15 @@ ALL_KEYS = [combo_key(a, m) for a in ARMS for m in MODES]
 LABELS = {k: ui.combo_title(*k.split("/")) for k in ALL_KEYS}
 
 # questions from the verified golden set, one click each; the answers are known so the tiles can be judged live
+# Picked from the after-audit run: first row where every route agrees, second row where they differ or all fall short.
 DEMO = [("Text", "MM04-01", "What the April Money Map expects the Fed to do in May"),
-        ("Text", "MM07-02", "Which central bank the July Money Map expects to cut, and to what"),
-        ("Chart value", "MM04-06", "Germany's 2030 balance in Fig 27 of the April Money Map"),
-        ("Matrix", "EVO-16", "Is Evolution content available on Stake in Italy (Fig 4)?"),
-        ("Picture", "IMG-06", "The three cans in Fig 22 and what is printed on them"),
-        ("Picture", "CCEP-22", "The promotion on the Pepsi Max sign in Fig 40"),
         ("Two editions", "MMX-01", "How the ECB view changed between April and July"),
-        ("Table", "EVO-08", "Evolution's FY26E revenue estimate")]
+        ("Not in the reports", "MM04-14", "The Bank of Japan rate the April Money Map forecasts"),
+        ("Chart value", "MM04-06", "Germany's 2030 balance in Fig 27 of the April Money Map"),
+        ("Report details", "MM04-13", "The publication date of the April Money Map"),
+        ("Matrix", "EVO-16", "Is Evolution content available on Stake in Italy (Fig 4)?"),
+        ("Picture", "CCEP-24", "The two Coca-Cola products with the Aldi Price Match badge"),
+        ("Picture, hard", "IMG-08", "How many game tiles are greyed out in the Rainbet lobby (Fig 6)")]
 
 # ----------------------------------------------------------------------------- sidebar
 
@@ -39,6 +42,9 @@ with st.sidebar:
     picked = st.pills("Arms and modes", ALL_KEYS, format_func=lambda k: LABELS[k], selection_mode="multi",
                       default=ALL_KEYS, label_visibility="collapsed")
     keys = [k for k in ALL_KEYS if k in (picked or [])]
+    typed_expected = st.text_input("Expected answer (optional)", key="typed_expected",
+                                   help="With one, every tile gets a tick, a half mark or a cross from the same judge "
+                                        "as the scorecard. The verified questions below carry their own.")
     with st.expander("What the four are"):
         st.markdown(ui.arm_help())
         st.markdown(ui.mode_help())
@@ -58,7 +64,7 @@ with st.sidebar:
             st.dataframe(totals, hide_index=True, width="stretch")
             buf = io.StringIO()
             rows = [{"question": t["question"], **row} for t in st.session_state.history
-                    for row in ui.comparison_rows(t["results"], t["errors"], t["keys"])]
+                    for row in ui.comparison_rows(t["results"], t["errors"], t["keys"], grades=t.get("grades"))]
             if rows:
                 fields = list(dict.fromkeys(k for r in rows for k in r))
                 w = csv.DictWriter(buf, fieldnames=fields)
@@ -71,7 +77,7 @@ ui.sidebar_footer()
 
 st.title("Ask the reports")
 st.markdown('<p class="lede">One question, answered by every route at once from the same reports and the same '
-            'model. Each tile shows the answer, what it cost, and what it read.</p>', unsafe_allow_html=True)
+            'model. Each tile shows the answer, how long it took, and what it read.</p>', unsafe_allow_html=True)
 
 if not keys:
     st.info("Pick at least one arm and mode in the sidebar.")
@@ -80,7 +86,9 @@ if not keys:
 golden = {q["id"]: q for q in ui.golden_questions()}
 demo = [(tag, golden[i], short) for tag, i, short in DEMO if i in golden]
 if demo and not st.session_state.history:
-    st.markdown("**Try one**")
+    st.markdown('<div style="text-align:center; margin:2.2rem 0 1rem"><div style="font-size:1.6rem; font-weight:650">'
+                'What would you like to know?</div><div class="muted">Pick a verified question and every tile is '
+                'graded automatically, or type your own below.</div></div>', unsafe_allow_html=True)
     cols = st.columns(4)
     for i, (tag, q, short) in enumerate(demo):
         with cols[i % 4]:
@@ -106,44 +114,57 @@ def tile_grid(ks: list[str]) -> dict[str, object]:
     for col, k in zip(st.columns(len(ks)), ks):
         with col:
             with st.container(border=True):
-                ui.tile_header(*k.split("/"))
                 slots[k] = st.empty()
     return slots
 
 
-def expected_note(question: str) -> None:
+def expectation(question: str) -> dict | None:
+    """What to grade against: the golden answer when the question is a verified one, else the typed one."""
     q = next((q for q in golden.values() if q["question"] == question), None)
     if q:
-        st.markdown(f'<div class="muted">Verified answer from the golden set: <b>{q["answer"]}</b></div>',
+        return {"answer": q["answer"], "type": q["type"], "source": "golden set"}
+    if typed_expected.strip():
+        return {"answer": typed_expected.strip(), "type": "text_fact", "source": "typed"}
+    return None
+
+
+def expected_note(question: str, exp: dict | None = None) -> None:
+    if exp:
+        st.markdown(f'<div class="muted">Expected answer ({exp["source"]}): <b>{exp["answer"]}</b></div>',
                     unsafe_allow_html=True)
 
 
 def show_turn(turn: dict, compact: bool = False) -> None:
     """The latest turn in full; earlier turns compact (answer and numbers only, so the page stays light)."""
-    expected_note(turn["question"])
+    grades = turn.get("grades", {})
+    expected_note(turn["question"], turn.get("expected"))
     slots = tile_grid(turn["keys"])
     for k, slot in slots.items():
         with slot.container():
             if k in turn["results"]:
-                ui.show_tile(turn["results"][k], show_all_text, compact=compact)
+                ui.show_tile(turn["results"][k], show_all_text, compact=compact, grade=grades.get(k))
             else:
-                st.error(turn["errors"].get(k, "no answer"))
+                ui.tile_error(slot, *k.split("/"), turn["errors"].get(k, "no answer"))
     if not compact:
         st.markdown("##### Side by side")
-        ui.comparison(turn["results"], turn["errors"], turn["keys"])
+        ui.comparison(turn["results"], turn["errors"], turn["keys"], grades=grades)
 
 
-def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
+def ask_all(question: str, ks: list[str], exp: dict | None = None) -> tuple[dict, dict, dict]:
     from research_qa.agent.ask import ask, run_parallel
 
     results: dict[str, Answer] = {}
     errors: dict[str, str] = {}
-    partials: dict[str, str] = {}   # streamed text so far, per direct tile; drawn on the main thread each tick
+    grades: dict[str, dict] = {}
+    judge = ui.judge_fn() if exp else None  # built here: the answers are judged inside the worker threads
+    if exp and judge is None:
+        st.caption("No judge is configured (JUDGE_DEPLOYMENT), so the tiles are not graded.")
+    partials: dict[str, str] = {}   # streamed text so far, per single-pass tile; drawn on the main thread each tick
     tasks = {}
     for k in ks:
         arm, mode = k.split("/")
         chat = None
-        if mode == "agent":  # one conversation per arm for follow-up questions; created on the main thread
+        if mode == "agentic":  # one conversation per arm for follow-up questions; created on the main thread
             try:
                 if arm not in st.session_state.chats:
                     if settings.retrieval_backend == "langchain":
@@ -156,14 +177,20 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
             except Exception as e:  # noqa: BLE001
                 errors[k] = f"{type(e).__name__}: {e}"
                 continue
-        tasks[k] = (lambda q=question, a=arm, m=mode, c=chat, key=k: ask(
-            q, a, m, use_tools=use_tools, chat=c, max_docs=max_docs,
-            on_token=(lambda text, key=key: partials.__setitem__(key, text)) if m == "direct" else None))
-    expected_note(question)
+
+        def work(q=question, a=arm, m=mode, c=chat, key=k):
+            ans = ask(q, a, m, use_tools=use_tools, chat=c, max_docs=max_docs,
+                      on_token=(lambda text, key=key: partials.__setitem__(key, text)) if m == "single-pass" else None)
+            if judge:
+                grades[key] = ui.grade(judge, q, exp["answer"], exp["type"], ans)
+            return ans
+
+        tasks[k] = work
+    expected_note(question, exp)
     slots = tile_grid(ks)
     for k in ks:
         if k in errors:
-            slots[k].error(errors[k])
+            ui.tile_error(slots[k], *k.split("/"), errors[k])
         else:
             ui.running_tile(slots[k], *k.split("/"))
     st.markdown("##### Side by side")
@@ -171,7 +198,7 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
 
     def draw_table(running: dict | None):
         with table.container():
-            ui.comparison(results, errors, ks, running)
+            ui.comparison(results, errors, ks, running, grades)
 
     draw_table({k: 0.0 for k in tasks})
 
@@ -179,16 +206,17 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
         if r is not None:
             results[k] = r
             with slots[k].container():
-                ui.show_tile(r, show_all_text)
+                ui.show_tile(r, show_all_text, grade=grades.get(k))
         else:
             errors[k] = err or "failed"
-            slots[k].error(errors[k])
+            ui.tile_error(slots[k], *k.split("/"), errors[k])
         draw_table({x: 0.0 for x in tasks if x not in results and x not in errors})
 
     def on_tick(running: dict):
         for k, secs in running.items():
             if partials.get(k):
                 with slots[k].container():
+                    ui.tile_header(*k.split("/"))
                     st.markdown(partials[k] + " ▌")
                     st.caption(f"Writing… {secs:.0f} s")
             else:
@@ -197,7 +225,7 @@ def ask_all(question: str, ks: list[str]) -> tuple[dict, dict]:
     if tasks:
         run_parallel(tasks, on_done, on_tick, tick=1.0)
     draw_table(None)
-    return results, errors
+    return results, errors, grades
 
 
 def apply_max_docs(n: int) -> None:
@@ -231,6 +259,10 @@ if question:
         st.markdown(question)
     with st.chat_message("assistant"):
         apply_max_docs(max_docs)
-        results, errors = ask_all(question, keys)
-    st.session_state.history.append({"question": question, "results": results, "errors": errors, "keys": keys})
+        exp = expectation(question)
+        results, errors, grades = ask_all(question, keys, exp)
+    if exp and exp["source"] == "typed":
+        st.session_state.clear_expected = True
+    st.session_state.history.append({"question": question, "results": results, "errors": errors, "keys": keys,
+                                     "grades": grades, "expected": exp})
     st.rerun()

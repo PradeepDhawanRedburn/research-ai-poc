@@ -89,7 +89,7 @@ def test_metadata_round_trip_carries_acl():
 
 
 def test_azure_filter_carries_access_and_doc():
-    from research_qa.agent.direct import retrieve_body
+    from research_qa.agent.single_pass import retrieve_body
 
     f = retrieve_body("markdown-plus", "q", doc_id="RA01220", principals=["group:macro", "o'neil"])
     assert f["knowledgeSourceParams"][0]["filterAddOn"] == \
@@ -111,7 +111,7 @@ def test_facts_tool_withholds_rows_of_hidden_reports(tmp_path, monkeypatch):
     chat = A.Chat("markdown-plus", store=store, model=lambda *a: None, retrieve=lambda q, k, d: [], principals=ALICE)
     from research_qa.schema import Answer
 
-    ans = Answer(arm="markdown-plus", mode="agent", question="q", text="")
+    ans = Answer(arm="markdown-plus", mode="agentic", question="q", text="")
     out = chat._run_tool(ans, store, "lookup_facts", {"doc_id": None, "figure": "Fig 1", "series": None, "x": None, "query": None},
                          True, None)
     assert "-4.7" in out and "2240" not in out and "withheld" in out

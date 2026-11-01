@@ -1,9 +1,9 @@
 """Answering with the LangChain engine, both modes, returning the same schema.Answer as the Azure engine.
 
-- direct: one hybrid retrieval, one chat completion over the numbered passages (no tools, no pictures).
+- single-pass: one hybrid retrieval, one chat completion over the numbered passages (no tools, no pictures).
 - agent: a tool-calling loop (at most MAX_ROUNDS) with `search_reports` for both arms and, for Markdown+,
   `lookup_facts` and `inspect_figure` (the same functions the Foundry agent calls). The model cites passages as [n].
-Everything the question cost is recorded: passages, steps, tool calls, seconds by phase, tokens by kind.
+Everything the question used is recorded: passages, steps, tool calls, seconds by phase, tokens by kind.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import time
 
 from .. import acl as access
 from ..agent import tools
-from ..agent.direct import ANSWER_SYSTEM
+from ..agent.single_pass import ANSWER_SYSTEM
 from ..agent.foundry import instructions as foundry_instructions
 from ..config import ARMS, settings
 from ..schema import Answer, Passage, Step
@@ -84,7 +84,7 @@ def _shaped_by(info: dict | None) -> str:
     return (" " + "; ".join(bits) + ".") if bits else ""
 
 
-# ----------------------------------------------------------------------------- direct
+# ----------------------------------------------------------------------------- single-pass
 
 def stream_answer(model, messages, on_token=None, t_start: float | None = None) -> tuple[str, object, float]:
     """Stream a chat completion: returns (text, final message-like with usage_metadata, first_token_s). Falls back to
@@ -109,14 +109,14 @@ def stream_answer(model, messages, on_token=None, t_start: float | None = None) 
     return text.strip(), last, first
 
 
-def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=None, on_token=None) -> Answer:
+def ask_single_pass(question: str, arm: str, max_docs: int | None = None, principals=None, on_token=None) -> Answer:
     from langchain_core.messages import HumanMessage, SystemMessage
 
     from .models import chat_model, usage_of
 
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}")
-    ans = Answer(arm=arm, mode="direct", question=question, text="", model=settings.answer_model,
+    ans = Answer(arm=arm, mode="single-pass", question=question, text="", model=settings.answer_model,
                  store=collection_name(arm))
     t0 = time.perf_counter()
     info: dict = {}
@@ -133,20 +133,20 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=
                           items=[question], seconds=ans.retrieval_s))
     prompt = f"Passages:\n{numbered(ans.passages)}\n\nQuestion: {question}"
     system, content = ANSWER_SYSTEM, prompt
-    if settings.direct_images and ARMS[arm].has_tools and ans.passages:
-        blocks, shown = tools.picture_blocks(open_store(), ans.passages, settings.direct_images_max)
+    if settings.single_pass_images and ARMS[arm].has_tools and ans.passages:
+        blocks, shown = tools.picture_blocks(open_store(), ans.passages, settings.single_pass_images_max)
         if shown:
             for p, _k in shown:
                 p.inspected = True
             system = ANSWER_SYSTEM + "\n" + tools.PICTURES_NOTE
             content = [{"type": "text", "text": prompt}] + blocks
             ans.steps.append(Step("look", f"Original pictures of {len(shown)} figure passage(s) sent with the question",
-                                  "DIRECT_IMAGES is on: the answer model sees the pictures, not only their descriptions.",
+                                  "SINGLE_PASS_IMAGES is on: the answer model sees the pictures, not only their descriptions.",
                                   items=[f"[{p.rank}] {p.heading or p.kind}" for p, _ in shown],
                                   assets=[k for _, k in shown]))
     t1 = time.perf_counter()
     msgs = [SystemMessage(system), HumanMessage(content=content)]
-    if settings.stream_direct:
+    if settings.stream_single_pass:
         text, msg, first = stream_answer(chat_model(), msgs, on_token, t_start=t0)
         ans.first_token_s = first
     else:
@@ -211,7 +211,7 @@ class Chat:
         from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
         store = self.store or (open_store() if ARMS[self.arm].has_tools else None)
-        ans = Answer(arm=self.arm, mode="agent", question=question, text="", model=settings.answer_model,
+        ans = Answer(arm=self.arm, mode="agentic", question=question, text="", model=settings.answer_model,
                      store=collection_name(self.arm))
         specs = _tool_specs(self.arm)
         if not use_tools:

@@ -12,7 +12,7 @@ import streamlit as st  # noqa: E402
 
 from research_qa.app import ui  # noqa: E402
 from research_qa.evaluate.report import headline_rows  # noqa: E402
-from research_qa.evaluate.run import list_runs, load_run  # noqa: E402
+from research_qa.evaluate.run import load_run  # noqa: E402
 
 ui.setup("Scorecard")
 store = ui.require_store()
@@ -25,13 +25,22 @@ MEASURES = {"Accuracy": ("%", lambda s: (s["accuracy"] or 0) * 100),
             "Tokens per question": ("tokens", lambda s: s["tokens"]["total_tokens"]["mean"]),
             "Seconds per question": ("s", lambda s: s["time"]["total_s"]["mean"])}
 
-runs = list_runs(store)
+catalog = ui.run_catalog()
 with st.sidebar:
+    show_all = st.toggle("Show older and partial runs", value=False,
+                         help="By default: complete runs that record their engine, the newest Azure and the newest "
+                              "LangChain one of each size (full golden set, smoke subset).")
+    pool = catalog if show_all else (ui.current_runs(catalog) or catalog)
+    pool = sorted(pool, key=lambda r: (r["kind"] != "full", r["backend"] or "", r["name"]))
+    by_name = {r["name"]: r for r in pool}
+    runs = list(by_name)
     if not runs:
         st.caption("No evaluation run in the store.")
     else:
-        run = st.selectbox("Run", runs, help="Newest first. A run is a folder eval/<run>/ in the store.")
+        run = st.selectbox("Run", runs, format_func=lambda n: ui.run_title(by_name[n]),
+                           help="A run is a folder eval/<run>/ in the store.")
         other = st.selectbox("Compare with", ["(none)"] + [r for r in runs if r != run],
+                             format_func=lambda n: n if n == "(none)" else ui.run_title(by_name[n]),
                              help="A second run, for instance the other engine, shown next to this one.")
 ui.sidebar_footer()
 
@@ -69,8 +78,7 @@ for col, c in zip(cols, combos):
                    f"{s['incorrect']} incorrect", accent=s["accuracy"] == best_acc and s["n"] > 0)
             ui.metric_line([("evidence found", ui.pct(s["evidence_found"])),
                             ("per question", f"{s['time']['total_s']['mean']:.1f} s"),
-                            ("tokens", f"{s['tokens']['total_tokens']['mean']:,.0f}"),
-                            ("cost", ui.fmt_cost(s["cost_per_question"]))])
+                            ("tokens", f"{s['tokens']['total_tokens']['mean']:,.0f}")])
             st.caption(f"p95 {s['time']['total_s']['p95']:.1f} s · {s['tokens']['vision_tokens']['sum']:,.0f} vision tokens"
                        f" in total · {s['tool_calls']} tool calls · {s['failed']} failed")
 with st.expander("Headline table"):
@@ -90,8 +98,7 @@ if other != "(none)":
             recs.append({"run": name, "arm · mode": ui.combo_title(*c.split("/")), "questions": s["n"],
                          "accuracy": ui.pct(s["accuracy"]), "evidence found": ui.pct(s["evidence_found"]),
                          "seconds": round(s["time"]["total_s"]["mean"], 1),
-                         "tokens": round(s["tokens"]["total_tokens"]["mean"]),
-                         "cost per question": ui.fmt_cost(s["cost_per_question"])})
+                         "tokens": round(s["tokens"]["total_tokens"]["mean"])})
     st.dataframe(recs, hide_index=True, width="stretch")
     st.caption(f"{run}: model {config.get('answer_model')}, {len(rows)} rows · {other}: model {c2.get('answer_model')}")
 
@@ -115,7 +122,7 @@ chart = (alt.Chart(df).mark_bar(cornerRadiusEnd=2).encode(
     color=alt.Color("arm · mode:N", sort=list(labels.values()), title=None,
                     scale=alt.Scale(domain=list(colour), range=list(colour.values())),
                     legend=alt.Legend(orient="top", direction="horizontal", titleFontSize=12, labelFontSize=12)),
-    opacity=alt.condition(alt.FieldOneOfPredicate("arm · mode", [l for l in labels.values() if l.endswith("Direct")]),
+    opacity=alt.condition(alt.FieldOneOfPredicate("arm · mode", [l for l in labels.values() if l.endswith("Single-pass")]),
                           alt.value(0.55), alt.value(1.0)),
     column=alt.Column("type:N", sort=type_order, title=None,
                       header=alt.Header(labelFontSize=12, labelOrient="bottom", labelAngle=0, labelLimit=120)),
@@ -123,7 +130,7 @@ chart = (alt.Chart(df).mark_bar(cornerRadiusEnd=2).encode(
     .properties(width=max(70, 18 * len(combos) + 20), height=220)
     .configure_view(strokeWidth=0).configure_facet(spacing=8))
 st.altair_chart(chart, width="stretch")
-st.caption("Agent bars are solid, direct bars lighter. Hover for the number of questions behind a bar.")
+st.caption("Agentic bars are solid, single-pass bars lighter. Hover for the number of questions behind a bar.")
 with st.expander("By type, as a table"):
     table = []
     for t in summary["types"]:
@@ -203,7 +210,7 @@ if qid in by_q:
                 st.markdown(r["answer"] or "*No answer was produced.*")
                 st.caption(f"Judge: {r['reason']}")
                 st.markdown(f'<div class="strip"><span><b>{r["total_s"]:.1f} s</b></span>'
-                            f'<span><b>{r["total_tokens"]:,}</b> tokens</span><span><b>{ui.fmt_cost(r.get("cost"))}</b></span>'
+                            f'<span><b>{r["total_tokens"]:,}</b> tokens</span>'
                             f'<span>evidence <b>{r["evidence_hits"]}</b></span>'
                             + (f'<span>tools: {", ".join(r["tools"])}</span>' if r.get("tools") else "") + "</div>",
                             unsafe_allow_html=True)

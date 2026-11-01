@@ -44,7 +44,7 @@ flowchart LR
 |---|---|---|
 | Questions whose answer survived conversion | 52 of 71 (73%) | **71 of 71 (100%)** |
 | Charts pasted as pictures turned into numbers | 0 | 121 of 135 (the rest are sent to a vision model) |
-| Cost of reading charts at question time | high (vision model on each question) | near zero (numbers read once, when the report is added) |
+| Effort of reading charts at question time | high (vision model on each question) | near zero (numbers read once, when the report is added) |
 
 Every loss in the standard conversion was a chart, a comparison table or a picture. Those are exactly the questions
 people find hardest to answer by hand.
@@ -62,7 +62,7 @@ flowchart LR
     B --> C["3. It writes organised notes:<br/>readable text +<br/>a table of exact numbers"]
     C --> D["4. A person asks<br/>a question"]
     D --> E["5. The system finds<br/>the right notes and<br/>writes a short answer"]
-    E --> F["6. Answer is shown with<br/>its sources and cost"]
+    E --> F["6. Answer is shown with<br/>its sources and timings"]
 ```
 
 1. **Add a report.** Upload the Word file. Nothing else is needed from the analyst.
@@ -73,7 +73,7 @@ flowchart LR
 4. **Ask.** Any employee asks in plain language.
 5. **Answer.** An AI assistant looks up the notes, checks exact numbers where needed, and writes a short answer. It is
    instructed never to answer from general knowledge, only from our reports.
-6. **Show the evidence.** The answer lists the passages it used, how long it took, and what it cost.
+6. **Show the evidence.** The answer lists the passages it used, how long it took, and how many tokens it used.
 
 ---
 
@@ -87,7 +87,7 @@ flowchart TB
     subgraph App["Demo application"]
         O["Overview<br/>the idea, latest results,<br/>reports loaded"]
         K["Ask<br/>one question, four routes<br/>answered side by side"]
-        S["Scorecard<br/>accuracy, speed, cost,<br/>per question type"]
+        S["Scorecard<br/>accuracy, speed,<br/>per question type"]
         R["Reports<br/>what the system found<br/>inside each report"]
     end
     O --> K --> S --> R
@@ -96,16 +96,16 @@ flowchart TB
 | Page | What it shows | The point for the audience |
 |---|---|---|
 | **Overview** | The question we are answering, key results in a few numbers, the reports in the system | The business case on one screen |
-| **Ask** | One question answered at the same moment by four "routes" (see below), each showing answer, seconds, tokens, cost, sources. Eight ready-made questions with the correct answer displayed so the audience can judge live | Seeing is believing: the difference in answers is visible |
-| **Scorecard** | Results of the full test set: accuracy, whether the right evidence was found, speed, cost, split by type of question | Evidence rather than anecdotes |
+| **Ask** | One question answered at the same moment by four "routes" (see below), each showing answer, seconds, tokens, sources. Eight ready-made questions with the correct answer displayed so the audience can judge live | Seeing is believing: the difference in answers is visible |
+| **Scorecard** | Results of the full test set: accuracy, whether the right evidence was found, speed, split by type of question | Evidence rather than anecdotes |
 | **Reports** | For each report: charts redrawn from the extracted numbers, pictures with their descriptions, what a plain conversion would have seen | Trust: you can see what the system understood |
 
 **The four routes compared in the Ask page**
 
 | | Plain Word conversion | Our enhanced conversion |
 |---|---|---|
-| **Quick mode** (one search, one answer) | Route 1 | Route 2 |
-| **Assistant mode** (an AI assistant plans several searches and uses extra tools) | Route 3 | Route 4 |
+| **Single-pass mode** (one search, one answer) | Route 1 | Route 2 |
+| **Agentic mode** (an AI agent plans several searches and uses extra tools) | Route 3 | Route 4 |
 
 "Plain Word conversion" is what Microsoft (or any standard tool) gives out of the box. "Enhanced" is our approach.
 Putting them side by side answers the executive question *"do we need to build anything, or can we buy it?"*
@@ -123,8 +123,8 @@ Putting them side by side answers the executive question *"do we need to build a
 | **Understand pictures** | Reads printed text, counts and labels in photographs and screenshots, once, at load time |
 | **Compare reports** | Questions spanning two editions ("how did the view change?") |
 | **Say "I don't know"** | Answers exactly "The documents do not say." when it is not in the reports |
-| **Follow-up questions** | Keeps the conversation going in assistant mode |
-| **Show cost and speed** | Seconds, tokens and money per question |
+| **Follow-up questions** | Keeps the conversation going in agentic mode |
+| **Show speed and effort** | Seconds and tokens per question |
 | **Self-test** | 122 verified test questions are scored automatically by a separate AI judge |
 | **Prove nothing was lost** | A no-AI check confirms every fact needed is present in the converted text |
 | **Add or remove a report** | One command each; removal cleans up everywhere |
@@ -154,7 +154,7 @@ Putting them side by side answers the executive question *"do we need to build a
 | **Sign-in** | Microsoft Entra ID (single sign-on) by default; no passwords or keys in the code |
 | **Who sees which report** | Optional per-report access lists, enforced in every retrieval path |
 | **Deleting a report** | Removing the file and running one clean-up command removes it from storage and from every search index |
-| **Cost control** | Every question's cost is shown; charts are read once at load time, not at every question |
+| **Efficiency** | Seconds and tokens are shown for every question; charts are read once at load time, not at every question |
 
 ---
 

@@ -344,7 +344,7 @@ class Chat:
         self.conversation = self.client.conversations.create()
 
     def ask(self, question: str, use_tools: bool = True) -> Answer:
-        ans = Answer(arm=self.arm, mode="agent", question=question, text="", model=settings.answer_model,
+        ans = Answer(arm=self.arm, mode="agentic", question=question, text="", model=settings.answer_model,
                      store=self.names.knowledge_base)
         start = time.perf_counter()
         payload, final = question, None

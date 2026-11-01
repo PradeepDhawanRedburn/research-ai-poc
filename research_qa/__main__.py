@@ -6,7 +6,7 @@
   knowledge                knowledge sources and bases (Blob for Word, index for Markdown+)
   agents                   Foundry connections and agents, one per arm
   up                       knowledge + agents for every arm
-  ask "<question>"         answer with one arm and mode, print passages, steps and the cost line
+  ask "<question>"         answer with one arm and mode, print passages, steps and the usage line
   eval                     run the golden questions through arms x modes, write a scored run to eval/<run>/
   retention                evidence retention and retrieval of Markdown+ without a model
   status                   what is in the store and in Azure
@@ -22,7 +22,7 @@ import logging
 import sys
 from pathlib import Path
 
-from .config import ARMS, DEFAULT_ARMS, DEFAULT_MODES, MODES, combo_key, settings
+from .config import ARMS, DEFAULT_ARMS, DEFAULT_MODES, MODES, canon_mode, combo_key, settings
 from .storage import CHUNKS, FACTS, MANIFEST, MARKDOWN, RAW, open_store
 
 
@@ -35,7 +35,7 @@ def _arms(value: str | None) -> list[str]:
 
 
 def _modes(value: str | None) -> list[str]:
-    modes = [m for m in (value or ",".join(DEFAULT_MODES)).split(",") if m]
+    modes = [canon_mode(m) for m in (value or ",".join(DEFAULT_MODES)).split(",") if m]
     bad = [m for m in modes if m not in MODES]
     if bad:
         raise SystemExit(f"unknown mode(s) {bad}; choose from {list(MODES)}")
@@ -135,15 +135,13 @@ def cmd_up(args) -> int:
 
 def cmd_ask(args) -> int:
     from .agent.ask import ask
-    from .evaluate.cost import fmt_money, prices
 
     a = _azure("ask", ask, args.question, args.arm, args.mode, use_tools=not args.no_tools)
     print(a.text or "(empty answer)")
     print()
-    cost = prices().cost_of(a)
     print(f"{a.arm}/{a.mode} · {a.model} · {a.total_s:.1f} s · {a.total_tokens:,} tokens "
           f"({a.input_tokens:,} in, {a.output_tokens:,} out, {a.reasoning_tokens:,} reasoning, {a.vision_tokens:,} vision)"
-          f" · {fmt_money(cost)} · {len(a.passages)} passages, {len(a.cited)} cited, {len(a.tool_calls)} tool calls")
+          f" · {len(a.passages)} passages, {len(a.cited)} cited, {len(a.tool_calls)} tool calls")
     for e in a.errors:
         print(f"error: {e}")
     if a.steps:
@@ -367,13 +365,13 @@ def main(argv=None) -> int:
     p = sub.add_parser("ask", help="answer one question")
     p.add_argument("question")
     p.add_argument("--arm", default="markdown-plus", choices=list(ARMS))
-    p.add_argument("--mode", default="agent", choices=list(MODES))
+    p.add_argument("--mode", default="agentic", type=canon_mode, choices=list(MODES))
     p.add_argument("--no-tools", action="store_true", help="no facts lookup, no picture inspection")
     p.set_defaults(fn=cmd_ask)
 
     p = sub.add_parser("eval", help="score the golden questions")
     p.add_argument("--arm", help=f"comma-separated, from {list(ARMS)}; default all")
-    p.add_argument("--mode", help=f"comma-separated, from {list(MODES)}; default agent")
+    p.add_argument("--mode", help=f"comma-separated, from {list(MODES)}; default agentic")
     p.add_argument("--ids", help="comma-separated question ids")
     p.add_argument("--types", help="comma-separated question types")
     p.add_argument("--limit", type=int)

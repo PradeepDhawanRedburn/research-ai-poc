@@ -21,9 +21,6 @@ take more than a minute it says so.
 3. `.env`: copy `.env.example`, fill the store (`STORAGE_ACCOUNT_URL`, `STORAGE_CONTAINER`, `STORAGE_RESOURCE_ID`), the
    model deployments, `AZURE_SEARCH_ENDPOINT`, `PROJECT_ENDPOINT`, `PROJECT_RESOURCE_ID`. Set `JUDGE_DEPLOYMENT` to a
    different, stronger deployment than `ANSWER_MODEL` (gpt-4.1 or gpt-5.5 if deployed).
-4. `prices.yaml`: fill the per-million-token prices for `ANSWER_MODEL` and the vision deployment from the Azure
-   OpenAI pricing page (region and deployment type as deployed). Leave empty and the app says "not priced" instead
-   of guessing.
 
 ## 1. The store
 
@@ -123,44 +120,43 @@ MCP, `lookup_facts`, `inspect_figure`); the Word agent has one. Expect `agent '.
 ## 5. First answers
 
 ```bash
-uv run python -m research_qa ask "In Fig 27 of the April Money Map, what is Germany's cyclically adjusted balance forecast for 2030?" --arm markdown-plus --mode agent
+uv run python -m research_qa ask "In Fig 27 of the April Money Map, what is Germany's cyclically adjusted balance forecast for 2030?" --arm markdown-plus --mode agentic
 ```
-Expect `-4.7% of GDP`, a `lookup_facts` call in the steps, and a cost line with seconds and tokens. Then the same
+Expect `-4.7% of GDP`, a `lookup_facts` call in the steps, and a usage line with seconds and tokens. Then the same
 question with `--arm word`: the answer comes from the verbalised picture, so it may be approximate or missing; that
 difference is the point of the comparison.
 
 ```bash
-uv run python -m research_qa ask "Which three cans are shown side by side in Fig 22, and what is printed on them?" --arm markdown-plus --mode agent
+uv run python -m research_qa ask "Which three cans are shown side by side in Fig 22, and what is printed on them?" --arm markdown-plus --mode agentic
 ```
 Expect Vive, Old Fanta and New Fanta with the printed text, answered from the description with no `inspect_figure`
 call (the v2 description carries the printed text). If the agent still inspects the picture, send me the steps.
 
 ```bash
-uv run python -m research_qa ask "What did the Money Map expect the ECB to do at its next meeting in April and in July 2025?" --arm markdown-plus --mode direct
+uv run python -m research_qa ask "What did the Money Map expect the ECB to do at its next meeting in April and in July 2025?" --arm markdown-plus --mode single-pass
 ```
 Expect the cut to 2.0% (April, 5 June meeting) and the hold at 2.0% (July, 24 July meeting), with passages from both
-reports. Direct mode should be about 3 seconds.
+reports. Single-pass mode should be about 3 seconds.
 
 The first Word-arm answer tells us the field names Azure's pipeline stores for its chunks. If the Word tiles show
 passages with empty text or file names, send me one raw passage from `ask --arm word -v`; the parser in
-`research_qa/agent/foundry.py` (`add_passages`) and `direct.py` (`passages_from_retrieve`) reads a few likely names
+`research_qa/agent/foundry.py` (`add_passages`) and `single_pass.py` (`passages_from_retrieve`) reads a few likely names
 and needs the real one.
 
 ## 6. The evaluation: does the rewrite hold up?
 
 ```bash
-uv run python -m research_qa eval --arm markdown-plus --mode agent --limit 10 --run smoke-<engine>
+uv run python -m research_qa eval --arm markdown-plus --mode agentic --limit 10 --run smoke-<engine>
 ```
 (`<engine>` is azure or langchain; the runbook script names runs this way so the Scorecard shows both engines side by side.)
 About 2 minutes. Expect 10 rows and a report in `eval/smoke-<engine>/report.md` in the store. This is the same shape as the
 agentic run on `code-v1` that scored 10 of 10; anything below 9 of 10 is a regression to look at before the full run.
 
 ```bash
-uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct --run baseline-<engine>
+uv run python -m research_qa eval --arm word,markdown-plus --mode agentic,single-pass --run baseline-<engine>
 ```
 About 25 to 35 minutes for 4 combinations × the golden set (resume with `--resume --run baseline-<engine>` after a token
-expiry). The report has, per arm and mode: accuracy by question type, evidence found, seconds, tokens by kind, cost
-per question and per 100 questions, and the per-question disagreements between arms. Reference points from before
+expiry). The report has, per arm and mode: accuracy by question type, evidence found, seconds, tokens by kind, and the per-question disagreements between arms. Reference points from before
 the rewrite: 91% on 88 questions (RAG, both inputs through our extractor), 10 of 10 agentic on the first 10, about
 6,500 input tokens a question agentic, about 3,700 RAG. The Word arm has no earlier number: it is the new, honest
 baseline.

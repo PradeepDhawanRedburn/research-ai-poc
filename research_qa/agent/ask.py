@@ -5,7 +5,7 @@ import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from typing import Callable
 
-from ..config import ARMS, MODES, combo_label, settings
+from ..config import ARMS, MODES, canon_mode, combo_label, settings
 from ..schema import Answer
 
 
@@ -13,12 +13,13 @@ def label(arm: str, mode: str) -> str:
     return combo_label(arm, mode)
 
 
-def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, chat=None,
+def ask(question: str, arm: str, mode: str = "agentic", use_tools: bool = True, chat=None,
         max_docs: int | None = None, principals=None, on_token=None) -> Answer:
     """`chat` is an existing Chat (foundry.Chat or lc.answer.Chat, matching RETRIEVAL_BACKEND) to continue a
     conversation; otherwise a fresh one is made. `principals` is the caller's identity for access control
     (default PRINCIPALS from .env). The Foundry agent calls its knowledge base itself over MCP and cannot carry a
-    per-user filter, so under the Azure engine only direct mode enforces access; see research_qa/acl.py."""
+    per-user filter, so under the Azure engine only single-pass mode enforces access; see research_qa/acl.py."""
+    mode = canon_mode(mode)
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}")
     if mode not in MODES:
@@ -26,13 +27,13 @@ def ask(question: str, arm: str, mode: str = "agent", use_tools: bool = True, ch
     if settings.retrieval_backend == "langchain":  # Chroma + LangChain engine, same arms, modes and Answer
         from ..lc import answer as lc
 
-        if mode == "direct":
-            return lc.ask_direct(question, arm, max_docs, principals=principals, on_token=on_token)
+        if mode == "single-pass":
+            return lc.ask_single_pass(question, arm, max_docs, principals=principals, on_token=on_token)
         return (chat or lc.Chat(arm, principals=principals)).ask(question, use_tools=use_tools, max_docs=max_docs)
-    if mode == "direct":
-        from .direct import ask_direct
+    if mode == "single-pass":
+        from .single_pass import ask_single_pass
 
-        return ask_direct(question, arm, max_docs, principals=principals, on_token=on_token)
+        return ask_single_pass(question, arm, max_docs, principals=principals, on_token=on_token)
     from .foundry import Chat
 
     return (chat or Chat(arm)).ask(question, use_tools=use_tools)

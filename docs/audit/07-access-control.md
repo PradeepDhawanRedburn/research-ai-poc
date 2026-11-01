@@ -24,7 +24,7 @@ to the whole system through Azure roles on storage, search and Foundry.
   resolves only passages the caller retrieved.
 
 **Boundaries, stated.** The Foundry agent calls its knowledge base itself over MCP and our agent definition carries
-no per-user parameter, so under the Azure engine only direct mode enforces access; under LangChain both modes do.
+no per-user parameter, so under the Azure engine only single-pass mode enforces access; under LangChain both modes do.
 The Word arm's Blob-built Azure index has no `acl` field; it is Azure's index, and access there is Azure's.
 `PRINCIPALS` is a configuration value, not an authenticated identity; wiring a sign-in (Entra ID through Streamlit's
 authentication, or the caller's token in an API) is the step after this one and lands in the same `principals`

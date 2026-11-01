@@ -23,7 +23,7 @@ def store(tmp_path):
     return s
 
 
-def row(qid, qtype, retrieved, secs, tokens, evidence_retrieved=None, arm="markdown-plus", mode="direct"):
+def row(qid, qtype, retrieved, secs, tokens, evidence_retrieved=None, arm="markdown-plus", mode="single-pass"):
     return {"id": qid, "type": qtype, "arm": arm, "mode": mode, "combo": f"{arm}/{mode}", "retrieved": retrieved,
             "total_s": secs, "total_tokens": tokens, "evidence_retrieved": evidence_retrieved,
             "verdict": "correct", "evidence_hits": "1/1"}
@@ -43,23 +43,23 @@ def test_recall_uses_only_the_first_k_passages(store):
 
 
 def test_unresolvable_ids_fall_back_to_the_run_flag(store):
-    rows = [row("Q1", "text_fact", ["azure-opaque-id"], 2.0, 3000, evidence_retrieved=True, arm="word", mode="agent")]
+    rows = [row("Q1", "text_fact", ["azure-opaque-id"], 2.0, 3000, evidence_retrieved=True, arm="word", mode="agentic")]
     recs = baseline.recall_rows(rows, store, k=10, questions=GOLDEN)
     assert recs[0]["recall"] == 1.0 and recs[0]["resolved"] is False
     s = baseline.summarise(recs)
-    assert s["word/agent"]["all"]["unresolved"] == 1
+    assert s["word/agentic"]["all"]["unresolved"] == 1
     md = baseline.markdown("r", s, 10)
-    assert "could not be resolved" in md and "word/agent: 1" in md
+    assert "could not be resolved" in md and "word/agentic: 1" in md
 
 
 def test_summary_and_markdown(store):
     rows = [row("Q1", "text_fact", ["D1-00000"], 1.0, 1000), row("Q2", "chart_native", ["D1-00001"], 3.0, 2000),
-            row("Q2", "chart_native", ["D1-00002"], 9.0, 6000, arm="word", mode="direct"),
+            row("Q2", "chart_native", ["D1-00002"], 9.0, 6000, arm="word", mode="single-pass"),
             row("Q3", "unanswerable", [], 2.0, 500)]
     s = baseline.summarise(baseline.recall_rows(rows, store, k=10, questions=GOLDEN))
-    mp = s["markdown-plus/direct"]
+    mp = s["markdown-plus/single-pass"]
     assert mp["all"]["n"] == 3 and mp["all"]["scored"] == 2 and mp["all"]["recall"] == 1.0
-    assert mp["chart_native"]["recall"] == 1.0 and s["word/direct"]["chart_native"]["recall"] == 0.0
+    assert mp["chart_native"]["recall"] == 1.0 and s["word/single-pass"]["chart_native"]["recall"] == 0.0
     assert mp["all"]["p95_s"] == 3.0 and mp["all"]["p50_s"] == 2.0
     md = baseline.markdown("run-x", s, 10, {"answer_model": "m", "max_docs": 12})
     assert "# Baseline: recall@10" in md and "| chart (native) | 1 | 100% | 0% |" in md
@@ -75,3 +75,14 @@ def test_report_writes_to_the_store(store):
     b.load_questions = lambda *a, **k: GOLDEN  # the real golden set does not know Q1
     md, summary = baseline.report("run-x", store, k=10)
     assert store.exists("eval/run-x/baseline-k10.md") and "100%" in md
+
+
+def test_legacy_mode_names_are_read_as_new_ones(tmp_path):
+    from research_qa.config import canon_combo, canon_mode
+    from research_qa.evaluate.run import load_run
+    s = LocalStore(tmp_path / 'store')
+    row = {'id': 'Q1', 'type': 'text_fact', 'doc': 'D1', 'arm': 'word', 'mode': 'direct', 'combo': 'word/direct', 'verdict': 'correct', 'evidence_retrieved': True, 'evidence_hits': '1/1', 'errors': [], 'answer': 'a'}
+    s.put('eval/old/rows.jsonl', json.dumps(row) + '\n', 'application/x-ndjson')
+    summary, rows, _ = load_run('old', s)
+    assert rows[0]['mode'] == 'single-pass' and 'word/single-pass' in summary['per_combo']
+    assert canon_mode('agent') == 'agentic' and canon_combo('word/agent') == 'word/agentic'

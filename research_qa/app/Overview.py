@@ -29,8 +29,12 @@ st.markdown('<p class="lede">Analysts write in Word: prose, tables, charts, pict
 # ----------------------------------------------------------------------------- the answer in numbers
 
 runs: list[str] = []
+latest: dict | None = None
 try:
-    runs = list_runs(store)
+    # the newest full run of the engine in use that covers every arm; else any such run; else the newest one
+    cands = [r for r in ui.current_runs() if r["kind"] == "full" and set(ARMS) <= set(r["arms"])]
+    latest = next((r for r in cands if r["backend"] == settings.retrieval_backend), cands[0] if cands else None)
+    runs = [latest["name"]] if latest else list_runs(store)[:1]
 except Exception as e:  # noqa: BLE001
     st.warning(f"Could not list evaluation runs: {type(e).__name__}: {str(e)[:160]}")
 
@@ -44,7 +48,7 @@ if not summary:
     st.info("No evaluation run in the store yet. `python -m research_qa eval` scores the verified questions and "
             "fills this section.")
 else:
-    mode = "agent" if combo_key("markdown-plus", "agent") in summary.get("per_combo", {}) else (config.get("modes") or ["agent"])[0]
+    mode = "agentic" if combo_key("markdown-plus", "agentic") in summary.get("per_combo", {}) else (config.get("modes") or ["agentic"])[0]
     cols = st.columns(len(ARMS))
     for col, arm in zip(cols, ARMS):
         s = summary.get("per_combo", {}).get(combo_key(arm, mode))
@@ -59,9 +63,9 @@ else:
                 st.markdown("")
                 ui.kpi_row([("Evidence found", ui.pct(s["evidence_found"]), "in what it read"),
                             ("Per question", f"{s['time']['total_s']['mean']:.1f} s",
-                             f"{s['tokens']['total_tokens']['mean']:,.0f} tokens"),
-                            ("Cost", ui.fmt_cost(s["cost_per_question"]), "per question")])
-    st.caption(f"Run {runs[0]} · {summary.get('questions', 0)} verified questions · {ui.MODE_LABEL[mode]} mode · "
+                             f"{s['tokens']['total_tokens']['mean']:,.0f} tokens")])
+    st.caption(f"Run {runs[0]} · {ui.ENGINE_NAME.get((config.get('retrieval') or {}).get('backend'), 'engine not recorded')} · "
+               f"{summary.get('questions', 0)} verified questions · {ui.MODE_LABEL[mode]} mode · "
                f"model {config.get('answer_model', '')} · judged by {config.get('judge', '')}")
     st.page_link("pages/2_Scorecard.py", label="See the scorecard by question type", icon=":material/table_chart:")
 
@@ -129,7 +133,7 @@ st.markdown("## How it works")
 st.html(pipeline_figure())
 with st.expander("The two modes"):
     st.markdown(ui.mode_help())
-    st.caption("Every tile on the Ask page is one arm in one mode. The agent costs more and plans; direct is one "
+    st.caption("Every tile on the Ask page is one arm in one mode. The agentic mode plans and uses more tokens; single-pass is one "
                "retrieval and one answer. Both are measured the same way.")
 
 # ----------------------------------------------------------------------------- the corpus

@@ -15,7 +15,7 @@ Scorecard's run-against-run table.
 Every answer's retrieval step now says what shaped it: "figure boost put 1 figure chunk(s) first", "reranked 40
 candidates (cohere)", or the reranker error.
 
-**Azure engine.** `retrieve_body()` in `agent/direct.py` now builds the knowledge-base request as a pure function and
+**Azure engine.** `retrieve_body()` in `agent/single_pass.py` now builds the knowledge-base request as a pure function and
 sends `filterAddOn: doc_id eq '<id>'` on the Markdown+ knowledge source when a document is named; the Word arm's
 Blob-built index has no `doc_id` field, so no filter is sent for it. Agentic retrieval's own hybrid search and
 semantic reranker are unchanged.
@@ -42,5 +42,5 @@ RETRIEVAL_FIGURE_BOOST=1 uv run python -m research_qa eval --arm markdown-plus -
 uv run python -m research_qa report --run boost-on --k 10
 ```
 
-(on PowerShell set the variable first, or put it in `.env` between runs). Direct mode is the clean comparison
+(on PowerShell set the variable first, or put it in `.env` between runs). Single-pass mode is the clean comparison
 because the agent can compensate for retrieval with extra searches.

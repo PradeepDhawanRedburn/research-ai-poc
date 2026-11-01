@@ -1,8 +1,8 @@
 """Run the golden questions through any arm × mode and score them the same way.
 
 Per question and combination: a fresh conversation, the answer, the judge's verdict, whether the golden evidence
-strings are present in the passages returned (same matching as retention.py), seconds by phase, tokens by kind,
-cost from the price table. Rows are appended to eval/<run>/rows.jsonl in the store as they are produced, so a run
+strings are present in the passages returned (same matching as retention.py), seconds by phase, tokens by kind.
+Rows are appended to eval/<run>/rows.jsonl in the store as they are produced, so a run
 interrupted by a token expiry or a throttle can be continued with resume=True. Then summary.json and report.md.
 """
 from __future__ import annotations
@@ -12,11 +12,10 @@ import logging
 import time
 from datetime import datetime, timezone
 
-from ..config import ARMS, MODES, combo_key, settings
+from ..config import ARMS, MODES, canon_combo, canon_mode, combo_key, settings
 from ..schema import Answer
 from ..storage import EVAL, Store, open_store
 from . import report as report_mod
-from .cost import prices
 from .golden import load_questions
 from .retention import evidence_items, normalise, present
 
@@ -25,7 +24,7 @@ log = logging.getLogger(__name__)
 ROW_FIELDS = ["id", "type", "doc", "arm", "mode", "combo", "evidence_retrieved", "evidence_hits", "verdict", "reason",
               "answer", "expected", "retrieved", "cited", "queries", "tools", "images", "retrieval_s", "generation_s",
               "tools_s", "total_s", "first_token_s", "rounds", "input_tokens", "output_tokens", "reasoning_tokens", "vision_tokens",
-              "total_tokens", "cost", "errors", "model", "judge"]
+              "total_tokens", "errors", "model", "judge"]
 
 
 def run_key(run_name: str) -> str:
@@ -39,11 +38,24 @@ def list_runs(store: Store | None = None) -> list[str]:
     return names
 
 
+def _canon_row(r: dict) -> dict:
+    """Rows written before the rename carry mode 'agent' / 'direct'; read them as 'agentic' / 'single-pass'."""
+    if "mode" in r:
+        r["mode"] = canon_mode(r["mode"])
+    if r.get("combo"):
+        r["combo"] = canon_combo(r["combo"])
+    return r
+
+
+def _rows(store: Store, key: str) -> list[dict]:
+    return [_canon_row(r) for r in store.jsonl(key)] if store.exists(key) else []
+
+
 def _done(store: Store, key: str) -> set[tuple[str, str, str]]:
     if not store.exists(key):
         return set()
     out = set()
-    for r in store.jsonl(key):
+    for r in _rows(store, key):
         try:
             out.add((r["id"], r["arm"], r["mode"]))
         except KeyError:
@@ -67,7 +79,7 @@ def _row(q: dict, arm: str, mode: str, a: Answer, verdict: dict, items: list[lis
         "rounds": a.rounds,
         "input_tokens": a.input_tokens, "output_tokens": a.output_tokens, "reasoning_tokens": a.reasoning_tokens,
         "vision_tokens": a.vision_tokens, "total_tokens": a.total_tokens,
-        "cost": prices().cost_of(a), "errors": list(a.errors), "model": a.model or settings.answer_model,
+        "errors": list(a.errors), "model": a.model or settings.answer_model,
         "judge": settings.judge_deployment,
     }
 
@@ -81,17 +93,18 @@ def _error_row(q: dict, arm: str, mode: str, err: Exception) -> dict:
             "images": 0, "retrieval_s": 0.0, "generation_s": 0.0, "tools_s": 0.0, "total_s": 0.0, "first_token_s": 0.0,
             "rounds": 0,
             "input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "vision_tokens": 0, "total_tokens": 0,
-            "cost": None, "errors": [str(err)[:300]], "model": settings.answer_model, "judge": settings.judge_deployment}
+            "errors": [str(err)[:300]], "model": settings.answer_model, "judge": settings.judge_deployment}
 
 
 def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | None = None, resume: bool = False,
         run_name: str | None = None, store: Store | None = None, ask_fn=None, judge_fn=None, use_tools: bool = True,
         progress=print, redo: bool = False) -> str:
     """Returns the run key (eval/<run>). `ask_fn(question, arm, mode)` and `judge_fn(q, text)` can be swapped for
-    tests; by default they are the agent/direct pipeline and the Azure OpenAI judge."""
+    tests; by default they are the agentic/single-pass pipeline and the Azure OpenAI judge."""
     for a in arms:
         if a not in ARMS:
             raise ValueError(f"unknown arm {a!r}; choose from {list(ARMS)}")
+    modes = [canon_mode(m) for m in modes]
     for m in modes:
         if m not in MODES:
             raise ValueError(f"unknown mode {m!r}; choose from {list(MODES)}")
@@ -111,7 +124,7 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
     if redo and store.exists(rows_key):
         # keep the other arms' and modes' rows of this run, rerun the selected combinations from scratch
         kept = [l for l in store.text(rows_key).splitlines()
-                if l.strip() and not (json.loads(l).get("arm") in arms and json.loads(l).get("mode") in modes)]
+                if l.strip() and not (json.loads(l).get("arm") in arms and canon_mode(json.loads(l).get("mode", "")) in modes)]
         store.put(rows_key, "".join(k + "\n" for k in kept), "application/x-ndjson")
         resume = True
     done = _done(store, rows_key) if resume else set()
@@ -125,7 +138,7 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
         "answer_model": settings.answer_model, "vision_deployment": settings.vision_deployment,
         "judge": settings.judge_deployment, "max_docs": settings.max_docs, "use_tools": use_tools,
         "retrieval": settings.retrieval_flags(), "principals": list(settings.principals),
-        "started": datetime.now(timezone.utc).isoformat(), "currency": prices().currency,
+        "started": datetime.now(timezone.utc).isoformat(),
     })
 
     buffer: list[str] = []
@@ -148,7 +161,7 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
             progress(f"[{n}/{len(todo)}] {q['id']:9} {combo_key(arm, mode):22} evidence={row['evidence_hits']:5} "
                      f"{row['verdict']:9} {row['total_s']:5.1f}s {row['total_tokens']:>6} tok"
                      + (f"  vision x{row['images']}" if row["images"] else ""))
-    rows = store.jsonl(rows_key) if store.exists(rows_key) else []
+    rows = _rows(store, rows_key)
     summary = report_mod.summarise(rows, arms, modes)
     summary["run"] = run_name
     store.put_json(f"{key}/summary.json", summary)
@@ -160,10 +173,13 @@ def load_run(run_name: str, store: Store | None = None) -> tuple[dict, list[dict
     """(summary, rows, config) of a stored run."""
     store = store or open_store()
     key = run_key(run_name)
-    rows = store.jsonl(f"{key}/rows.jsonl") if store.exists(f"{key}/rows.jsonl") else []
+    rows = _rows(store, f"{key}/rows.jsonl")
     summary = store.json(f"{key}/summary.json", {}) if store.exists(f"{key}/summary.json") else {}
     config = store.json(f"{key}/config.json", {}) if store.exists(f"{key}/config.json") else {}
-    if not summary and rows:
+    if config.get("modes"):
+        config["modes"] = [canon_mode(m) for m in config["modes"]]
+    if rows:  # recomputed so runs stored under the old mode names show the new ones
         summary = report_mod.summarise(rows, config.get("arms") or sorted({r["arm"] for r in rows}),
                                        config.get("modes") or sorted({r["mode"] for r in rows}))
+        summary["run"] = run_name
     return summary, rows, config

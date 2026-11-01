@@ -1,7 +1,7 @@
 """Settings for the whole system, read from the environment and `.env` at the repo root.
 
 One place for: the store (Blob container or local folder), the Azure OpenAI deployments, the search service and
-Foundry project, the two arms and two modes of the comparison, and the price table for cost per question.
+Foundry project, and the two arms and two modes of the comparison.
 Names of Azure objects derive from one base name so a deployment can run several copies side by side.
 """
 from __future__ import annotations
@@ -66,11 +66,23 @@ ARMS: dict[str, Arm] = {
                          "as states, pictures described once; chunks, facts and assets pushed from the store."),
 }
 MODES: dict[str, str] = {
-    "agent": "Foundry agent: plans queries, calls the knowledge base, may call tools, cites passages",
-    "direct": "One knowledge-base retrieval and one chat completion; no planning, no tools",
+    "agentic": "an agent plans its queries, calls the knowledge base, may call tools, cites passages",
+    "single-pass": "one knowledge-base retrieval and one chat completion; no planning, no tools",
 }
 DEFAULT_ARMS = list(ARMS)
-DEFAULT_MODES = ["agent"]
+DEFAULT_MODES = ["agentic"]
+MODE_NAMES = {"agentic": "Agentic", "single-pass": "Single-pass"}
+# Names used before the rename; evaluation rows already in a store still carry them.
+LEGACY_MODES = {"agent": "agentic", "direct": "single-pass"}
+
+
+def canon_mode(mode: str) -> str:
+    return LEGACY_MODES.get(mode, mode)
+
+
+def canon_combo(combo: str) -> str:
+    arm, _, mode = combo.partition("/")
+    return f"{arm}/{canon_mode(mode)}" if mode else combo
 
 
 def combo_key(arm: str, mode: str) -> str:
@@ -78,7 +90,7 @@ def combo_key(arm: str, mode: str) -> str:
 
 
 def combo_label(arm: str, mode: str) -> str:
-    return f"{ARMS[arm].label} · {mode}"
+    return f"{ARMS[arm].label} · {MODE_NAMES[mode]}"
 
 
 # ----------------------------------------------------------------------------- names of Azure objects
@@ -116,7 +128,7 @@ class Settings:
     embedding_deployment: str = _env("AZURE_EMBEDDING_DEPLOYMENT", "text-embedding-3-large")
     embedding_model: str = _env("AZURE_EMBEDDING_MODEL", "text-embedding-3-large")
     embedding_dimensions: int = int(_env("AZURE_EMBEDDING_DIMENSIONS", "3072"))
-    answer_model: str = _env("ANSWER_MODEL") or _env("AGENT_MODEL", "gpt-5-mini")      # agent and direct mode
+    answer_model: str = _env("ANSWER_MODEL") or _env("AGENT_MODEL", "gpt-5-mini")      # agentic and single-pass mode
     reasoning_effort: str = _env("AGENT_REASONING_EFFORT", "low")
     vision_deployment: str = _env("VISION_DEPLOYMENT") or _env("AGENT_MODEL", "gpt-5-mini")  # ingest + inspect_figure
     vision_effort: str = _env("VISION_EFFORT", "medium")
@@ -134,10 +146,10 @@ class Settings:
     rerank_endpoint: str = _env("RERANK_ENDPOINT").rstrip("/")     # Foundry serverless endpoint of the rerank model
     rerank_api_key: str = _env("RERANK_API_KEY")
     rerank_model: str = _env("RERANK_MODEL")
-    # --- direct mode: attach the original pictures behind the top figure passages to the answer call (both engines)
-    stream_direct: bool = _env("STREAM_DIRECT", "1") not in ("0", "false", "no", "off")   # stream direct answers
-    direct_images: bool = _env("DIRECT_IMAGES", "0") not in ("0", "false", "no", "off", "")
-    direct_images_max: int = int(_env("DIRECT_IMAGES_MAX", "3"))
+    # --- single-pass mode: attach the original pictures behind the top figure passages to the answer call (both engines)
+    stream_single_pass: bool = _env("STREAM_SINGLE_PASS", "1") not in ("0", "false", "no", "off")   # stream single-pass answers
+    single_pass_images: bool = _env("SINGLE_PASS_IMAGES", "0") not in ("0", "false", "no", "off", "")
+    single_pass_images_max: int = int(_env("SINGLE_PASS_IMAGES_MAX", "3"))
     # --- the caller's identity for access control: comma-separated principals ("user:<email>", "group:<name>");
     # empty means anonymous, which sees public documents only (see research_qa/acl.py)
     principals: tuple[str, ...] = tuple(p.strip() for p in _env("PRINCIPALS").split(",") if p.strip())
@@ -151,10 +163,6 @@ class Settings:
     base_name: str = _env("BASE_NAME", "research-reports")
     max_docs: int = int(_env("MAX_DOCS", "12"))                  # passages per knowledge-base retrieval, both arms
     chunk_chars: int = int(_env("CHUNK_CHARS", "1800"))
-
-    # --- prices for cost per question: prices.yaml at the repo root (per deployment, per million tokens)
-    prices_file: Path = Path(_env("PRICES_FILE", str(ROOT / "prices.yaml")))
-    currency: str = _env("CURRENCY", "GBP")
 
     def names(self, arm: str) -> Names:
         if arm not in ARMS:
@@ -176,7 +184,7 @@ class Settings:
                 "figure_boost": self.retrieval_figure_boost, "reranker": self.reranker,
                 "rerank_candidates": self.rerank_candidates if self.reranker != "none" else None,
                 "rerank_model": self.rerank_model if self.reranker != "none" else None,
-                "direct_images": self.direct_images_max if self.direct_images else False}
+                "single_pass_images": self.single_pass_images_max if self.single_pass_images else False}
 
     @property
     def store_is_local(self) -> bool:

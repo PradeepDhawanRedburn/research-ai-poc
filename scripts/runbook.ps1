@@ -71,19 +71,19 @@ if ($engine -eq "langchain") {
 }
 if ($From -le 5) {
     Step "5. First answers (expected: -4.7% of GDP via lookup_facts; the three cans from the description; ECB cut then hold)"
-    Run @("ask", "In Fig 27 of the April Money Map, what is Germany's cyclically adjusted government balance forecast for 2030?", "--arm", "markdown-plus", "--mode", "agent")
-    Run @("ask", "In Fig 27 of the April Money Map, what is Germany's cyclically adjusted government balance forecast for 2030?", "--arm", "word", "--mode", "agent")
-    Run @("ask", "Which three cans are shown side by side in Fig 22, and what is printed on them?", "--arm", "markdown-plus", "--mode", "agent")
-    Run @("ask", "What did the Money Map expect the ECB to do at its next meeting in April and in July 2025?", "--arm", "markdown-plus", "--mode", "direct")
-    Step "5b. Word arm, direct, verbose (expected: Bank of England to 4%; shows the passages the Word arm retrieves)"
-    Run @("-v", "ask", "Which major central bank does the July Money Map expect to cut rates, and to what level?", "--arm", "word", "--mode", "direct")
+    Run @("ask", "In Fig 27 of the April Money Map, what is Germany's cyclically adjusted government balance forecast for 2030?", "--arm", "markdown-plus", "--mode", "agentic")
+    Run @("ask", "In Fig 27 of the April Money Map, what is Germany's cyclically adjusted government balance forecast for 2030?", "--arm", "word", "--mode", "agentic")
+    Run @("ask", "Which three cans are shown side by side in Fig 22, and what is printed on them?", "--arm", "markdown-plus", "--mode", "agentic")
+    Run @("ask", "What did the Money Map expect the ECB to do at its next meeting in April and in July 2025?", "--arm", "markdown-plus", "--mode", "single-pass")
+    Step "5b. Word arm, single-pass, verbose (expected: Bank of England to 4%; shows the passages the Word arm retrieves)"
+    Run @("-v", "ask", "Which major central bank does the July Money Map expect to cut rates, and to what level?", "--arm", "word", "--mode", "single-pass")
 }
 if ($From -le 6) {
     Step "6. Smoke evaluation: 10 questions, Markdown+, agent (about 2 minutes; 9 of 10 or better expected)"
-    Run @("eval", "--arm", "markdown-plus", "--mode", "agent", "--limit", "10", "--run", "smoke-$engine")
+    Run @("eval", "--arm", "markdown-plus", "--mode", "agentic", "--limit", "10", "--run", "smoke-$engine")
     if ($Full) {
         Step "6b. Full evaluation: both arms, both modes (30-40 minutes; resume with: eval --resume --run $runName)"
-        Run @("eval", "--arm", "word,markdown-plus", "--mode", "agent,direct", "--run", $runName)
+        Run @("eval", "--arm", "word,markdown-plus", "--mode", "agentic,single-pass", "--run", $runName)
     }
 }
 Step "Done"

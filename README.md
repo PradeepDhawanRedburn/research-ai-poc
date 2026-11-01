@@ -47,8 +47,7 @@ the Chroma collections (derived data, rebuilt in minutes from the store).
    uv sync --extra azure --extra langchain
    ```
 2. Copy `.env.example` to `.env` and fill it in (or copy the `.env` from a machine that already works; it holds no
-   per-machine paths). Pick the engine with `RETRIEVAL_BACKEND=azure` or `langchain`. Optional: `prices.yaml` for
-   cost per question.
+   per-machine paths). Pick the engine with `RETRIEVAL_BACKEND=azure` or `langchain`.
 3. Sign in: `az login` (Entra ID everywhere unless `AZURE_OPENAI_API_KEY` is set). Roles are granted once per
    environment, not per machine: `scripts/setup_access.ps1`.
 4. Check what is already there:
@@ -69,8 +68,8 @@ the Chroma collections (derived data, rebuilt in minutes from the store).
 
 Then the same commands either way:
 ```bash
-uv run python -m research_qa ask "What is the 2030 value for Germany in Fig 27?" --arm markdown-plus --mode agent
-uv run python -m research_qa eval --arm word,markdown-plus --mode agent,direct --run <name>
+uv run python -m research_qa ask "What is the 2030 value for Germany in Fig 27?" --arm markdown-plus --mode agentic
+uv run python -m research_qa eval --arm word,markdown-plus --mode agentic,single-pass --run <name>
 uv run streamlit run research_qa/app/Overview.py
 ```
 Evaluation runs are written to `eval/<run>/` in the store, so they too are shared: the Scorecard on any machine shows
@@ -115,7 +114,7 @@ click deeper:
 
 - **Overview**: the question in a paragraph, the latest scorecard as a few numbers per arm, the pipeline in one figure,
   the reports in the store.
-- **Ask**: one question, the four routes answering at once in identical tiles (answer, seconds, tokens, cost, sources
+- **Ask**: one question, the four routes answering at once in identical tiles (answer, seconds, tokens, sources
   cited, pictures looked at), a side-by-side chart underneath with the best marked. Eight one-click questions from the
   verified golden set, each with its expected answer shown, so the audience can judge the tiles live. Follow-up
   questions continue the agents' conversations.
@@ -128,13 +127,13 @@ click deeper:
 
 ```
 research_qa/
-  config.py        settings from .env, the two arms and two modes, prices
+  config.py        settings from .env, the two arms and two modes (agentic, single-pass)
   storage.py       Store: Blob container or local folder, one API
   schema.py        Chunk, FactFigure, ReportManifest, Answer: what the parts exchange
   ingest/          convert (MarkItDown + plugin) -> describe pictures -> facts -> chunks -> manifest
   search/          Markdown+ index and push; knowledge sources (Blob for Word, index for Markdown+); bases
-  agent/           Foundry agent per arm; tools lookup_facts and inspect_figure; direct mode; parallel runner
-  evaluate/        golden set, judge, retention check, runner, cost, report
+  agent/           Foundry agent per arm; tools lookup_facts and inspect_figure; single-pass mode; parallel runner
+  evaluate/        golden set, judge, retention check, runner, report
   app/             Streamlit: Overview, Ask, Scorecard, Reports
 src/research_ingest/   the Word extractor and the MarkItDown plugin
 golden/questions.yaml  122 verified questions with expected answers and evidence strings (docs/golden_set.md)
@@ -154,7 +153,7 @@ structure-aware with a context header.
 
 `eval` runs the golden questions through any arm × mode, judges each answer against the expected one with a separate
 model, checks whether the evidence strings were retrieved, and records seconds by phase, tokens by kind (input,
-output, reasoning, vision) and cost from `prices.yaml`. Runs land in `eval/<run>/` in the store and appear on the
+output, reasoning, vision). Runs land in `eval/<run>/` in the store and appear on the
 app's Scorecard page. The no-LLM retention check (`evaluate/retention.py`) is the cheapest proof that the conversion
 lost nothing: every evidence string must be present in the Markdown.
 

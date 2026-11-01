@@ -1,6 +1,6 @@
-"""Direct mode: one knowledge-base retrieval, one chat completion. No planning, no tools, no agent.
+"""Single-pass mode: one knowledge-base retrieval, one chat completion. No planning, no tools, no agent.
 
-Same knowledge base as the agent mode of the same arm, so the two modes differ only in what sits on top of
+Same knowledge base as the agentic mode of the same arm, so the two modes differ only in what sits on top of
 retrieval. The retrieve call goes through the REST API (POST knowledgebases/{name}/retrieve), which is the stable
 part of the preview surface; the SDK's KnowledgeBaseRetrievalClient would do the same.
 """
@@ -149,7 +149,7 @@ def ask_direct(question: str, arm: str, max_docs: int | None = None, principals=
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}")
     n = settings.names(arm)
-    ans = Answer(arm=arm, mode="direct", question=question, text="", model=settings.answer_model,
+    ans = Answer(arm=arm, mode="single-pass", question=question, text="", model=settings.answer_model,
                  store=n.knowledge_base)
     t0 = time.perf_counter()
     try:

@@ -2,7 +2,7 @@
 
 - ingest writes `Chunk`, `FactFigure` and `ReportManifest` rows to the store;
 - search pushes `Chunk` rows into the Markdown+ index;
-- agent (both modes, both arms) returns an `Answer`, which the app and the evaluation consume unchanged.
+- the agentic and single-pass modes (both arms) return an `Answer`, which the app and the evaluation consume unchanged.
 """
 from __future__ import annotations
 
@@ -151,7 +151,7 @@ class Step:
 
 @dataclass
 class Answer:
-    """What any arm in any mode returns. Tokens are everything the question cost: answer model plus vision."""
+    """What any arm in any mode returns. Tokens are everything the question used: answer model plus vision."""
     arm: str
     mode: str
     question: str
@@ -168,7 +168,7 @@ class Answer:
     generation_s: float = 0.0
     tools_s: float = 0.0        # facts lookups and vision calls
     total_s: float = 0.0
-    first_token_s: float = 0.0  # direct mode, streamed: seconds from the question to the first answer token
+    first_token_s: float = 0.0  # single-pass mode, streamed: seconds from the question to the first answer token
     input_tokens: int = 0
     output_tokens: int = 0
     reasoning_tokens: int = 0

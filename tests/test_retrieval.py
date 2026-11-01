@@ -132,7 +132,7 @@ def test_flags_recorded_in_run_config(tmp_path, monkeypatch):
 
     set_flags(monkeypatch, reranker="cohere", rerank_model="rerank-test")
     store = LocalStore(tmp_path / "s")
-    key = runner.run(["markdown-plus"], ["direct"], ids=["MM04-01"], run_name="flags", store=store,
+    key = runner.run(["markdown-plus"], ["single-pass"], ids=["MM04-01"], run_name="flags", store=store,
                      ask_fn=lambda q, a, m: Answer(arm=a, mode=m, question=q, text="x"),
                      judge_fn=lambda q, t: {"verdict": "incorrect", "reason": "fake"}, progress=None)
     cfg = store.json(f"{key}/config.json")
@@ -141,7 +141,7 @@ def test_flags_recorded_in_run_config(tmp_path, monkeypatch):
 
 
 def test_azure_retrieve_body_filter():
-    from research_qa.agent.direct import retrieve_body
+    from research_qa.agent.single_pass import retrieve_body
 
     body = retrieve_body("markdown-plus", "q", doc_id="RA01220")
     f = body["knowledgeSourceParams"][0]["filterAddOn"]

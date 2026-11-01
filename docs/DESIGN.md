@@ -88,10 +88,10 @@ chunk starts with a context header: report id, title, date, section, figure numb
 ### 3.4 Retrieval → Azure AI Search knowledge bases (agentic retrieval), as today
 
 *Was:* two retrieval stacks (LangChain + Chroma hybrid, and AI Search knowledge base + Foundry agent).
-*Question:* does the second stack add information? It showed that direct retrieval is about 3 s a question against
-8 s with the agent, and a little cheaper. That is a mode, not a stack.
-*Decision:* AI Search knowledge bases only. Two **modes** over the same index: **agent** (Foundry agent plans
-queries, calls the knowledge base over MCP, can call tools) and **direct** (one knowledge-base retrieve, one chat
+*Question:* does the second stack add information? It showed that single-pass retrieval is about 3 s a question against
+8 s with the agentic mode. That is a mode, not a stack.
+*Decision:* AI Search knowledge bases only. Two **modes** over the same index: **agentic** (Foundry agent plans
+queries, calls the knowledge base over MCP, can call tools) and **single-pass** (one knowledge-base retrieve, one chat
 completion). Chroma, LangChain and the local store go.
 
 ### 3.4a Two retrieval engines behind one flag (added 31 October 2026)
@@ -104,7 +104,7 @@ column of the comparison incomplete on this tier.
 `RETRIEVAL_BACKEND=langchain`. Same two arms, same two modes, same `Answer`, same app and evaluation. Under this
 engine the Word arm is the **stock MarkItDown conversion** of the .docx (no plugin, no vision, no facts), which is the
 Phase 0 "plain Markdown" baseline that lost 19 of 71 answers; Markdown+ uses the same chunks, facts and pictures from
-the store. The agent mode is a LangChain tool-calling loop with the same tools (search, facts, picture) and the same
+the store. The agentic mode is a LangChain tool-calling loop with the same tools (search, facts, picture) and the same
 instructions as the Foundry agent. Chroma data is derived and rebuilt by `index`; the store stays the system of record.
 
 ### 3.5 The baseline → raw Word through Azure's own pipeline
@@ -121,12 +121,11 @@ tools the Word agent cannot have because its data does not exist there: `lookup_
 states from `facts/`) and `inspect_figure` (a vision model looks at the picture behind a chunk, from `assets/`).
 Citations are rendered as passage numbers; every answer carries the passages, the steps, the tool calls, the tokens.
 
-### 3.7 Evaluation → one runner, both arms, both modes, cost in money
+### 3.7 Evaluation → one runner, both arms, both modes
 
-*Was:* `rag eval` and `agentic eval` with a shared judge, tokens but no cost, results in `reports/`.
+*Was:* `rag eval` and `agentic eval` with a shared judge, results in `reports/`.
 *Decision:* one runner over the golden set for any arm×mode, same judge, evidence retrieval check, tokens split by
-input/output/reasoning/vision, seconds by phase, and **cost from a price table** (`prices.yaml`, per deployment per
-million tokens; the user fills it, the report shows it). Runs are stored in `eval/<run>/` in the store and read by the
+input/output/reasoning/vision and seconds by phase. Cost is deliberately not measured. Runs are stored in `eval/<run>/` in the store and read by the
 app's scorecard. The no-LLM retention check stays: it is the cheapest proof that the conversion lost nothing.
 
 ### 3.8 The demo → an executive page first, the engineer's view one click deeper
@@ -134,9 +133,9 @@ app's scorecard. The no-LLM retention check stays: it is the cheapest proof that
 *Was:* three Streamlit pages written at different times, each with its own layout; a wall of expanders.
 *Decision:* one Streamlit app with four pages.
 1. **Overview**: the pipeline in one figure, the latest scorecard in five numbers (accuracy, evidence found, seconds,
-   tokens, cost per question) per arm, and what is in the store.
+   tokens) per arm, and what is in the store.
 2. **Ask**: one question, tiles for the selected arm×mode combinations, run in parallel, each tile the same layout
-   (answer, cost line, evidence, pictures, steps). Side-by-side table underneath with time, tokens, cost, grounding.
+   (answer, usage line, evidence, pictures, steps). Side-by-side table underneath with time, tokens, grounding.
 3. **Scorecard**: the evaluation runs, by question type, with per-question drill-down and disagreements.
 4. **Reports**: per report, what the conversion found (figures digitised, pictures described, tables, matrices,
    warnings), with the Markdown and the facts browsable.
@@ -163,12 +162,12 @@ Phase 0 reports (as history in `docs/history/`) stay.
 
 ```
 research_qa/
-  config.py        settings from .env, the arms and modes, prices
+  config.py        settings from .env, the arms and modes
   storage.py       Store: Blob or local folder, one API
   ingest/          convert (MarkItDown + plugin) → describe pictures → facts → chunks → manifest
   search/          index schema and push; knowledge sources (Blob for Word, index for Markdown+); knowledge bases
-  agent/           Foundry agent per arm; tools lookup_facts and inspect_figure; direct mode
-  evaluate/        golden set, judge, runner, retention check, cost, report
+  agent/           Foundry agent per arm; tools lookup_facts and inspect_figure; single-pass mode
+  evaluate/        golden set, judge, runner, retention check, report
   app/             Streamlit: Overview, Ask, Scorecard, Reports
   __main__.py      python -m research_qa  ingest | index | agents | ask | eval | status | down
 src/research_ingest/   the Word extractor and MarkItDown plugin (unchanged)
@@ -180,7 +179,7 @@ docs/DESIGN.md (this file), docs/history/
 
 - `python -m research_qa ingest` reads `raw/` from the store and writes markdown, assets, facts, chunks, manifest.
 - `python -m research_qa index` builds the Markdown+ index and both knowledge sources and bases.
-- `python -m research_qa agents` creates the two agents. `ask "…" --arm markdown-plus --mode agent` answers.
-- `python -m research_qa eval --arm word,markdown-plus --mode agent,direct` writes a run with accuracy, tokens, cost.
+- `python -m research_qa agents` creates the two agents. `ask "…" --arm markdown-plus --mode agentic` answers.
+- `python -m research_qa eval --arm word,markdown-plus --mode agentic,single-pass` writes a run with accuracy and tokens.
 - `streamlit run research_qa/app/Overview.py` shows the four pages from the store.
 - No local file is required at run time except `.env`.
