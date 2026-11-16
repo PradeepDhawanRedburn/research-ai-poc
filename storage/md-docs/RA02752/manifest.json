@@ -1,0 +1,162 @@
+{
+  "doc_id": "RA02752",
+  "source_file": "RA02752.docx",
+  "title": "Pop Britain - Site Visit",
+  "subtitle": "Pop Britain - Site Visit",
+  "date": "2025-11-21",
+  "analysts": [
+    "Charlie Higgs"
+  ],
+  "metadata": {
+    "analysts": [
+      "Charlie Higgs"
+    ],
+    "date": "2025-11-21",
+    "title": "Pop Britain - Site Visit",
+    "subtitle": "Pop Britain - Site Visit",
+    "ticker": "CCEP US",
+    "share_price": "USD89",
+    "target_price": "USD102",
+    "mkt_cap": "USD41bn",
+    "sector": "Consumer: Beverages",
+    "sectors": [
+      "Consumer: Beverages"
+    ],
+    "companies": [
+      "Coca-Cola Europacific Partners"
+    ],
+    "report_type": "company",
+    "rating": "Buy",
+    "rating_basis": "inferred from text (weak)",
+    "completed_at": "2025-11-20 16:29",
+    "published_at": "2025-11-21 06:30",
+    "priced_as_of": "2025-11-19",
+    "confidential_marking": true,
+    "publication_id": "RA02752",
+    "publication_status": "Published",
+    "publication_version": "1",
+    "publication_name": "Pop Britain - Site Visit",
+    "publication_type": "Blue Top",
+    "published_date": "2025-11-21",
+    "metadata_sources": {
+      "doc_id": "extractor",
+      "source_file": "extractor",
+      "analysts": "sharepoint",
+      "analyst_contacts": "author_block",
+      "date": "sharepoint",
+      "title": "sharepoint",
+      "subtitle": "first_element",
+      "ticker": "key_data",
+      "share_price": "key_data",
+      "target_price": "key_data",
+      "mkt_cap": "key_data",
+      "sector": "sharepoint",
+      "sectors": "sharepoint",
+      "companies": "sharepoint",
+      "report_type": "key_data_heuristic",
+      "rating": "text_regex_weak",
+      "rating_basis": "text_regex_weak",
+      "completed_at": "disclosure_regex",
+      "published_at": "disclosure_regex",
+      "priced_as_of": "disclosure_regex",
+      "confidential_marking": "footer_text",
+      "publication_id": "sharepoint",
+      "publication_status": "sharepoint",
+      "publication_version": "sharepoint",
+      "publication_name": "sharepoint",
+      "publication_type": "sharepoint",
+      "published_date": "sharepoint"
+    }
+  },
+  "ingested_at": "2026-11-13T01:16:55+00:00",
+  "seconds": 19.8,
+  "chunks": 171,
+  "chunk_kinds": {
+    "metadata": 1,
+    "text": 84,
+    "figure": 33,
+    "table": 31,
+    "chart": 22
+  },
+  "figures": 65,
+  "charts_native": 0,
+  "charts_digitised_ok": 22,
+  "charts_digitised_withheld": 8,
+  "pictures": 54,
+  "pictures_described": 0,
+  "vision_calls": 0,
+  "matrices": 0,
+  "tables": 31,
+  "facts_figures": 22,
+  "chart_quality_failures": [
+    {
+      "figure": "Fig 3",
+      "caption": "Late British bloomer",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 7",
+      "caption": "Britain struggled under CCE’s tenure, but has recovered under CCEP",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 9",
+      "caption": "Not exactly a Total Beverage Company region",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 14",
+      "caption": "Pandemic induced disruption…",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 20",
+      "caption": "Strong in out-of-home, scope to improve in at-home",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 21",
+      "caption": "The evolving landscape in UK grocery",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 26",
+      "caption": "Private label has not won much share, despite a weak consumer",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 52",
+      "caption": "Acquisitions have been accretive to growth",
+      "checks": [
+        "axis_sign_conflict",
+        "unnamed_series"
+      ]
+    }
+  ],
+  "warnings": [
+    "Chart quality gate withheld Fig 3: unnamed_series",
+    "Chart quality gate withheld Fig 7: unnamed_series",
+    "Chart quality gate withheld Fig 9: unnamed_series",
+    "Chart quality gate withheld Fig 14: unnamed_series",
+    "Chart quality gate withheld Fig 20: unnamed_series",
+    "Chart quality gate withheld Fig 21: unnamed_series",
+    "Chart quality gate withheld Fig 26: unnamed_series",
+    "Chart quality gate withheld Fig 52: axis_sign_conflict, unnamed_series"
+  ],
+  "markdown_chars": 132694,
+  "raw_sha": "c2aba5edce912b61c69dd3edd76ef0207f76c65196d7f95e0f10b889e2c6a7b6"
+}

@@ -1,0 +1,60 @@
+{
+  "analysts": [
+    "Melissa Davies",
+    "Michael Taylor"
+  ],
+  "date": "2025-07-23",
+  "title": "The Money Map July 2025",
+  "subtitle": "The Money Map July 2025",
+  "sector": "Economics",
+  "sectors": [
+    "Economics"
+  ],
+  "companies": [],
+  "report_type": "macro_or_sector",
+  "completed_at": "2025-07-22 12:45",
+  "published_at": "2025-07-23 06:30",
+  "confidential_marking": false,
+  "publication_id": "RA01734",
+  "publication_status": "Published",
+  "publication_version": "1",
+  "publication_name": "The Money Map July 2025",
+  "publication_type": "Blue Top",
+  "published_date": "2025-07-23",
+  "metadata_sources": {
+    "doc_id": "extractor",
+    "source_file": "extractor",
+    "analysts": "sharepoint",
+    "analyst_contacts": "author_block",
+    "date": "sharepoint",
+    "title": "sharepoint",
+    "subtitle": "first_element",
+    "sector": "sharepoint",
+    "sectors": "sharepoint",
+    "companies": "sharepoint",
+    "report_type": "key_data_heuristic",
+    "completed_at": "disclosure_regex",
+    "published_at": "disclosure_regex",
+    "confidential_marking": "footer_text",
+    "publication_id": "sharepoint",
+    "publication_status": "sharepoint",
+    "publication_version": "sharepoint",
+    "publication_name": "sharepoint",
+    "publication_type": "sharepoint",
+    "published_date": "sharepoint"
+  },
+  "doc_id": "RA01734",
+  "source_file": "RA01734.docx",
+  "analyst_contacts": [
+    {
+      "name": "Melissa Davies",
+      "email": "melissa.davies@redburnatlantic.com",
+      "detail": null
+    },
+    {
+      "name": "Michael Taylor",
+      "email": "michael.taylor@redburnatlantic.com",
+      "detail": null
+    }
+  ]
+}

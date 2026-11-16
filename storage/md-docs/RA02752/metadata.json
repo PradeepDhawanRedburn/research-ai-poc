@@ -1,0 +1,70 @@
+{
+  "analysts": [
+    "Charlie Higgs"
+  ],
+  "date": "2025-11-21",
+  "title": "Pop Britain - Site Visit",
+  "subtitle": "Pop Britain - Site Visit",
+  "ticker": "CCEP US",
+  "share_price": "USD89",
+  "target_price": "USD102",
+  "mkt_cap": "USD41bn",
+  "sector": "Consumer: Beverages",
+  "sectors": [
+    "Consumer: Beverages"
+  ],
+  "companies": [
+    "Coca-Cola Europacific Partners"
+  ],
+  "report_type": "company",
+  "rating": "Buy",
+  "rating_basis": "inferred from text (weak)",
+  "completed_at": "2025-11-20 16:29",
+  "published_at": "2025-11-21 06:30",
+  "priced_as_of": "2025-11-19",
+  "confidential_marking": true,
+  "publication_id": "RA02752",
+  "publication_status": "Published",
+  "publication_version": "1",
+  "publication_name": "Pop Britain - Site Visit",
+  "publication_type": "Blue Top",
+  "published_date": "2025-11-21",
+  "metadata_sources": {
+    "doc_id": "extractor",
+    "source_file": "extractor",
+    "analysts": "sharepoint",
+    "analyst_contacts": "author_block",
+    "date": "sharepoint",
+    "title": "sharepoint",
+    "subtitle": "first_element",
+    "ticker": "key_data",
+    "share_price": "key_data",
+    "target_price": "key_data",
+    "mkt_cap": "key_data",
+    "sector": "sharepoint",
+    "sectors": "sharepoint",
+    "companies": "sharepoint",
+    "report_type": "key_data_heuristic",
+    "rating": "text_regex_weak",
+    "rating_basis": "text_regex_weak",
+    "completed_at": "disclosure_regex",
+    "published_at": "disclosure_regex",
+    "priced_as_of": "disclosure_regex",
+    "confidential_marking": "footer_text",
+    "publication_id": "sharepoint",
+    "publication_status": "sharepoint",
+    "publication_version": "sharepoint",
+    "publication_name": "sharepoint",
+    "publication_type": "sharepoint",
+    "published_date": "sharepoint"
+  },
+  "doc_id": "RA02752",
+  "source_file": "RA02752.docx",
+  "analyst_contacts": [
+    {
+      "name": "Charlie Higgs",
+      "email": "Charlie.Higgs@rothschildandco.com",
+      "detail": null
+    }
+  ]
+}

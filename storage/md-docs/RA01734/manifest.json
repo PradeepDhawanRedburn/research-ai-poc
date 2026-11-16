@@ -1,0 +1,92 @@
+{
+  "doc_id": "RA01734",
+  "source_file": "RA01734.docx",
+  "title": "The Money Map July 2025",
+  "subtitle": "The Money Map July 2025",
+  "date": "2025-07-23",
+  "analysts": [
+    "Melissa Davies",
+    "Michael Taylor"
+  ],
+  "metadata": {
+    "analysts": [
+      "Melissa Davies",
+      "Michael Taylor"
+    ],
+    "date": "2025-07-23",
+    "title": "The Money Map July 2025",
+    "subtitle": "The Money Map July 2025",
+    "sector": "Economics",
+    "sectors": [
+      "Economics"
+    ],
+    "companies": [],
+    "report_type": "macro_or_sector",
+    "completed_at": "2025-07-22 12:45",
+    "published_at": "2025-07-23 06:30",
+    "confidential_marking": false,
+    "publication_id": "RA01734",
+    "publication_status": "Published",
+    "publication_version": "1",
+    "publication_name": "The Money Map July 2025",
+    "publication_type": "Blue Top",
+    "published_date": "2025-07-23",
+    "metadata_sources": {
+      "doc_id": "extractor",
+      "source_file": "extractor",
+      "analysts": "sharepoint",
+      "analyst_contacts": "author_block",
+      "date": "sharepoint",
+      "title": "sharepoint",
+      "subtitle": "first_element",
+      "sector": "sharepoint",
+      "sectors": "sharepoint",
+      "companies": "sharepoint",
+      "report_type": "key_data_heuristic",
+      "completed_at": "disclosure_regex",
+      "published_at": "disclosure_regex",
+      "confidential_marking": "footer_text",
+      "publication_id": "sharepoint",
+      "publication_status": "sharepoint",
+      "publication_version": "sharepoint",
+      "publication_name": "sharepoint",
+      "publication_type": "sharepoint",
+      "published_date": "sharepoint"
+    }
+  },
+  "ingested_at": "2026-11-13T01:16:29+00:00",
+  "seconds": 4.6,
+  "chunks": 114,
+  "chunk_kinds": {
+    "metadata": 1,
+    "text": 26,
+    "chart": 83,
+    "figure": 2,
+    "table": 2
+  },
+  "figures": 85,
+  "charts_native": 66,
+  "charts_digitised_ok": 17,
+  "charts_digitised_withheld": 1,
+  "pictures": 19,
+  "pictures_described": 0,
+  "vision_calls": 0,
+  "matrices": 0,
+  "tables": 2,
+  "facts_figures": 83,
+  "chart_quality_failures": [
+    {
+      "figure": "Fig 80",
+      "caption": "Japanese PMI surveys (diffusion Index)",
+      "checks": [
+        "axis_sign_conflict",
+        "unnamed_series"
+      ]
+    }
+  ],
+  "warnings": [
+    "Chart quality gate withheld Fig 80: axis_sign_conflict, unnamed_series"
+  ],
+  "markdown_chars": 75304,
+  "raw_sha": "da4b24b39090d0223932d1650c689cb886ad7d3e14f34a088db2386267a76836"
+}

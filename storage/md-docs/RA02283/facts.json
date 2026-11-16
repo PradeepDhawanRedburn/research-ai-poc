@@ -1,0 +1,2626 @@
+[
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 3",
+  "caption": "Evolution ringfencing checks – availability of Evolution content by EU country",
+  "kind": "matrix",
+  "chunk_id": "RA02283-00017",
+  "method": "Wingdings symbols with run colour",
+  "approximate": false,
+  "note": "",
+  "series": [],
+  "cells": [
+   {
+    "row": "Austria",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Austria",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Austria",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Austria",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Austria",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Belgium",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Belgium",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Belgium",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Belgium",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Belgium",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Bulgaria",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Bulgaria",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Bulgaria",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Bulgaria",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Bulgaria",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Croatia",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Croatia",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Croatia",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Croatia",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Croatia",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Cyprus",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Cyprus",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Cyprus",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Cyprus",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Cyprus",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Czech Republic",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Czech Republic",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Czech Republic",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Czech Republic",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Czech Republic",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Denmark",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Denmark",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Denmark",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Denmark",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Denmark",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Estonia",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Estonia",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Estonia",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Estonia",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Estonia",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Finland",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Finland",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Finland",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Finland",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Finland",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "France",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "France",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "France",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "France",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "France",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Germany",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Germany",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Germany",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Germany",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Germany",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Greece",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Greece",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Greece",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Greece",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Greece",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hungary",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hungary",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hungary",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hungary",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hungary",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Ireland",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Ireland",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Ireland",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Ireland",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Ireland",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Italy",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Italy",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Italy",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Italy",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Italy",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Latvia",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Latvia",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Latvia",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Latvia",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Latvia",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Lithuania",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Lithuania",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Lithuania",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Lithuania",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Lithuania",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Luxembourg",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Luxembourg",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Luxembourg",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Luxembourg",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Luxembourg",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Malta",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Malta",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Malta",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Malta",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Malta",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Netherlands",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Netherlands",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Netherlands",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Netherlands",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Netherlands",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Poland",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Poland",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Poland",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Poland",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Poland",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Portugal",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Portugal",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Portugal",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Portugal",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Portugal",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Romania",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Romania",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Romania",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Romania",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Romania",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Slovakia",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovakia",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovakia",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovakia",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovakia",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovenia",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovenia",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovenia",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovenia",
+    "col": "Hacksaw / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Slovenia",
+    "col": "Pragmatic / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Spain",
+    "col": "Evolution / May 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Spain",
+    "col": "Evolution / July 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Spain",
+    "col": "Evolution / October 2025",
+    "state": "tick_green"
+   },
+   {
+    "row": "Spain",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Spain",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Sweden",
+    "col": "Evolution / May 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Sweden",
+    "col": "Evolution / July 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Sweden",
+    "col": "Evolution / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Sweden",
+    "col": "Hacksaw / October 2025",
+    "state": "cross_red"
+   },
+   {
+    "row": "Sweden",
+    "col": "Pragmatic / October 2025",
+    "state": "cross_red"
+   }
+  ],
+  "figure_id": "RA02283:7:f2a224ae",
+  "figure_label": "Fig 3"
+ },
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 4",
+  "caption": "Italy supplier/operator ringfencing matrix",
+  "kind": "matrix",
+  "chunk_id": "RA02283-00025",
+  "method": "Wingdings symbols with run colour",
+  "approximate": false,
+  "note": "",
+  "series": [],
+  "cells": [
+   {
+    "row": "Evolution",
+    "col": "Snatch Casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "BC.Game",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Stake",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Rainbet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "7Bit casino",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Shuffle",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Freshbet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Boomerang",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Wazamba",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Sportsbet.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Bitcasino.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "toshi.bet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Snatch Casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "BC.Game",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Stake",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Rainbet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "7Bit casino",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Shuffle",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Freshbet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Boomerang",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Wazamba",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Sportsbet.io",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Bitcasino.io",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "toshi.bet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Snatch Casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "BC.Game",
+    "state": "n/a"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Stake",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Rainbet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "7Bit casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Shuffle",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Freshbet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Boomerang",
+    "state": "tick_green"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Wazamba",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Sportsbet.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Bitcasino.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "toshi.bet",
+    "state": "cross_red"
+   }
+  ],
+  "figure_id": "RA02283:8:4ce425f9",
+  "figure_label": "Fig 4"
+ },
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 7",
+  "caption": "France supplier/operator ringfencing matrix",
+  "kind": "matrix",
+  "chunk_id": "RA02283-00031",
+  "method": "Wingdings symbols with run colour",
+  "approximate": false,
+  "note": "",
+  "series": [],
+  "cells": [
+   {
+    "row": "Evolution",
+    "col": "Snatch Casino",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "BC[.]Game [shape rect red]",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Stake",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Rainbet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "7Bit casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Shuffle",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Freshbet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Evolution",
+    "col": "Boomerang",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Wazamba",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Sportsbet.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "Bitcasino.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Evolution",
+    "col": "toshi.bet",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Snatch Casino",
+    "state": "tick_green"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "BC[.]Game [shape rect red]",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Stake",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Rainbet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "7Bit casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Shuffle",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Freshbet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Boomerang",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Wazamba",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Sportsbet.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "Bitcasino.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Hacksaw",
+    "col": "toshi.bet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Snatch Casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "BC[.]Game [shape rect red]",
+    "state": "n/a"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Stake",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Rainbet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "7Bit casino",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Shuffle",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Freshbet",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Boomerang",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Wazamba",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Sportsbet.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "Bitcasino.io",
+    "state": "cross_red"
+   },
+   {
+    "row": "Pragmatic",
+    "col": "toshi.bet",
+    "state": "cross_red"
+   }
+  ],
+  "figure_id": "RA02283:11:b1c4f364",
+  "figure_label": "Fig 7"
+ },
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 10",
+  "caption": "Evolution consensus revenue estimate changes since 24 July 2025, by geography",
+  "kind": "digitised_chart",
+  "chunk_id": "RA02283-00037",
+  "method": "emf-vector-digitised",
+  "approximate": true,
+  "note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+  "series": [
+   {
+    "name": "2025E",
+    "points": [
+     [
+      "Asia",
+      0.5702
+     ],
+     [
+      "Latin",
+      1.4422
+     ],
+     [
+      "Europe",
+      0.8552
+     ],
+     [
+      "Total",
+      0.6372
+     ]
+    ],
+    "unit": "%",
+    "axis": "left",
+    "axis_range": 20.0
+   },
+   {
+    "name": "2026E",
+    "points": [
+     [
+      "Asia",
+      6.4729
+     ],
+     [
+      "Latin",
+      5.014
+     ],
+     [
+      "Europe",
+      1.3583
+     ],
+     [
+      "North",
+      1.3415
+     ],
+     [
+      "Total",
+      4.142
+     ]
+    ],
+    "unit": "%",
+    "axis": "left",
+    "axis_range": 20.0
+   },
+   {
+    "name": "2027E",
+    "points": [
+     [
+      "Latin",
+      9.4411
+     ],
+     [
+      "Europe",
+      6.104
+     ],
+     [
+      "North",
+      2.0962
+     ],
+     [
+      "North",
+      1.0229
+     ],
+     [
+      "Total",
+      5.7351
+     ]
+    ],
+    "unit": "%",
+    "axis": "left",
+    "axis_range": 20.0
+   },
+   {
+    "name": "2028E",
+    "points": [
+     [
+      "Latin",
+      13.298
+     ],
+     [
+      "Europe",
+      3.9408
+     ],
+     [
+      "North",
+      1.8278
+     ],
+     [
+      "North",
+      1.9117
+     ],
+     [
+      "Total",
+      7.2443
+     ]
+    ],
+    "unit": "%",
+    "axis": "left",
+    "axis_range": 20.0
+   }
+  ],
+  "cells": [],
+  "figure_id": "RA02283:14:8153f70e",
+  "figure_label": "Fig 10"
+ },
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 11",
+  "caption": "Evolution consensus EBITDA estimate changes since 24 July 2025",
+  "kind": "digitised_chart",
+  "chunk_id": "RA02283-00038",
+  "method": "emf-vector-digitised",
+  "approximate": true,
+  "note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+  "series": [
+   {
+    "name": "",
+    "points": [
+     [
+      "2026E",
+      0.627
+     ],
+     [
+      "2027E",
+      4.1297
+     ],
+     [
+      "2028E",
+      5.7297
+     ],
+     [
+      "2028E",
+      7.2432
+     ]
+    ],
+    "unit": "%",
+    "axis": "left",
+    "axis_range": 8.0
+   }
+  ],
+  "cells": [],
+  "figure_id": "RA02283:15:aa481add",
+  "figure_label": "Fig 11"
+ },
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 14",
+  "caption": "Cumulative Evolution share buybacks vs announced programme (SEKm)",
+  "kind": "digitised_chart",
+  "chunk_id": "RA02283-00044",
+  "method": "emf-vector-digitised",
+  "approximate": true,
+  "note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month; lower confidence: y labels not matched to gridlines",
+  "series": [
+   {
+    "name": "",
+    "points": [
+     [
+      "2025-02",
+      707.8498
+     ],
+     [
+      "2025-03",
+      1700.8235
+     ],
+     [
+      "2025-04",
+      1700.8235
+     ],
+     [
+      "2025-05",
+      2004.5566
+     ],
+     [
+      "2025-06",
+      2448.4742
+     ],
+     [
+      "2025-07",
+      2997.5303
+     ],
+     [
+      "2025-08",
+      3640.0426
+     ],
+     [
+      "2025-09",
+      4399.3755
+     ]
+    ],
+    "unit": "",
+    "axis": "left",
+    "axis_range": 4000.0
+   }
+  ],
+  "cells": [],
+  "figure_id": "RA02283:18:b1a86650",
+  "figure_label": "Fig 14"
+ },
+ {
+  "doc_id": "RA02283",
+  "figure": "Fig 15",
+  "caption": "Galaxy Gaming share price discount to bid",
+  "kind": "digitised_chart",
+  "chunk_id": "RA02283-00045",
+  "method": "emf-vector-digitised",
+  "approximate": true,
+  "note": "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month",
+  "series": [
+   {
+    "name": "",
+    "points": [
+     [
+      "2024-07",
+      11.2551
+     ],
+     [
+      "2024-07",
+      11.8785
+     ],
+     [
+      "2024-07",
+      12.1862
+     ],
+     [
+      "2024-07",
+      12.8178
+     ],
+     [
+      "2024-07",
+      13.4413
+     ],
+     [
+      "2024-07",
+      13.4413
+     ],
+     [
+      "2024-07",
+      13.0202
+     ],
+     [
+      "2024-07",
+      13.1255
+     ],
+     [
+      "2024-07",
+      13.4413
+     ],
+     [
+      "2024-07",
+      13.4413
+     ],
+     [
+      "2024-07",
+      12.9069
+     ],
+     [
+      "2024-08",
+      13.4413
+     ],
+     [
+      "2024-08",
+      13.749
+     ],
+     [
+      "2024-08",
+      14.2186
+     ],
+     [
+      "2024-08",
+      14.0648
+     ],
+     [
+      "2024-08",
+      14.3806
+     ],
+     [
+      "2024-08",
+      13.749
+     ],
+     [
+      "2024-08",
+      13.6275
+     ],
+     [
+      "2024-08",
+      12.502
+     ],
+     [
+      "2024-08",
+      12.502
+     ],
+     [
+      "2024-08",
+      12.502
+     ],
+     [
+      "2024-08",
+      12.1862
+     ],
+     [
+      "2024-08",
+      12.8178
+     ],
+     [
+      "2024-08",
+      12.502
+     ],
+     [
+      "2024-08",
+      11.8785
+     ],
+     [
+      "2024-08",
+      12.8178
+     ],
+     [
+      "2024-08",
+      12.8178
+     ],
+     [
+      "2024-08",
+      12.8178
+     ],
+     [
+      "2024-08",
+      12.502
+     ],
+     [
+      "2024-08",
+      11.5628
+     ],
+     [
+      "2024-08",
+      11.5628
+     ],
+     [
+      "2024-08",
+      11.5628
+     ],
+     [
+      "2024-09",
+      12.8178
+     ],
+     [
+      "2024-09",
+      12.1862
+     ],
+     [
+      "2024-09",
+      12.502
+     ],
+     [
+      "2024-09",
+      13.1255
+     ],
+     [
+      "2024-09",
+      12.8178
+     ],
+     [
+      "2024-09",
+      12.8178
+     ],
+     [
+      "2024-09",
+      12.8907
+     ],
+     [
+      "2024-09",
+      12.8178
+     ],
+     [
+      "2024-09",
+      12.8178
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      12.8907
+     ],
+     [
+      "2024-09",
+      13.1255
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      13.749
+     ],
+     [
+      "2024-09",
+      13.1255
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      12.8178
+     ],
+     [
+      "2024-09",
+      13.4413
+     ],
+     [
+      "2024-09",
+      13.1255
+     ],
+     [
+      "2024-09",
+      13.1255
+     ],
+     [
+      "2024-10",
+      12.8178
+     ],
+     [
+      "2024-10",
+      14.0648
+     ],
+     [
+      "2024-10",
+      13.749
+     ],
+     [
+      "2024-10",
+      14.0648
+     ],
+     [
+      "2024-10",
+      14.6883
+     ],
+     [
+      "2024-10",
+      13.4413
+     ],
+     [
+      "2024-10",
+      14.0648
+     ],
+     [
+      "2024-10",
+      13.4413
+     ],
+     [
+      "2024-10",
+      13.1255
+     ],
+     [
+      "2024-10",
+      12.9717
+     ],
+     [
+      "2024-10",
+      13.4413
+     ],
+     [
+      "2024-10",
+      14.0648
+     ],
+     [
+      "2024-10",
+      14.0648
+     ],
+     [
+      "2024-10",
+      14.6883
+     ],
+     [
+      "2024-10",
+      14.0648
+     ],
+     [
+      "2024-10",
+      15.9433
+     ],
+     [
+      "2024-10",
+      15.9433
+     ],
+     [
+      "2024-10",
+      15.1741
+     ],
+     [
+      "2024-10",
+      14.3806
+     ],
+     [
+      "2024-10",
+      15.004
+     ],
+     [
+      "2024-10",
+      12.8178
+     ],
+     [
+      "2024-11",
+      14.0648
+     ],
+     [
+      "2024-11",
+      14.0648
+     ],
+     [
+      "2024-11",
+      15.004
+     ],
+     [
+      "2024-11",
+      14.0648
+     ],
+     [
+      "2024-11",
+      14.6883
+     ],
+     [
+      "2024-11",
+      12.8178
+     ],
+     [
+      "2024-11",
+      11.2551
+     ],
+     [
+      "2024-11",
+      11.2551
+     ],
+     [
+      "2024-11",
+      12.1862
+     ],
+     [
+      "2024-11",
+      14.3806
+     ],
+     [
+      "2024-11",
+      14.3806
+     ],
+     [
+      "2024-11",
+      13.749
+     ],
+     [
+      "2024-11",
+      14.3806
+     ],
+     [
+      "2024-11",
+      15.004
+     ],
+     [
+      "2024-11",
+      13.4413
+     ],
+     [
+      "2024-11",
+      14.3806
+     ],
+     [
+      "2024-11",
+      15.004
+     ],
+     [
+      "2024-11",
+      15.004
+     ],
+     [
+      "2024-11",
+      15.004
+     ],
+     [
+      "2024-11",
+      14.6316
+     ],
+     [
+      "2024-11",
+      14.6883
+     ],
+     [
+      "2024-12",
+      13.1255
+     ],
+     [
+      "2024-12",
+      14.6883
+     ],
+     [
+      "2024-12",
+      14.0324
+     ],
+     [
+      "2024-12",
+      14.0648
+     ],
+     [
+      "2024-12",
+      12.7045
+     ],
+     [
+      "2024-12",
+      13.1255
+     ],
+     [
+      "2024-12",
+      12.502
+     ],
+     [
+      "2024-12",
+      14.2186
+     ],
+     [
+      "2024-12",
+      12.502
+     ],
+     [
+      "2024-12",
+      12.6559
+     ],
+     [
+      "2024-12",
+      14.0648
+     ],
+     [
+      "2024-12",
+      14.3806
+     ],
+     [
+      "2024-12",
+      14.3806
+     ],
+     [
+      "2024-12",
+      14.3806
+     ],
+     [
+      "2024-12",
+      14.6883
+     ],
+     [
+      "2024-12",
+      15.004
+     ],
+     [
+      "2024-12",
+      15.004
+     ],
+     [
+      "2024-12",
+      13.6113
+     ],
+     [
+      "2024-12",
+      13.1255
+     ],
+     [
+      "2024-12",
+      14.0648
+     ],
+     [
+      "2024-12",
+      13.5628
+     ],
+     [
+      "2024-12",
+      13.5628
+     ],
+     [
+      "2024-12",
+      14.0648
+     ],
+     [
+      "2025-01",
+      15.3441
+     ],
+     [
+      "2025-01",
+      14.3806
+     ],
+     [
+      "2025-01",
+      13.749
+     ],
+     [
+      "2025-01",
+      13.749
+     ],
+     [
+      "2025-01",
+      13.749
+     ],
+     [
+      "2025-01",
+      13.4413
+     ],
+     [
+      "2025-01",
+      13.2551
+     ],
+     [
+      "2025-01",
+      13.4413
+     ],
+     [
+      "2025-01",
+      14.3806
+     ],
+     [
+      "2025-01",
+      14.0648
+     ],
+     [
+      "2025-01",
+      14.0648
+     ],
+     [
+      "2025-01",
+      14.0648
+     ],
+     [
+      "2025-01",
+      14.4534
+     ],
+     [
+      "2025-01",
+      14.0648
+     ],
+     [
+      "2025-01",
+      12.502
+     ],
+     [
+      "2025-01",
+      12.502
+     ],
+     [
+      "2025-01",
+      13.4413
+     ],
+     [
+      "2025-01",
+      12.8178
+     ],
+     [
+      "2025-01",
+      12.502
+     ],
+     [
+      "2025-01",
+      12.8178
+     ],
+     [
+      "2025-01",
+      12.8178
+     ],
+     [
+      "2025-02",
+      12.502
+     ],
+     [
+      "2025-02",
+      12.0243
+     ],
+     [
+      "2025-02",
+      11.8785
+     ],
+     [
+      "2025-02",
+      11.5628
+     ],
+     [
+      "2025-02",
+      12.502
+     ],
+     [
+      "2025-02",
+      12.1862
+     ],
+     [
+      "2025-02",
+      12.502
+     ],
+     [
+      "2025-02",
+      12.502
+     ],
+     [
+      "2025-02",
+      12.502
+     ],
+     [
+      "2025-02",
+      10.6235
+     ],
+     [
+      "2025-02",
+      10.6235
+     ],
+     [
+      "2025-02",
+      10.9393
+     ],
+     [
+      "2025-02",
+      10.2348
+     ],
+     [
+      "2025-02",
+      10.0
+     ],
+     [
+      "2025-02",
+      10.3158
+     ],
+     [
+      "2025-02",
+      10.4696
+     ],
+     [
+      "2025-02",
+      9.5789
+     ],
+     [
+      "2025-02",
+      10.6235
+     ],
+     [
+      "2025-02",
+      9.6923
+     ],
+     [
+      "2025-02",
+      9.6923
+     ],
+     [
+      "2025-02",
+      8.1296
+     ],
+     [
+      "2025-03",
+      9.0607
+     ],
+     [
+      "2025-03",
+      9.0607
+     ],
+     [
+      "2025-03",
+      9.3765
+     ],
+     [
+      "2025-03",
+      9.3765
+     ],
+     [
+      "2025-03",
+      9.6923
+     ],
+     [
+      "2025-03",
+      10.9393
+     ],
+     [
+      "2025-03",
+      9.9271
+     ],
+     [
+      "2025-03",
+      10.6235
+     ],
+     [
+      "2025-03",
+      10.6235
+     ],
+     [
+      "2025-03",
+      10.9393
+     ],
+     [
+      "2025-03",
+      10.3158
+     ],
+     [
+      "2025-03",
+      11.8785
+     ],
+     [
+      "2025-03",
+      12.502
+     ],
+     [
+      "2025-03",
+      10.9393
+     ],
+     [
+      "2025-03",
+      10.9393
+     ],
+     [
+      "2025-03",
+      11.2551
+     ],
+     [
+      "2025-03",
+      10.9393
+     ],
+     [
+      "2025-03",
+      11.5628
+     ],
+     [
+      "2025-03",
+      11.2551
+     ],
+     [
+      "2025-03",
+      11.2551
+     ],
+     [
+      "2025-03",
+      11.8785
+     ],
+     [
+      "2025-03",
+      9.6923
+     ],
+     [
+      "2025-03",
+      11.2551
+     ],
+     [
+      "2025-04",
+      12.502
+     ],
+     [
+      "2025-04",
+      12.502
+     ],
+     [
+      "2025-04",
+      15.6275
+     ],
+     [
+      "2025-04",
+      13.2551
+     ],
+     [
+      "2025-04",
+      15.004
+     ],
+     [
+      "2025-04",
+      14.6883
+     ],
+     [
+      "2025-04",
+      12.8178
+     ],
+     [
+      "2025-04",
+      12.502
+     ],
+     [
+      "2025-04",
+      12.1862
+     ],
+     [
+      "2025-04",
+      12.1862
+     ],
+     [
+      "2025-04",
+      12.1862
+     ],
+     [
+      "2025-04",
+      12.502
+     ],
+     [
+      "2025-04",
+      12.1862
+     ],
+     [
+      "2025-04",
+      12.1862
+     ],
+     [
+      "2025-04",
+      12.1862
+     ],
+     [
+      "2025-04",
+      12.502
+     ],
+     [
+      "2025-04",
+      10.9393
+     ],
+     [
+      "2025-04",
+      11.2551
+     ],
+     [
+      "2025-04",
+      11.2551
+     ],
+     [
+      "2025-04",
+      11.8785
+     ],
+     [
+      "2025-04",
+      11.8785
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      12.502
+     ],
+     [
+      "2025-05",
+      12.2186
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      12.8178
+     ],
+     [
+      "2025-05",
+      12.5668
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      12.502
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      12.502
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      11.8785
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      12.1296
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      12.1862
+     ],
+     [
+      "2025-05",
+      14.0648
+     ],
+     [
+      "2025-05",
+      13.2551
+     ],
+     [
+      "2025-05",
+      12.8178
+     ],
+     [
+      "2025-05",
+      13.004
+     ],
+     [
+      "2025-05",
+      12.8502
+     ],
+     [
+      "2025-05",
+      12.8178
+     ],
+     [
+      "2025-06",
+      12.502
+     ],
+     [
+      "2025-06",
+      12.8178
+     ],
+     [
+      "2025-06",
+      12.5992
+     ],
+     [
+      "2025-06",
+      12.8178
+     ],
+     [
+      "2025-06",
+      12.502
+     ],
+     [
+      "2025-06",
+      13.1255
+     ],
+     [
+      "2025-06",
+      12.502
+     ],
+     [
+      "2025-06",
+      12.502
+     ],
+     [
+      "2025-06",
+      13.1255
+     ],
+     [
+      "2025-06",
+      12.1862
+     ],
+     [
+      "2025-06",
+      13.1255
+     ],
+     [
+      "2025-06",
+      13.1255
+     ],
+     [
+      "2025-06",
+      11.5628
+     ],
+     [
+      "2025-06",
+      12.1862
+     ],
+     [
+      "2025-06",
+      12.8178
+     ],
+     [
+      "2025-06",
+      12.1862
+     ],
+     [
+      "2025-06",
+      11.8785
+     ],
+     [
+      "2025-06",
+      11.5628
+     ],
+     [
+      "2025-06",
+      13.1255
+     ],
+     [
+      "2025-06",
+      11.8785
+     ],
+     [
+      "2025-06",
+      12.1862
+     ],
+     [
+      "2025-06",
+      12.502
+     ],
+     [
+      "2025-07",
+      12.502
+     ],
+     [
+      "2025-07",
+      11.8785
+     ],
+     [
+      "2025-07",
+      12.502
+     ],
+     [
+      "2025-07",
+      12.8178
+     ],
+     [
+      "2025-07",
+      12.5668
+     ],
+     [
+      "2025-07",
+      12.1053
+     ],
+     [
+      "2025-07",
+      12.502
+     ],
+     [
+      "2025-07",
+      11.6599
+     ],
+     [
+      "2025-07",
+      10.3158
+     ],
+     [
+      "2025-07",
+      12.1862
+     ],
+     [
+      "2025-07",
+      12.1862
+     ],
+     [
+      "2025-07",
+      10.0
+     ],
+     [
+      "2025-07",
+      10.0
+     ],
+     [
+      "2025-07",
+      10.0
+     ],
+     [
+      "2025-07",
+      10.6235
+     ],
+     [
+      "2025-07",
+      10.0324
+     ],
+     [
+      "2025-07",
+      9.6923
+     ],
+     [
+      "2025-07",
+      10.3158
+     ],
+     [
+      "2025-07",
+      10.3158
+     ],
+     [
+      "2025-07",
+      10.3158
+     ],
+     [
+      "2025-07",
+      10.3158
+     ],
+     [
+      "2025-08",
+      10.0
+     ],
+     [
+      "2025-08",
+      10.0
+     ],
+     [
+      "2025-08",
+      9.0607
+     ],
+     [
+      "2025-08",
+      9.3765
+     ],
+     [
+      "2025-08",
+      9.3765
+     ],
+     [
+      "2025-08",
+      8.753
+     ],
+     [
+      "2025-08",
+      9.3765
+     ],
+     [
+      "2025-08",
+      10.251
+     ],
+     [
+      "2025-08",
+      11.5628
+     ],
+     [
+      "2025-08",
+      11.8785
+     ],
+     [
+      "2025-08",
+      11.5628
+     ],
+     [
+      "2025-08",
+      10.6235
+     ],
+     [
+      "2025-08",
+      11.2551
+     ],
+     [
+      "2025-08",
+      10.6235
+     ],
+     [
+      "2025-08",
+      10.9393
+     ],
+     [
+      "2025-08",
+      10.0
+     ],
+     [
+      "2025-08",
+      9.6923
+     ],
+     [
+      "2025-08",
+      10.0
+     ],
+     [
+      "2025-08",
+      10.3158
+     ],
+     [
+      "2025-08",
+      9.8138
+     ],
+     [
+      "2025-08",
+      9.8138
+     ],
+     [
+      "2025-08",
+      10.9393
+     ],
+     [
+      "2025-09",
+      10.9393
+     ],
+     [
+      "2025-09",
+      10.3158
+     ],
+     [
+      "2025-09",
+      11.1903
+     ],
+     [
+      "2025-09",
+      11.2551
+     ],
+     [
+      "2025-09",
+      11.2551
+     ],
+     [
+      "2025-09",
+      10.9393
+     ],
+     [
+      "2025-09",
+      10.8178
+     ],
+     [
+      "2025-09",
+      10.9393
+     ],
+     [
+      "2025-09",
+      11.2551
+     ],
+     [
+      "2025-09",
+      11.5628
+     ],
+     [
+      "2025-09",
+      10.3158
+     ],
+     [
+      "2025-09",
+      11.4413
+     ],
+     [
+      "2025-09",
+      12.1862
+     ],
+     [
+      "2025-09",
+      11.5628
+     ],
+     [
+      "2025-09",
+      10.9393
+     ],
+     [
+      "2025-09",
+      12.1862
+     ],
+     [
+      "2025-09",
+      11.2551
+     ],
+     [
+      "2025-09",
+      11.2794
+     ],
+     [
+      "2025-09",
+      12.502
+     ],
+     [
+      "2025-09",
+      10.9393
+     ],
+     [
+      "2025-09",
+      11.749
+     ],
+     [
+      "2025-09",
+      11.2551
+     ],
+     [
+      "2025-10",
+      11.2551
+     ],
+     [
+      "2025-10",
+      10.9393
+     ],
+     [
+      "2025-10",
+      11.8785
+     ],
+     [
+      "2025-10",
+      11.8785
+     ],
+     [
+      "2025-10",
+      12.502
+     ],
+     [
+      "2025-10",
+      14.0648
+     ],
+     [
+      "2025-10",
+      12.8178
+     ],
+     [
+      "2025-10",
+      15.6275
+     ],
+     [
+      "2025-10",
+      12.502
+     ],
+     [
+      "2025-10",
+      13.4413
+     ],
+     [
+      "2025-10",
+      13.4413
+     ]
+    ],
+    "unit": "%",
+    "axis": "left",
+    "axis_range": 12.0
+   }
+  ],
+  "cells": [],
+  "figure_id": "RA02283:19:44ab3f1e",
+  "figure_label": "Fig 15"
+ }
+]

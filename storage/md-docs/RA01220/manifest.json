@@ -1,0 +1,129 @@
+{
+  "doc_id": "RA01220",
+  "source_file": "RA01220.docx",
+  "title": "The Money Map April 2025",
+  "subtitle": "The Money Map April 2025",
+  "date": "2025-04-30",
+  "analysts": [
+    "Melissa Davies",
+    "Michael Taylor"
+  ],
+  "metadata": {
+    "analysts": [
+      "Melissa Davies",
+      "Michael Taylor"
+    ],
+    "date": "2025-04-30",
+    "title": "The Money Map April 2025",
+    "subtitle": "The Money Map April 2025",
+    "sector": "Economics",
+    "sectors": [
+      "Economics"
+    ],
+    "companies": [],
+    "report_type": "macro_or_sector",
+    "completed_at": "2025-04-29 15:50",
+    "published_at": "2025-04-30 06:30",
+    "confidential_marking": false,
+    "publication_id": "RA01220",
+    "publication_status": "Published",
+    "publication_version": "1",
+    "publication_name": "The Money Map April 2025",
+    "publication_type": "Blue Top",
+    "published_date": "2025-04-30",
+    "metadata_sources": {
+      "doc_id": "extractor",
+      "source_file": "extractor",
+      "analysts": "sharepoint",
+      "analyst_contacts": "author_block",
+      "date": "sharepoint",
+      "title": "sharepoint",
+      "subtitle": "first_element",
+      "sector": "sharepoint",
+      "sectors": "sharepoint",
+      "companies": "sharepoint",
+      "report_type": "key_data_heuristic",
+      "completed_at": "disclosure_regex",
+      "published_at": "disclosure_regex",
+      "confidential_marking": "footer_text",
+      "publication_id": "sharepoint",
+      "publication_status": "sharepoint",
+      "publication_version": "sharepoint",
+      "publication_name": "sharepoint",
+      "publication_type": "sharepoint",
+      "published_date": "sharepoint"
+    }
+  },
+  "ingested_at": "2026-11-13T01:16:25+00:00",
+  "seconds": 11.0,
+  "chunks": 118,
+  "chunk_kinds": {
+    "metadata": 1,
+    "text": 27,
+    "chart": 82,
+    "figure": 6,
+    "table": 2
+  },
+  "figures": 88,
+  "charts_native": 4,
+  "charts_digitised_ok": 78,
+  "charts_digitised_withheld": 5,
+  "pictures": 84,
+  "pictures_described": 0,
+  "vision_calls": 0,
+  "matrices": 0,
+  "tables": 2,
+  "facts_figures": 82,
+  "chart_quality_failures": [
+    {
+      "figure": "Fig 4",
+      "caption": "Treasury General Account ($m)",
+      "checks": [
+        "missing_x_positions",
+        "axis_sign_conflict",
+        "unnamed_series",
+        "no_series"
+      ]
+    },
+    {
+      "figure": "Fig 28",
+      "caption": "Corporate loans, YoY",
+      "checks": [
+        "missing_x_positions",
+        "unnamed_series",
+        "no_series"
+      ]
+    },
+    {
+      "figure": "Fig 29",
+      "caption": "Household loans, YoY",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 63",
+      "caption": "Bank of England assets (£m)",
+      "checks": [
+        "unnamed_series"
+      ]
+    },
+    {
+      "figure": "Fig 82",
+      "caption": "Japanese PMI surveys (diffusion Index)",
+      "checks": [
+        "axis_sign_conflict",
+        "unnamed_series"
+      ]
+    }
+  ],
+  "warnings": [
+    "Chart quality gate withheld Fig 4: missing_x_positions, axis_sign_conflict, unnamed_series, no_series",
+    "Chart quality gate withheld Fig 28: missing_x_positions, unnamed_series, no_series",
+    "Chart quality gate withheld Fig 29: unnamed_series",
+    "Chart quality gate withheld Fig 63: unnamed_series",
+    "Chart quality gate withheld Fig 82: axis_sign_conflict, unnamed_series"
+  ],
+  "markdown_chars": 78542,
+  "raw_sha": "a78e7414618a725221746a79f4d70b6c3b1cc3f42f48ffec01abffdef52c9baf"
+}
