@@ -318,13 +318,20 @@ def render_figure(el: dict, assets: dict) -> str:
 
 def render_metadata(md: dict) -> str:
     keys = ["doc_id", "title", "subtitle", "date", "sector", "report_type", "ticker", "share_price", "target_price",
-            "mkt_cap", "rating", "published_at", "priced_as_of"]
+            "mkt_cap", "rating", "published_at", "priced_as_of", "publication_id", "publication_name",
+            "publication_type", "publication_status", "publication_version", "published_date"]
     lines = ["---"]
     for k in keys:
         if md.get(k):
             lines.append(f"{k}: {md[k]}")
     if md.get("analysts"):
-        lines.append("analysts: " + "; ".join(f"{a.get('name') or ''} <{a['email']}>".strip() for a in md["analysts"]))
+        contacts = {a.get("name", ""): a.get("email") for a in md.get("analyst_contacts", []) if a.get("email")}
+        names = [f"{name} <{contacts[name]}>" if isinstance(name, str) and name in contacts else str(name)
+                 for name in md["analysts"]]
+        lines.append("analysts: " + "; ".join(names))
+    for key in ("companies", "sectors"):
+        if md.get(key):
+            lines.append(f"{key}: " + "; ".join(str(value) for value in md[key]))
     lines.append("---")
     return "\n".join(lines)
 

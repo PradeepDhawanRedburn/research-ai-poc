@@ -18,12 +18,14 @@ Azure parts are imported only by the commands that need them, so `status` and `r
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
 
 from .config import ARMS, DEFAULT_ARMS, DEFAULT_MODES, MODES, canon_mode, combo_key, settings
 from .storage import CHUNKS, FACTS, MANIFEST, MARKDOWN, RAW, open_store
+
 
 
 def _arms(value: str | None) -> list[str]:
@@ -76,7 +78,42 @@ def cmd_ingest(args) -> int:
               f"{m.charts_digitised_ok} digitised, {m.charts_digitised_withheld} withheld), {m.pictures_described}/"
               f"{m.pictures} pictures described, {m.facts_figures} fact figures, {m.seconds:.0f} s"
               + (f", {len(m.warnings)} warnings" if m.warnings else ""))
+    if args.publish_container:
+        from azure.storage.blob import BlobServiceClient
+
+        if settings.storage_connection_string:
+            service = BlobServiceClient.from_connection_string(settings.storage_connection_string)
+        else:
+            from azure.identity import DefaultAzureCredential
+
+            service = BlobServiceClient(account_url=settings.storage_account_url,
+                                        credential=DefaultAzureCredential(process_timeout=60))
+        target_client = service.get_container_client(args.publish_container)
+        if not target_client.exists():
+            raise SystemExit(f"publish target container {args.publish_container!r} does not exist; no container was created")
+        from .storage import BlobStore
+        from .ingest.publish_md_docs import publish_md_docs
+
+        target = BlobStore(args.publish_container, settings.storage_account_url, settings.storage_connection_string)
+        result = _azure("publish-md-docs", publish_md_docs, store, target, args.doc or None,
+                        dry_run=args.publish_dry_run)
+        action = "would write" if args.publish_dry_run else "wrote"
+        print(f"{action} {len(result['written'])} legacy-layout blobs for {len(result['documents'])} reports "
+              f"to container {args.publish_container}")
+        if result["removed"]:
+            verb = "would remove" if args.publish_dry_run else "removed"
+            print(f"{verb} {len(result['removed'])} stale report blobs")
     return 0
+
+
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
 
 
 LC = settings.retrieval_backend == "langchain"
@@ -165,7 +202,8 @@ def cmd_eval(args) -> int:
     store = open_store()
     key = _azure("eval", run, _arms(args.arm), _modes(args.mode), ids=args.ids.split(",") if args.ids else None,
                  types=args.types.split(",") if args.types else None, limit=args.limit, resume=args.resume,
-                 run_name=args.run, store=store, use_tools=not args.no_tools, redo=args.redo)
+                 run_name=args.run, store=store, use_tools=not args.no_tools, redo=args.redo,
+                 distractor_docs=args.distractor_docs.split(",") if args.distractor_docs else None)
     print(f"\nrun written to {key}/ (rows.jsonl, summary.json, report.md) in {store.describe()}")
     print(store.text(f"{key}/report.md").split("## By question type")[0])
     return 0
@@ -197,6 +235,29 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_chart_report(args) -> int:
+    from .evaluate.chart_quality import report
+
+    print(report(open_store()))
+    return 0
+
+
+def cmd_export_markdown(args) -> int:
+    from .export_markdown import export_markdown
+
+    result = _azure("export-documents", export_markdown, open_store(), Path(args.out), dry_run=args.dry_run)
+    action = "would write" if args.dry_run else "wrote"
+    print(f"{action} {len(result['written'])} artifacts for {len(result['doc_ids'])} reports to {result['output']}")
+    if result["removed"]:
+        verb = "would remove" if args.dry_run else "removed"
+        print(f"{verb} {len(result['removed'])} stale exporter-owned files")
+        for path in result["removed"][:8]:
+            print(f"  {path}")
+        if len(result["removed"]) > 8:
+            print(f"  ... and {len(result['removed']) - 8} more")
+    return 0
+
+
 def cmd_retention(args) -> int:
     from .evaluate.retention import check, report_markdown
 
@@ -205,6 +266,22 @@ def cmd_retention(args) -> int:
     md = report_markdown(res)
     store.put("eval/retention.md", md, "text/markdown")
     print(md)
+    return 0
+
+
+def cmd_calibration_sample(args) -> int:
+    from .evaluate.calibration import export_sample
+
+    output = Path(args.out or f"eval-{args.run}-calibration.csv")
+    count = _azure("calibration-sample", export_sample, open_store(), args.run, output, args.n)
+    print(f"wrote {count} answered rows to {output}")
+    return 0
+
+
+def cmd_calibration_report(args) -> int:
+    from .evaluate.calibration import agreement, agreement_markdown
+
+    print(agreement_markdown(agreement(Path(args.csv))))
     return 0
 
 
@@ -345,6 +422,8 @@ def main(argv=None) -> int:
     p.add_argument("--vision", choices=["auto", "all", "none"], default="auto",
                    help="describe pictures: auto = those without digitised values, all, none")
     p.add_argument("--force", action="store_true", help="re-run reports already in the manifest")
+    p.add_argument("--publish-container", help="also publish legacy <doc>.md and <doc>/canonical.json/assets to this existing Blob container")
+    p.add_argument("--publish-dry-run", action="store_true", help="preview legacy-container writes/deletions without changing it")
     p.set_defaults(fn=cmd_ingest)
 
     p = sub.add_parser("index", help="build the Markdown+ index and push the chunks (langchain engine: both arms\' Chroma collections)")
@@ -380,6 +459,7 @@ def main(argv=None) -> int:
                    help="in the run named by --run, drop and rerun the rows of the selected arms and modes, keep the rest")
     p.add_argument("--run", help="run name (default: UTC timestamp)")
     p.add_argument("--no-tools", action="store_true")
+    p.add_argument("--distractor-docs", help="comma-separated indexed report ids included as retrieval noise, no questions")
     p.set_defaults(fn=cmd_eval)
 
     p = sub.add_parser("reconcile", help="remove everything left behind by documents deleted from raw/ (store and engine)")
@@ -389,9 +469,30 @@ def main(argv=None) -> int:
     p.add_argument("--run", required=True, help="run name under eval/")
     p.add_argument("--k", type=int, default=10)
     p.set_defaults(fn=cmd_report)
+    sub.add_parser("chart-report", help="native-versus-digitised chart error distribution, no model").set_defaults(
+        fn=cmd_chart_report)
+    p = sub.add_parser("export-documents", help="export current report artifacts and media to a local folder")
+    p.add_argument("--out", default="md-docs", help="output folder (default: ./md-docs)")
+    p.add_argument("--dry-run", action="store_true", help="show writes and stale exporter-owned files, make no changes")
+    p.set_defaults(fn=cmd_export_markdown)
+
+    p = sub.add_parser("export-markdown", help="alias for export-documents")
+    p.add_argument("--out", default="md-docs", help="output folder (default: ./md-docs)")
+    p.add_argument("--dry-run", action="store_true", help="show writes and stale exporter-owned files, make no changes")
+    p.set_defaults(fn=cmd_export_markdown)
     p = sub.add_parser("retention", help="evidence retention of Markdown+, no model")
     p.add_argument("--k", type=int, default=5)
     p.set_defaults(fn=cmd_retention)
+
+    p = sub.add_parser("calibration-sample", help="export a stratified human judge-calibration CSV")
+    p.add_argument("--run", required=True, help="evaluation run under eval/")
+    p.add_argument("--n", type=_positive_int, default=50, help="answered rows to sample (default 50)")
+    p.add_argument("--out", help="CSV output path (default eval-<run>-calibration.csv)")
+    p.set_defaults(fn=cmd_calibration_sample)
+
+    p = sub.add_parser("calibration-report", help="report judge agreement and Cohen's kappa from a graded CSV")
+    p.add_argument("--csv", required=True, help="graded CSV with judge_verdict and human_verdict columns")
+    p.set_defaults(fn=cmd_calibration_report)
 
     sub.add_parser("status", help="what is in the store and in Azure").set_defaults(fn=cmd_status)
 

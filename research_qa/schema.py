@@ -29,9 +29,16 @@ class Chunk:
     text: str
     title: str = ""
     date: str = ""
+    analysts: list[str] = field(default_factory=list)
+    companies: list[str] = field(default_factory=list)
+    sectors: list[str] = field(default_factory=list)
+    publication_type: str = ""
+    published_date: str = ""
     section: str = ""
     caption: str = ""
     figure: str = ""            # "Fig 22" when the chunk is or belongs to a numbered figure
+    figure_id: str = ""
+    figure_label: str = ""
     source_file: str = ""       # RA02752.docx
     assets: list[str] = field(default_factory=list)   # store keys of pictures behind this chunk
     has_facts: bool = False     # lookup_facts has rows for this figure
@@ -51,6 +58,7 @@ class FactSeries:
     points: list[list[Any]]     # [[x, y], ...]; x is a date string, a year or a category, y a number
     unit: str = ""
     axis: str = ""              # left | right
+    axis_range: float = 0.0      # digitised value-axis span, for validation reporting
 
 
 @dataclass
@@ -73,6 +81,8 @@ class FactFigure:
     note: str = ""
     series: list[FactSeries] = field(default_factory=list)
     cells: list[FactCell] = field(default_factory=list)
+    figure_id: str = ""
+    figure_label: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -108,6 +118,7 @@ class ReportManifest:
     matrices: int = 0
     tables: int = 0
     facts_figures: int = 0
+    chart_quality_failures: list[dict] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     markdown_chars: int = 0
     raw_sha: str = ""               # sha256 of the raw .docx this entry was built from; ingest re-runs when it changes
@@ -137,6 +148,8 @@ class Passage:
     title: str = ""
     date: str = ""
     url: str = ""               # the reference URL the knowledge base gave, used to resolve citations
+    figure_id: str = ""
+    figure_label: str = ""
 
 
 @dataclass

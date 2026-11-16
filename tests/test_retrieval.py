@@ -43,8 +43,9 @@ class FakeVS:
         return [FakeDoc(c.id, c.text, ix.to_metadata(c)) for c in scored[:k]]
 
 
-def chunk(i, doc, kind, text, figure=""):
-    return Chunk(id=f"{doc}-{i:05d}", doc_id=doc, chunk=i, kind=kind, text=text, figure=figure, source_file=f"{doc}.md")
+def chunk(i, doc, kind, text, figure="", companies=None):
+    return Chunk(id=f"{doc}-{i:05d}", doc_id=doc, chunk=i, kind=kind, text=text, figure=figure,
+                 source_file=f"{doc}.md", companies=companies or [])
 
 
 CHUNKS = [
@@ -54,6 +55,8 @@ CHUNKS = [
     chunk(3, "RA01734", "text", "Report RA01734 July Money Map. The Bank of England is expected to cut to 4%."),
     chunk(4, "RA01734", "chart", "Report RA01734 Fig 27 something else entirely about wages", figure="Fig 27"),
     chunk(5, "RA02752", "figure", "Report RA02752 Fig 22 Flashbacks to Fanta: three cans Vive old Fanta new Fanta", figure="Fig 22"),
+    chunk(6, "RA02752", "text", "Coca-Cola Europacific Partners report metadata", companies=["Coca-Cola Europacific Partners"]),
+    chunk(7, "RA02283", "text", "Evolution AB report metadata", companies=["Evolution AB"]),
 ]
 
 
@@ -72,6 +75,21 @@ def test_filters_apply_to_both_legs(retriever):
     got = retriever.retrieve("Money Map", k=5, doc_id="RA01734", filters={"kind": "text"})
     assert [c.id for c in got] == ["RA01734-00003"]
     assert retriever.vs.calls[-1] == {"$and": [{"kind": "text"}, {"doc_id": "RA01734"}]}
+
+
+def test_company_filter_applies_to_dense_and_sparse_legs(retriever):
+    got = retriever.retrieve("report metadata", k=5, filters={"companies": "Coca-Cola Europacific Partners"})
+    assert got and all(c.companies == ["Coca-Cola Europacific Partners"] for c in got)
+    assert retriever.fused("report metadata", {"companies": "Evolution AB"}) == ["RA02283-00007"]
+
+
+def test_chunk_metadata_round_trips_and_old_chunks_load():
+    from research_qa.lc.index import from_document, to_metadata
+
+    current = chunk(8, "RA02752", "text", "metadata", companies=["Coca-Cola Europacific Partners"])
+    assert from_document(FakeDoc(current.id, current.text, to_metadata(current))).companies == current.companies
+    old = Chunk.from_dict({"id": "old-00000", "doc_id": "old", "chunk": 0, "kind": "text", "text": "old"})
+    assert old.companies == [] and old.published_date == ""
 
 
 def test_figure_boost_puts_the_named_figure_first(retriever, monkeypatch):
@@ -138,6 +156,7 @@ def test_flags_recorded_in_run_config(tmp_path, monkeypatch):
     cfg = store.json(f"{key}/config.json")
     assert cfg["retrieval"]["reranker"] == "cohere" and cfg["retrieval"]["rerank_model"] == "rerank-test"
     assert cfg["retrieval"]["figure_boost"] in (True, False) and cfg["retrieval"]["backend"] == settings.retrieval_backend
+    assert cfg["retrieval"]["metadata_context"] in (True, False)
 
 
 def test_azure_retrieve_body_filter():
@@ -148,4 +167,9 @@ def test_azure_retrieve_body_filter():
     assert f.endswith(" and doc_id eq 'RA01220'") and f.startswith("acl/any(")   # access clause always, doc on request
     assert "filterAddOn" not in retrieve_body("word", "q", doc_id="RA01220")["knowledgeSourceParams"][0]
     assert "doc_id" not in retrieve_body("markdown-plus", "q")["knowledgeSourceParams"][0]["filterAddOn"]
+    filtered = retrieve_body("markdown-plus", "q", filters={"companies": "O'Brien Research"})
+    assert "companies/any(x: x eq 'O''Brien Research')" in filtered["knowledgeSourceParams"][0]["filterAddOn"]
+    filtered = retrieve_body("markdown-plus", "q", filters={"companies": "CCEP", "publication_type": "Equity Research"})
+    clause = filtered["knowledgeSourceParams"][0]["filterAddOn"]
+    assert "companies/any(x: x eq 'CCEP') and publication_type eq 'Equity Research'" in clause
     assert json.dumps(body)  # serialisable

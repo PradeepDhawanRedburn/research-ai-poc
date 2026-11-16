@@ -46,7 +46,8 @@ def instructions(arm: str) -> str:
 
 def to_passage(c, rank: int) -> Passage:
     return Passage(rank=rank, id=c.id, doc_id=c.doc_id, source_file=c.source_file, kind=c.kind,
-                   heading=c.caption or c.section, text=c.text, assets=list(c.assets), title=c.title, date=c.date)
+                   heading=c.caption or c.section, text=c.text, assets=list(c.assets), title=c.title, date=c.date,
+                   figure_id=c.figure_id, figure_label=c.figure_label or c.figure)
 
 
 def numbered(passages: list[Passage]) -> str:
@@ -289,7 +290,7 @@ class Chat:
             return f"{name} is not available; answer from the text of the passages."
         if name == tools.FACTS_TOOL:
             res = tools.lookup_facts(store, args.get("doc_id"), args.get("figure"), args.get("series"),
-                                     args.get("x"), args.get("query"))
+                                     args.get("x"), args.get("query"), args.get("figure_id"), args.get("caption"))
             acl_map = access.load(store)   # facts are per report: the caller sees only reports they may read
             hidden = [r for r in res["rows"] if not access.allowed(access.for_doc(acl_map, r["doc_id"]), self.principals)]
             if hidden:
@@ -311,7 +312,10 @@ class Chat:
             if passage is None and ref.strip("[]").isdigit():
                 passage = next((p for p in ans.passages if p.rank == int(ref.strip("[]"))), None)
             assets, text, chunk_id = (passage.assets, passage.text, passage.id) if passage else ([], "", ref)
-            look = tools.inspect_figure(store, chunk_id, assets, text, str(args.get("question", "")))
+            figure_id = str(args.get("figure_id") or (passage.figure_id if passage else ""))
+            look = tools.inspect_figure(store, chunk_id, assets, text, str(args.get("question", "")), figure_id,
+                                        str(args.get("figure") or ""), str(args.get("caption") or ""),
+                                        str(args.get("doc_id") or ""))
             ans.tools_s += look.seconds
             ans.vision_tokens += look.input_tokens + look.output_tokens
             if passage is not None and look.assets:

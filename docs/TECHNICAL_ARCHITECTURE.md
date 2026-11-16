@@ -105,11 +105,11 @@ Key behaviours (`research_qa/ingest/`):
 
 | Step | Detail |
 |---|---|
-| `convert.py` | Word to canonical model; rasterises pictures to `assets/`. MarkItDown is the public interface, the research plugin (`research_ingest.markitdown_plugin`) does the Word step |
-| Chart digitisation | Excel charts pasted as EMF are vector drawings; series are read from geometry, validated to within 1% of axis range against the same series published natively; doubtful readings are withheld and sent to vision |
+| `convert.py` | Word to canonical model; rasterises pictures to `assets/`. MarkItDown is the public interface, the research plugin (`research_ingest.markitdown_plugin`) does the Word step. Metadata reads the SharePoint `documentManagement` block from any `customXml/item*.xml`; it overrides heuristics, records `metadata_sources`, and warns when absent or malformed |
+| Chart digitisation | Excel charts pasted as EMF are vector drawings; named series with positions and confident axis alignment are read from geometry. Unnamed, duplicate, positionless, undated, sign-conflicting or lower-confidence readings are withheld and routed to vision; failed check names appear in the report manifest. `chart-report` summarizes paired native/digitised error as median, p90 and max percentage of digitised axis range, or reports N/A when the store has no paired points |
 | `describe.py` | Vision prompt v3 returns fixed JSON (items with printed text and counts, labelled numbers, printed text, table transcription, summary). Cached per picture hash + prompt version; `--vision auto|all|none` |
-| `facts.py` | Native series, digitised series (marked approximate), matrix cells, picture facts |
-| `chunks.py` | Prose grouped by section up to 1,800 chars; a table is one chunk (row-group split with header repeat if long); a figure is one chunk (caption, description, compact series summary, source); metadata block is a chunk; every chunk has a context header (doc id, title, date, section, figure) |
+| `facts.py` | Native series, digitised series (marked approximate), matrix cells, picture facts; every figure/table fact carries its stable `figure_id` and printed `figure_label` |
+| `chunks.py` | Prose grouped by section up to 1,800 chars; a table is one chunk (row-group split with header repeat if long); a figure is one chunk (caption, description, compact series summary, source); metadata block is a chunk; every figure/table chunk carries its stable `figure_id` and printed `figure_label`; each chunk has a context header (doc id, title, date, analysts, companies, sectors, publication type/date, section, figure) |
 | `pipeline.py` | Idempotent: skips reports already in the manifest unless `--force`; `--doc` selects reports |
 | `reconcile.py` | The only deletion path: removes outputs and index/Chroma chunks for documents no longer in `raw/` |
 
@@ -129,7 +129,9 @@ flowchart LR
 ```
 
 - Markdown+ index: `page_chunk`, vector `page_embedding_text_3_large` (HNSW), semantic config, filterable `doc_id`, `date`,
-  `kind`, `figure`, plus `assets` (store keys), `has_facts`, `acl`.
+  `kind`, `figure`, `analysts`, `companies`, `sectors`, `publication_type`, `published_date`, plus `assets` (store keys),
+    `figure_id`, `figure_label`, `has_facts`, `acl`. Chroma stores the same fields; collection-valued metadata is membership-filtered on the dense
+  candidate set and the BM25 leg, so chunks predating these optional fields still load with empty values.
 - The Word arm index is created and filled by the service. Limitation: files above the tier's cap (16 MB on Basic)
   are skipped. This is a finding about the commodity path; `word-sync` shows per-document results.
 - Foundry agents are created per arm (`agents`), each with its MCP connection (`up` does sources, bases and agents).
@@ -228,7 +230,16 @@ flowchart LR
 ```
 
 - Question types: text_fact, table_lookup, image, chart_native, chart_picture, symbol_matrix, relationship,
-  cross_document, unanswerable ([golden_set.md](golden_set.md)).
+    cross_document, unanswerable, temporal_change, analyst_view, metadata_filter, multi_doc_aggregate,
+    wrong_edition_trap ([golden_set.md](golden_set.md)). Golden entries carry `source_of_truth` (`pdf_analyst`,
+    `word_engineer`, `extractor_output`) plus optional `verified_by` and `verified_on`; the current 122 questions are
+    explicitly marked `extractor_output`.
+- `report --run --k` presents three separate layers: extraction evidence coverage over Markdown+ and structured facts,
+    retrieval recall@k, and answer-judge scores. Wilson 95% intervals are shown for accuracy and recall. Exact paired
+    McNemar tests report strict and lenient results; p ≥ 0.05 is labelled not significant.
+- Runs record corpus size, optional distractor document IDs and retrieval flags. `calibration-sample` exports a
+    type-stratified answered-row CSV; `calibration-report` calculates percent agreement and Cohen's kappa. Retention
+    honours cross-document `docs` and warns that extractor-output retention is not independent verification.
 - Run options: `--resume`, `--redo`, `--ids`, `--types`, `--limit`. Name runs by engine.
 - `tests/`: baseline-report unit tests and a synthetic-fixture loss report ([audit/02-loss-report.md](audit/02-loss-report.md)).
 
@@ -246,13 +257,17 @@ flowchart LR
 | Command | Purpose |
 |---|---|
 | `upload <files>` | copy .docx into `raw/` |
-| `ingest [--doc] [--vision] [--force]` | Word to Markdown+, assets, facts, chunks, manifest |
+| `ingest [--doc] [--vision] [--force] [--publish-container] [--publish-dry-run]` | Word to Markdown+, assets, facts, chunks, manifest; optionally publish root Markdown plus per-report canonical, metadata, facts, chunks, manifest, and assets to an existing container |
 | `index [--reset] [--doc] [--arm]` | azure: push Markdown+ index; langchain: build Chroma |
 | `knowledge`, `agents`, `up`, `word-sync`, `down` | azure engine objects (sources, bases, agents, Word ingestion, teardown) |
 | `ask "<q>" --arm --mode [--no-tools]` | one question |
-| `eval --arm --mode --run [...]` | score the golden set |
-| `report --run --k` | recall@k and latency, no model |
+| `eval --arm --mode --run [...] [--distractor-docs ids]` | score the golden set and record corpus configuration |
+| `report --run --k` | extraction coverage, retrieval recall@k and answer judge results, with intervals and paired tests |
+| `chart-report` | distribution of paired native-versus-digitised chart point error, no model |
 | `retention` | evidence retention, no model |
+| `export-documents [--out md-docs] [--dry-run]` | export current report artifacts and embedded source media into a local bundle; prune only stale files owned by a prior export |
+| `calibration-sample --run [--n 50] [--out file.csv]` | stratified human judge-calibration sample |
+| `calibration-report --csv file.csv` | percent agreement and Cohen's kappa |
 | `reconcile [--dry-run]` | remove artefacts of deleted raw files |
 | `status` | store and Azure state |
 | `app` | print the Streamlit command |
@@ -263,7 +278,7 @@ flowchart LR
 |---|---|
 | Store | `STORAGE_ACCOUNT_URL`, `STORAGE_CONTAINER`, `STORAGE_RESOURCE_ID`, or `STORE_LOCAL_DIR` |
 | Models | `AZURE_OPENAI_ENDPOINT`, `ANSWER_MODEL` (default gpt-5-mini), `AGENT_REASONING_EFFORT`, `VISION_DEPLOYMENT`, `JUDGE_DEPLOYMENT`, `AZURE_EMBEDDING_*` (text-embedding-3-large, 3072 dims) |
-| Engine | `RETRIEVAL_BACKEND`, `CHROMA_DIR`, `RETRIEVAL_FIGURE_BOOST`, `RERANKER` + `RERANK_*`, `SINGLE_PASS_IMAGES(_MAX)`, `STREAM_SINGLE_PASS` |
+| Engine | `RETRIEVAL_BACKEND`, `CHROMA_DIR`, `RETRIEVAL_FIGURE_BOOST`, `RETRIEVAL_METADATA_CONTEXT`, `RERANKER` + `RERANK_*`, `SINGLE_PASS_IMAGES(_MAX)`, `STREAM_SINGLE_PASS` |
 | Security | `PRINCIPALS`, `AZURE_OPENAI_API_KEY` (optional; Entra ID otherwise) |
 
 Corporate TLS inspection: `native-tls = true` under `[tool.uv]`; `truststore` is injected at runtime.

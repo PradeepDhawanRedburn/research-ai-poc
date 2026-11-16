@@ -30,7 +30,8 @@ def _digitised(d: dict) -> list[FactSeries]:
     for s in d.get("series", []):
         pts = [[c, round(v, 4)] for c, v in s.get("points", []) if isinstance(v, (int, float)) and c is not None]
         if pts:
-            out.append(FactSeries(s.get("name") or "", pts, _unit(None, bool(s.get("pct"))), s.get("axis") or ""))
+            out.append(FactSeries(s.get("name") or "", pts, _unit(None, bool(s.get("pct"))),
+                                  s.get("axis") or "", float(s.get("axis_range") or 0)))
     return out
 
 
@@ -44,27 +45,32 @@ def facts_for(doc: dict, doc_id: str, chunk_ids: dict[str, str] | None = None) -
         if el.get("type") not in ("figure", "table"):
             continue
         key = figure_key(el)
+        figure_label = el.get("figure_label") or el.get("figure_no") or key
+        figure_id = el.get("figure_id", "")
         caption = (el.get("caption") or "").strip()
         cid = chunk_ids.get(el.get("id", ""), "")
         for ch in charts_of(el):
             series = _native(ch)
             if series:
-                out.append(FactFigure(doc_id, key, caption, "native_chart", cid, "native Word chart: cached values",
-                                      False, (ch.get("title") or ""), series))
+                out.append(FactFigure(doc_id, figure_label, caption, "native_chart", cid,
+                                      "native Word chart: cached values", False, (ch.get("title") or ""), series,
+                                      figure_id=figure_id, figure_label=figure_label))
         for pic in pictures_of(el):
             a = assets.get(pic.get("asset") or "", {})
             d = a.get("digitised")
             if d and d.get("quality", "ok") == "ok":
                 series = _digitised(d)
                 if series:
-                    out.append(FactFigure(doc_id, key, caption, "digitised_chart", cid, d.get("method", ""), True,
-                                          d.get("precision_note", ""), series))
+                    out.append(FactFigure(doc_id, figure_label, caption, "digitised_chart", cid, d.get("method", ""),
+                                          True, d.get("precision_note", ""), series,
+                                          figure_id=figure_id, figure_label=figure_label))
         for t in tables_of(el):
             if is_matrix(t):
                 cells = [FactCell(r, c, s) for r, c, s in matrix_cells(t)]
                 if cells:
-                    out.append(FactFigure(doc_id, key, caption, "matrix", cid, "Wingdings symbols with run colour",
-                                          False, "", [], cells))
+                    out.append(FactFigure(doc_id, figure_label, caption, "matrix", cid,
+                                          "Wingdings symbols with run colour", False, "", [], cells,
+                                          figure_id=figure_id, figure_label=figure_label))
     return out
 
 
@@ -77,6 +83,8 @@ def picture_facts(doc: dict, doc_id: str, descriptions: dict[str, dict], asset_m
         if el.get("type") != "figure":
             continue
         key = figure_key(el)
+        figure_label = el.get("figure_label") or el.get("figure_no") or key
+        figure_id = el.get("figure_id", "")
         caption = (el.get("caption") or "").strip()
         for pic in pictures_of(el):
             akey = asset_map.get(pic.get("asset") or "")
@@ -101,8 +109,10 @@ def picture_facts(doc: dict, doc_id: str, descriptions: dict[str, dict], asset_m
                     cells.append(FactCell(str(n.get("label") or "").strip() or "value", "value",
                                           f"{n['value']}{n.get('unit') or ''}".strip()))
             if cells:
-                out.append(FactFigure(doc_id, key, caption, "picture", "", "vision model read the picture at ingestion",
-                                      False, str(s.get("about") or ""), [], cells))
+                out.append(FactFigure(doc_id, figure_label, caption, "picture", "",
+                                      "vision model read the picture at ingestion", False,
+                                      str(s.get("about") or ""), [], cells, figure_id=figure_id,
+                                      figure_label=figure_label))
     return out
 
 

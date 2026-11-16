@@ -141,7 +141,9 @@ def report_markdown(res: dict) -> str:
     out = ["# Evidence retention and retrieval (Markdown+, no model)", "",
            f"Retained = all evidence strings present in markdown/<doc>.md. Retrieved@{k} = all present in the "
            f"top-{k} BM25 chunks of chunks/<doc>.jsonl. The Word arm has no retention measure: Azure chunks the "
-           ".docx inside the service; its retrieval shows in the evaluation run.", ""]
+           ".docx inside the service; its retrieval shows in the evaluation run.", "",
+           "WARNING: retention is meaningful only for questions whose `source_of_truth` is not `extractor_output`; "
+           "the current extractor-output set was checked against its own Markdown+ output.", ""]
     if res["docs_missing"]:
         out += [f"Not in the store (run ingest): {', '.join(res['docs_missing'])}", ""]
     out += ["| type | questions | retained | retrieved@%d | avg context tokens |" % k, "|---|---|---|---|---|"]

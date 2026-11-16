@@ -78,11 +78,19 @@ def _manifest_entry(conv: Converted, descriptions: dict, chunks, facts, seconds:
     for c in chunks:
         kinds[c.kind] = kinds.get(c.kind, 0) + 1
     info = conv.asset_info
+    quality_failures = []
+    for figure in figures:
+        for pic in pictures_of(figure):
+            digitised = conv.doc.get("assets", {}).get(pic.get("asset") or "", {}).get("digitised") or {}
+            if digitised.get("quality") == "low":
+                quality_failures.append({"figure": figure.get("figure_no") or "Figure",
+                                         "caption": clean_text(figure.get("caption")),
+                                         "checks": list(digitised.get("failed_checks") or ["unreliable"])})
     return ReportManifest(
         doc_id=conv.doc_id, source_file=f"{conv.doc_id}.docx", title=md.get("title", "") or "",
         subtitle=md.get("subtitle", "") or "", date=md.get("date", "") or "",
-        analysts=[f"{a.get('name') or ''} <{a['email']}>".strip() for a in md.get("analysts", [])],
-        metadata={k: v for k, v in md.items() if isinstance(v, str) and k not in ("doc_id", "source_file")},
+        analysts=[str(a) for a in md.get("analysts", [])],
+        metadata={k: v for k, v in md.items() if k not in ("doc_id", "source_file", "analyst_contacts")},
         ingested_at=datetime.now(timezone.utc).isoformat(timespec="seconds"), seconds=round(seconds, 1),
         chunks=len(chunks), chunk_kinds=kinds, figures=len(figures),
         charts_native=sum(1 for e in figures for c in e.get("content", []) if c.get("kind") == "chart"),
@@ -92,7 +100,10 @@ def _manifest_entry(conv: Converted, descriptions: dict, chunks, facts, seconds:
         pictures_described=sum(1 for p in pics if conv.assets[p["asset"]] in descriptions),
         vision_calls=sum(1 for d in descriptions.values() if d.get("called")),
         matrices=kinds.get("matrix", 0), tables=kinds.get("table", 0), facts_figures=len(facts),
-        warnings=list(conv.warnings), markdown_chars=len(conv.markdown), raw_sha=raw_sha,
+        chart_quality_failures=quality_failures,
+        warnings=list(conv.warnings) + [f"Chart quality gate withheld {item['figure']}: " + ", ".join(item["checks"])
+                                        for item in quality_failures],
+        markdown_chars=len(conv.markdown), raw_sha=raw_sha,
     )
 
 

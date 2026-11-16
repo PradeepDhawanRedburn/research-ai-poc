@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 ROW_FIELDS = ["id", "type", "doc", "arm", "mode", "combo", "evidence_retrieved", "evidence_hits", "verdict", "reason",
               "answer", "expected", "retrieved", "cited", "queries", "tools", "images", "retrieval_s", "generation_s",
               "tools_s", "total_s", "first_token_s", "rounds", "input_tokens", "output_tokens", "reasoning_tokens", "vision_tokens",
-              "total_tokens", "errors", "model", "judge"]
+              "total_tokens", "errors", "model", "judge", "source_of_truth", "verified_by", "verified_on"]
 
 
 def run_key(run_name: str) -> str:
@@ -69,6 +69,8 @@ def _row(q: dict, arm: str, mode: str, a: Answer, verdict: dict, items: list[lis
     tools = [t.get("tool", "") for t in a.tool_calls]
     return {
         "id": q["id"], "type": q["type"], "doc": q["doc"], "arm": arm, "mode": mode, "combo": combo_key(arm, mode),
+        "source_of_truth": q.get("source_of_truth", "extractor_output"),
+        "verified_by": q.get("verified_by", ""), "verified_on": q.get("verified_on", ""),
         "evidence_retrieved": all(hits) if items else None, "evidence_hits": f"{sum(hits)}/{len(hits)}",
         "verdict": verdict["verdict"], "reason": verdict["reason"],
         "answer": a.text, "expected": q.get("answer", ""),
@@ -87,6 +89,8 @@ def _row(q: dict, arm: str, mode: str, a: Answer, verdict: dict, items: list[lis
 def _error_row(q: dict, arm: str, mode: str, err: Exception) -> dict:
     n = len(q.get("evidence", []))
     return {"id": q["id"], "type": q["type"], "doc": q["doc"], "arm": arm, "mode": mode, "combo": combo_key(arm, mode),
+            "source_of_truth": q.get("source_of_truth", "extractor_output"),
+            "verified_by": q.get("verified_by", ""), "verified_on": q.get("verified_on", ""),
             "evidence_retrieved": False if n else None, "evidence_hits": f"0/{n}",
             "verdict": "incorrect", "reason": f"run failed: {type(err).__name__}: {str(err)[:300]}",
             "answer": "", "expected": q.get("answer", ""), "retrieved": [], "cited": [], "queries": [], "tools": [],
@@ -98,7 +102,7 @@ def _error_row(q: dict, arm: str, mode: str, err: Exception) -> dict:
 
 def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | None = None, resume: bool = False,
         run_name: str | None = None, store: Store | None = None, ask_fn=None, judge_fn=None, use_tools: bool = True,
-        progress=print, redo: bool = False) -> str:
+        progress=print, redo: bool = False, distractor_docs: list[str] | None = None) -> str:
     """Returns the run key (eval/<run>). `ask_fn(question, arm, mode)` and `judge_fn(q, text)` can be swapped for
     tests; by default they are the agentic/single-pass pipeline and the Azure OpenAI judge."""
     for a in arms:
@@ -109,6 +113,10 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
         if m not in MODES:
             raise ValueError(f"unknown mode {m!r}; choose from {list(MODES)}")
     store = store or open_store()
+    distractor_docs = sorted(set(distractor_docs or []))
+    unknown_distractors = set(distractor_docs) - set(store.doc_ids())
+    if unknown_distractors:
+        raise ValueError(f"distractor documents are not in the store: {sorted(unknown_distractors)}")
     if ask_fn is None:
         from ..agent.ask import ask
 
@@ -138,6 +146,7 @@ def run(arms: list[str], modes: list[str], ids=None, types=None, limit: int | No
         "answer_model": settings.answer_model, "vision_deployment": settings.vision_deployment,
         "judge": settings.judge_deployment, "max_docs": settings.max_docs, "use_tools": use_tools,
         "retrieval": settings.retrieval_flags(), "principals": list(settings.principals),
+        "distractor_docs": distractor_docs, "corpus_size": len(store.doc_ids()),
         "started": datetime.now(timezone.utc).isoformat(),
     })
 

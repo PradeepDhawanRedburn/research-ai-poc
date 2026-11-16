@@ -19,7 +19,8 @@ from .elements import ANCHOR_RE, charts_of, clean_text, figure_key, is_matrix, p
 PROSE_TYPES = {"paragraph", "list_item", "key_data", "caption", "source", "note", "date", "author", "title",
                "subtitle"}
 META_KEYS = ("title", "subtitle", "date", "sector", "report_type", "ticker", "share_price", "target_price",
-             "mkt_cap", "rating", "published_at", "completed_at", "priced_as_of")
+             "mkt_cap", "rating", "published_at", "completed_at", "priced_as_of", "publication_type",
+             "published_date")
 META_LABELS = {"mkt_cap": "Market cap", "published_at": "Published at", "completed_at": "Completed at",
                "priced_as_of": "Priced as of close", "report_type": "Report type", "share_price": "Share price",
                "target_price": "Target price"}
@@ -28,6 +29,15 @@ META_LABELS = {"mkt_cap": "Market cap", "published_at": "Published at", "complet
 def header(md: dict, doc_id: str, section: str = "", figure: str = "") -> str:
     name = " - ".join(x for x in (md.get("title"), md.get("subtitle")) if x)
     h = f"Report {doc_id}: {name}" + (f" ({md['date']})" if md.get("date") else "")
+    if settings.retrieval_metadata_context:
+        for label, key in (("Analysts", "analysts"), ("Companies", "companies"), ("Sectors", "sectors")):
+            values = md.get(key) or []
+            if values:
+                h += f"\n{label}: " + "; ".join(str(value) for value in values)
+        if md.get("publication_type"):
+            h += f"\nPublication type: {md['publication_type']}"
+        if md.get("published_date"):
+            h += f"\nPublished date: {md['published_date']}"
     if section:
         h += f"\nSection: {section}"
     if figure:
@@ -41,10 +51,16 @@ def metadata_text(md: dict) -> str:
         if md.get(k):
             lines.append(f"{META_LABELS.get(k, k.replace('_', ' ').capitalize())}: {md[k]}")
     if md.get("analysts"):
-        names = [f"{a.get('name') or ''} <{a['email']}>".strip() for a in md["analysts"]]
+        contacts = {a.get("name", ""): a.get("email") for a in md.get("analyst_contacts", []) if a.get("email")}
+        names = [f"{name} <{contacts[name]}>" if name in contacts else str(name) for name in md["analysts"]]
         lines.append(("Analyst (author)" if len(names) == 1 else "Analysts (authors)") + ": " + "; ".join(names))
+    if settings.retrieval_metadata_context:
+        for key in ("companies", "sectors"):
+            if md.get(key):
+                lines.append(f"{key.capitalize()}: " + "; ".join(str(value) for value in md[key]))
     extra = {k: v for k, v in md.items() if k not in META_KEYS and k not in
-             ("doc_id", "source_file", "analysts", "rating_basis", "confidential_marking") and isinstance(v, str)}
+             ("doc_id", "source_file", "analysts", "analyst_contacts", "sectors", "companies", "metadata_sources",
+              "rating_basis", "confidential_marking") and isinstance(v, str)}
     for k, v in extra.items():
         lines.append(f"{k.replace('_', ' ').capitalize()}: {v}")
     return "\n".join(lines)
@@ -143,16 +159,21 @@ def build_chunks(doc: dict, doc_id: str, source_file: str, descriptions: dict[st
     title, date = md.get("title", "") or "", md.get("date", "") or ""
     facts_by_fig: dict[str, list[FactFigure]] = {}
     for f in facts:
-        facts_by_fig.setdefault(f.figure, []).append(f)
+        facts_by_fig.setdefault(f.figure_id or f.figure, []).append(f)
     chunks: list[Chunk] = []
 
     def add(kind: str, body: str, section: str = "", caption: str = "", figure: str = "",
-            keys: list[str] | None = None, has_facts: bool = False) -> Chunk:
+            keys: list[str] | None = None, has_facts: bool = False, figure_id: str = "",
+            figure_label: str = "") -> Chunk:
         text = header(md, doc_id, section, figure) + "\n\n" + body.strip()
         text = ANCHOR_RE.sub("", text)
         text = re.sub(r"\n{3,}", "\n\n", text).strip()
         c = Chunk(id=f"{doc_id}-{len(chunks):05d}", doc_id=doc_id, chunk=len(chunks), kind=kind, text=text,
-                  title=title, date=date, section=section, caption=caption, figure=figure,
+                  title=title, date=date, analysts=list(md.get("analysts") or []),
+                  companies=list(md.get("companies") or []), sectors=list(md.get("sectors") or []),
+                  publication_type=md.get("publication_type", "") or "",
+                  published_date=md.get("published_date", "") or "", section=section, caption=caption, figure=figure,
+                  figure_id=figure_id, figure_label=figure_label or figure,
                   source_file=source_file, assets=list(keys or []), has_facts=has_facts)
         chunks.append(c)
         return c
@@ -179,9 +200,9 @@ def build_chunks(doc: dict, doc_id: str, source_file: str, descriptions: dict[st
         if t in ("figure", "table"):
             flush()
             fkey = figure_key(el)
-            fig_no = el.get("figure_no") or ""
+            fig_no = el.get("figure_label") or el.get("figure_no") or ""
             caption = clean_text(el.get("caption"))
-            ffacts = facts_by_fig.get(fkey, [])
+            ffacts = facts_by_fig.get(fkey, facts_by_fig.get(fig_no, []))
             if t == "table":
                 tbl = el["table"]
                 kind = "matrix" if is_matrix(tbl) else "table"
@@ -191,7 +212,7 @@ def build_chunks(doc: dict, doc_id: str, source_file: str, descriptions: dict[st
                 body, kind, keys = _figure_text(el, assets, descriptions, asset_map)
             if not body.strip():
                 continue
-            c = add(kind, body, section, caption, fig_no, keys, bool(ffacts))
+            c = add(kind, body, section, caption, fig_no, keys, bool(ffacts), el.get("figure_id", ""), fig_no)
             for f in ffacts:
                 f.chunk_id = f.chunk_id or c.id
             # long tables: row groups with the header repeated, each a chunk of its own
@@ -199,7 +220,7 @@ def build_chunks(doc: dict, doc_id: str, source_file: str, descriptions: dict[st
             for tbl in tables_of(el):
                 for s, e, txt in table_row_groups(tbl):
                     add(kind if kind in ("table", "matrix") else "table", f"{label} (rows {s + 1}-{e})\n\n{txt}",
-                        section, caption, fig_no, [], bool(ffacts))
+                        section, caption, fig_no, [], bool(ffacts), el.get("figure_id", ""), fig_no)
             continue
         if t == "author_block":
             continue  # already in the metadata chunk

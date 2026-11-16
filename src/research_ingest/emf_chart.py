@@ -471,27 +471,23 @@ def digitise(data: bytes) -> dict | None:
 
     if not series:
         return None
-    series, issues = _vet_series(series, y_axes, x_mode)
+    raw_series = series
+    series, issues, failed_checks = _vet_series(series, y_axes, x_mode)
     note = "values read from the drawing; value-axis error below 0.5% of axis range, dates to the nearest month"
     if confidence:
         note += "; lower confidence: " + ", ".join(sorted(set(confidence)))
-    # Quality gate. Numbers are only worth indexing when they pass the hard checks (sign agrees with the axis, points
-    # have x positions, no duplicates) and every series can be named: a value nobody can attribute to a series
-    # misleads more than it helps (Fig 4 of RA01220 came out as nine copies of an unnamed, negative, undated series).
-    # The positional notes in `confidence` stay in the precision note as "lower confidence" but do not gate on their
-    # own: Fig 84 of RA01220 carries that note and its values were validated against the BoJ balance sheet.
-    # Callers show the picture to a vision model instead when quality is "low".
-    reasons = list(issues)
-    unnamed = [s for s in series if not s["name"]]
-    if len(series) > 1 and unnamed:
-        reasons.append(f"{len(unnamed)} of {len(series)} series could not be matched to a legend entry")
-    if not series:
-        reasons.append("no series survived the checks")
+    axes_by_side = {"left": left, "right": right or left}
+    for item in series:
+        labels = [parse_number(label) for label in axes_by_side[item["axis"]]["labels"]]
+        values = [value for value in labels if value is not None]
+        item["axis_range"] = max(values) - min(values) if len(values) > 1 else 0.0
+    issues, failed_checks = _quality_gate(series, issues, failed_checks, raw_series)
     return {
         "method": "emf-vector-digitised",
         "precision_note": note,
-        "quality": "low" if reasons else "ok",
-        "issues": reasons,
+        "quality": "low" if failed_checks else "ok",
+        "issues": issues,
+        "failed_checks": failed_checks,
         "x_mode": x_mode,
         "y_axes": [{"labels": a["labels"], "side": "left" if a is left else "right"} for a in y_axes],
         "legend": list(legend.values()),
@@ -499,11 +495,12 @@ def digitise(data: bytes) -> dict | None:
     }
 
 
-def _vet_series(series: list[dict], y_axes: list[dict], x_mode) -> tuple[list[dict], list[str]]:
+def _vet_series(series: list[dict], y_axes: list[dict], x_mode) -> tuple[list[dict], list[str], list[str]]:
     """Drop series that cannot be right, and say why: duplicates of another series (the same shape drawn again as a
     border or a shadow), series whose points have no x position, and series whose sign contradicts the axis they
     were read from (an axis fitted to the wrong labels)."""
     issues: list[str] = []
+    failed_checks: list[str] = []
     out: list[dict] = []
     seen: set = set()
     dropped_dup = dropped_x = dropped_sign = 0
@@ -520,9 +517,7 @@ def _vet_series(series: list[dict], y_axes: list[dict], x_mode) -> tuple[list[di
             dropped_dup += 1
             continue
         seen.add(key)
-        if all(c is None for c, _ in s["points"]):
-            dropped_x += 1
-            continue
+        sign_conflict = False
         # the axis a series was read from is the left one unless it was sent right; both are non-negative in most
         # financial charts, so a clearly negative reading from a non-negative axis means the fit is wrong
         side_axes = [a for a in y_axes if (a is y_axes[0]) == (s["axis"] == "left")] or y_axes
@@ -532,13 +527,36 @@ def _vet_series(series: list[dict], y_axes: list[dict], x_mode) -> tuple[list[di
             rng = max(v for v in labels if v is not None) - lo
             if min(vals) < -0.02 * max(rng, 1e-9):
                 dropped_sign += 1
-                continue
+                sign_conflict = True
+        if all(c is None for c, _ in s["points"]):
+            dropped_x += 1
+            continue
+        if sign_conflict:
+            continue
         out.append(s)
     if dropped_x:
         issues.append(f"{dropped_x} series had no x positions")
+        failed_checks.append("missing_x_positions")
     if dropped_sign:
         issues.append(f"{dropped_sign} series read negative from a non-negative axis")
-    return out, issues
+        failed_checks.append("axis_sign_conflict")
+    return out, issues, failed_checks
+
+
+def _quality_gate(series: list[dict], issues: list[str], failed_checks: list[str],
+                  observed: list[dict]) -> tuple[list[str], list[str]]:
+    """Add the checks on the surviving series to the ones `_vet_series` raised. Only hard failures gate: a value
+    nobody can attribute to a series misleads (Fig 4 of RA01220 was nine copies of an unnamed, negative series).
+    The positional `confidence` notes stay in the precision note and do not gate: Fig 84 of RA01220 carries one and
+    its values were validated against the BoJ balance sheet. Dropped duplicates are benign (a border or shadow)."""
+    unnamed = [s for s in observed if not s.get("name")]
+    if len(observed) > 1 and unnamed:
+        issues.append(f"{len(unnamed)} of {len(observed)} series could not be matched to a legend entry")
+        failed_checks.append("unnamed_series")
+    if not series:
+        issues.append("no series survived the checks")
+        failed_checks.append("no_series")
+    return list(dict.fromkeys(issues)), list(dict.fromkeys(failed_checks))
 
 
 def digitised_summary_text(d: dict) -> str:
