@@ -190,6 +190,7 @@ def add_passages(ans: Answer, item) -> list[Passage]:
             heading=str(c.get("caption") or c.get("figure") or c.get("section") or ""), text=text,
             assets=[a for a in str(c.get("assets") or "").split(";") if a],
             title=str(c.get("title") or ""), date=str(c.get("date") or ""), url=str(d.get("url") or ""),
+            figure_id=str(c.get("figure_id") or ""), figure_label=str(c.get("figure_label") or c.get("figure") or ""),
         ))
     ans.passages.extend(new)
     return new
@@ -293,7 +294,7 @@ def run_tool(ans: Answer, store: Store, name: str, args: dict, use_tools: bool) 
         return f"{name} is disabled for this question; answer from the text of the passages."
     if name == tools.FACTS_TOOL:
         res = tools.lookup_facts(store, args.get("doc_id"), args.get("figure"), args.get("series"), args.get("x"),
-                                 args.get("query"))
+                                 args.get("query"), args.get("figure_id"), args.get("caption"))
         secs = time.perf_counter() - t0
         ans.tools_s += secs
         shown = ", ".join(f"{k}={v}" for k, v in args.items() if v) or "no filter"
@@ -307,13 +308,18 @@ def run_tool(ans: Answer, store: Store, name: str, args: dict, use_tools: bool) 
         chunk_id = str(args.get("chunk_id", "")).strip()
         passage = next((p for p in ans.passages if p.id == chunk_id), None)
         if passage is None:
-            from ..search.index import get_chunk
+            c = {}
+            if chunk_id:
+                from ..search.index import get_chunk
 
-            c = get_chunk(chunk_id)
+                c = get_chunk(chunk_id)
             assets, text = c.get("assets", []), c.get("text", "")
         else:
             assets, text = passage.assets, passage.text
-        look = tools.inspect_figure(store, chunk_id, assets, text, str(args.get("question", "")))
+        figure_id = str(args.get("figure_id") or (passage.figure_id if passage else ""))
+        look = tools.inspect_figure(store, chunk_id, assets, text, str(args.get("question", "")), figure_id,
+                        str(args.get("figure") or ""), str(args.get("caption") or ""),
+                        str(args.get("doc_id") or ""))
         ans.tools_s += look.seconds
         ans.vision_tokens += look.input_tokens + look.output_tokens
         if passage is not None and look.assets:

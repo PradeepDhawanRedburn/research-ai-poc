@@ -11,7 +11,7 @@ import pandas as pd  # noqa: E402
 import streamlit as st  # noqa: E402
 
 from research_qa.app import ui  # noqa: E402
-from research_qa.evaluate.report import headline_rows  # noqa: E402
+from research_qa.evaluate.report import headline_rows, paired_comparison  # noqa: E402
 from research_qa.evaluate.run import load_run  # noqa: E402
 
 ui.setup("Scorecard")
@@ -19,11 +19,13 @@ store = ui.require_store()
 
 TYPE_LABEL = {"text_fact": "Text", "table_lookup": "Table", "chart_native": "Chart (native)",
               "chart_picture": "Chart (pasted picture)", "symbol_matrix": "Tick/cross matrix", "image": "Picture",
-              "relationship": "Figure and source", "cross_document": "Two editions", "unanswerable": "Not in the reports"}
-MEASURES = {"Accuracy": ("%", lambda s: (s["accuracy"] or 0) * 100),
-            "Evidence found": ("%", lambda s: (s["evidence_found"] or 0) * 100),
-            "Tokens per question": ("tokens", lambda s: s["tokens"]["total_tokens"]["mean"]),
-            "Seconds per question": ("s", lambda s: s["time"]["total_s"]["mean"])}
+              "relationship": "Figure and source", "cross_document": "Two editions", "unanswerable": "Not in the reports",
+              "temporal_change": "Change over time", "analyst_view": "Analyst view", "metadata_filter": "Metadata filter",
+              "multi_doc_aggregate": "Multi-report aggregate", "wrong_edition_trap": "Edition selection"}
+MEASURES = {"Accuracy": ("%", lambda s: (s["accuracy"] or 0) * 100, lambda s: s.get("accuracy_ci")),
+            "Evidence found": ("%", lambda s: (s["evidence_found"] or 0) * 100, lambda s: s.get("evidence_ci")),
+            "Tokens per question": ("tokens", lambda s: s["tokens"]["total_tokens"]["mean"], lambda s: None),
+            "Seconds per question": ("s", lambda s: s["time"]["total_s"]["mean"], lambda s: None)}
 
 catalog = ui.run_catalog()
 with st.sidebar:
@@ -74,12 +76,17 @@ for col, c in zip(cols, combos):
     with col:
         with st.container(border=True):
             ui.tile_header(arm, mode, "best" if s["accuracy"] == best_acc and s["n"] else "")
-            ui.kpi("Accuracy", ui.pct(s["accuracy"]), f"{s['correct']} correct · {s['partial']} partial · "
-                   f"{s['incorrect']} incorrect", accent=s["accuracy"] == best_acc and s["n"] > 0)
+            acc_ci = s.get("accuracy_ci")
+            ui.kpi("Accuracy", ui.pct(s["accuracy"]), f"95% CI {acc_ci[0]:.0%}–{acc_ci[1]:.0%} · "
+                   f"{s['correct']} correct · {s['partial']} partial · {s['incorrect']} incorrect"
+                   if acc_ci else f"{s['correct']} correct · {s['partial']} partial · {s['incorrect']} incorrect",
+                   accent=s["accuracy"] == best_acc and s["n"] > 0)
             ui.metric_line([("evidence found", ui.pct(s["evidence_found"])),
                             ("per question", f"{s['time']['total_s']['mean']:.1f} s"),
                             ("tokens", f"{s['tokens']['total_tokens']['mean']:,.0f}")])
-            st.caption(f"p95 {s['time']['total_s']['p95']:.1f} s · {s['tokens']['vision_tokens']['sum']:,.0f} vision tokens"
+            evidence_ci = s.get("evidence_ci")
+            st.caption((f"Evidence 95% CI {evidence_ci[0]:.0%}–{evidence_ci[1]:.0%} · " if evidence_ci else "")
+                       + f"p95 {s['time']['total_s']['p95']:.1f} s · {s['tokens']['vision_tokens']['sum']:,.0f} vision tokens"
                        f" in total · {s['tool_calls']} tool calls · {s['failed']} failed")
 with st.expander("Headline table"):
     st.dataframe(headline_rows(summary), hide_index=True, width="stretch")
@@ -87,7 +94,7 @@ with st.expander("Headline table"):
 # ----------------------------------------------------------------------------- run against run
 
 if other != "(none)":
-    s2, _r2, c2 = load_run(other, store)
+    s2, r2, c2 = load_run(other, store)
     st.markdown(f"## This run against {other}")
     recs = []
     for name, sm in ((run, summary), (other, s2)):
@@ -96,24 +103,44 @@ if other != "(none)":
             if not s["n"]:
                 continue
             recs.append({"run": name, "arm · mode": ui.combo_title(*c.split("/")), "questions": s["n"],
-                         "accuracy": ui.pct(s["accuracy"]), "evidence found": ui.pct(s["evidence_found"]),
+                         "accuracy": ui.pct(s["accuracy"]),
+                         "accuracy 95% CI": "-" if not s.get("accuracy_ci") else f"{s['accuracy_ci'][0]:.0%}–{s['accuracy_ci'][1]:.0%}",
+                         "evidence found": ui.pct(s["evidence_found"]),
+                         "evidence 95% CI": "-" if not s.get("evidence_ci") else f"{s['evidence_ci'][0]:.0%}–{s['evidence_ci'][1]:.0%}",
                          "seconds": round(s["time"]["total_s"]["mean"], 1),
                          "tokens": round(s["tokens"]["total_tokens"]["mean"])})
     st.dataframe(recs, hide_index=True, width="stretch")
     st.caption(f"{run}: model {config.get('answer_model')}, {len(rows)} rows · {other}: model {c2.get('answer_model')}")
+    paired_rows = []
+    for label, run_rows in ((run, rows), (other, r2)):
+        for row in run_rows:
+            paired_rows.append({**row, "combo": f"{label}::{row.get('combo') or row['arm'] + '/' + row['mode']}"})
+    comparisons = []
+    for combo in sorted(set(summary.get("combos", [])) & set(s2.get("combos", []))):
+        pair = paired_comparison(paired_rows, f"{run}::{combo}", f"{other}::{combo}")
+        comparisons.append({"arm · mode": ui.combo_title(*combo.split("/")), "paired questions": pair["n"],
+                            "strict wins (this/other)": f"{pair['strict']['left_wins']}/{pair['strict']['right_wins']}",
+                            "strict p": round(pair["strict"]["p"], 4), "strict result": pair["strict"]["significance"],
+                            "lenient wins (this/other)": f"{pair['lenient']['left_wins']}/{pair['lenient']['right_wins']}",
+                            "lenient p": round(pair["lenient"]["p"], 4), "lenient result": pair["lenient"]["significance"]})
+    st.markdown("### Paired McNemar tests")
+    st.dataframe(comparisons, hide_index=True, width="stretch")
+    st.caption("Exact binomial test on discordant pairs. Strict treats only correct as success; lenient treats partial as success. p ≥ 0.05 is not significant.")
 
 # ----------------------------------------------------------------------------- by type
 
 st.markdown("## By question type")
 measure = st.segmented_control("Measure", list(MEASURES), default="Accuracy", label_visibility="collapsed")
 measure = measure or "Accuracy"
-unit, fn = MEASURES[measure]
+unit, fn, ci_fn = MEASURES[measure]
 recs = []
 for c in combos:
     for t in summary["types"]:
         s = summary["per_type"][c][t]
         if s["n"]:
-            recs.append({"type": TYPE_LABEL.get(t, t), "arm · mode": labels[c], "value": round(fn(s), 1), "n": s["n"]})
+            interval = ci_fn(s)
+            recs.append({"type": TYPE_LABEL.get(t, t), "arm · mode": labels[c], "value": round(fn(s), 1), "n": s["n"],
+                         "95% CI": "-" if interval is None else f"{interval[0]:.0%}–{interval[1]:.0%}"})
 df = pd.DataFrame(recs)
 type_order = [TYPE_LABEL.get(t, t) for t in summary["types"]]
 chart = (alt.Chart(df).mark_bar(cornerRadiusEnd=2).encode(
@@ -126,7 +153,8 @@ chart = (alt.Chart(df).mark_bar(cornerRadiusEnd=2).encode(
                           alt.value(0.55), alt.value(1.0)),
     column=alt.Column("type:N", sort=type_order, title=None,
                       header=alt.Header(labelFontSize=12, labelOrient="bottom", labelAngle=0, labelLimit=120)),
-    tooltip=["type:N", "arm · mode:N", alt.Tooltip("value:Q", title=measure), alt.Tooltip("n:Q", title="questions")])
+    tooltip=["type:N", "arm · mode:N", alt.Tooltip("value:Q", title=measure), alt.Tooltip("95% CI:N"),
+             alt.Tooltip("n:Q", title="questions")])
     .properties(width=max(70, 18 * len(combos) + 20), height=220)
     .configure_view(strokeWidth=0).configure_facet(spacing=8))
 st.altair_chart(chart, width="stretch")
@@ -137,11 +165,26 @@ with st.expander("By type, as a table"):
         row = {"type": TYPE_LABEL.get(t, t), "questions": max(summary["per_type"][c][t]["n"] for c in combos)}
         for c in combos:
             s = summary["per_type"][c][t]
-            row[f"{labels[c]} · accuracy"] = ui.pct(s["accuracy"])
-            row[f"{labels[c]} · evidence"] = ui.pct(s["evidence_found"])
+            row[f"{labels[c]} · accuracy (95% CI)"] = (f"{ui.pct(s['accuracy'])} ({s['accuracy_ci'][0]:.0%}–"
+                                                               f"{s['accuracy_ci'][1]:.0%})" if s.get("accuracy_ci") else "-")
+            row[f"{labels[c]} · evidence found (95% CI)"] = (f"{ui.pct(s['evidence_found'])} ({s['evidence_ci'][0]:.0%}–"
+                                                                    f"{s['evidence_ci'][1]:.0%})" if s.get("evidence_ci") else "-")
             row[f"{labels[c]} · tokens"] = round(s["tokens"]["total_tokens"]["mean"])
         table.append(row)
     st.dataframe(table, hide_index=True, width="stretch")
+
+with st.expander("Accuracy by source of truth"):
+    source_rows = []
+    sources = sorted({source for combo in summary.get("per_source_of_truth", {}).values() for source in combo})
+    for source in sources:
+        row = {"source_of_truth": source}
+        for combo in combos:
+            score = summary["per_source_of_truth"].get(combo, {}).get(source)
+            row[labels[combo]] = ("-" if not score else
+                                  f"{ui.pct(score['accuracy'])} ({score['accuracy_ci'][0]:.0%}–"
+                                  f"{score['accuracy_ci'][1]:.0%}), n={score['n']}")
+        source_rows.append(row)
+    st.dataframe(source_rows, hide_index=True, width="stretch")
 
 # ----------------------------------------------------------------------------- time and tokens
 

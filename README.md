@@ -88,6 +88,41 @@ uv run python -m research_qa retention                  # no-model check: every 
 ```
 After an ingest, re-run `index` (azure: pushes the new chunks; langchain: `index --reset` rebuilds the collections).
 
+## Export report artifacts for manual publishing
+
+Ingest writes outputs to the configured store. To create a local bundle for another Blob container, preview the export
+and then write it to `md-docs/`:
+
+```bash
+uv run python -m research_qa export-documents --out md-docs --dry-run
+uv run python -m research_qa export-documents --out md-docs
+```
+
+The bundle mirrors only Markdown+ outputs: `markdown/`, `facts/`, `chunks/`, rendered `assets/`, relevant cached
+`descriptions/`, and a report-filtered `manifest.json`. It excludes `markdown-stock/`, raw DOCX files, and their
+original media because those belong to the baseline/source, not the Markdown+ output bundle. The command tracks owned
+output paths in the root-level `.md-docs.export.json` file and prunes only stale files from its previous export. It
+does not upload to or delete anything in Azure. `ingest` itself writes these artifacts to the configured store
+container; for a separate publishing container, upload the bundle manually and remove obsolete destination blobs
+based on the export manifest if needed.
+
+To regenerate and publish the established `md-docs` layout from local `data/raw/` DOCX files without using the default
+Blob source container, stage the source locally first:
+
+```bash
+$env:STORE_LOCAL_DIR = ".cache/md-docs-source"
+uv run python -m research_qa upload data/raw/RA01220.docx data/raw/RA01734.docx data/raw/RA02283.docx data/raw/RA02752.docx
+uv run python -m research_qa ingest --force --vision none --publish-container md-docs --publish-dry-run
+uv run python -m research_qa ingest --force --vision none --publish-container md-docs
+```
+
+The publisher uses the configured storage account but does not read or write the default `research` container when
+`STORE_LOCAL_DIR` is set. It keeps `<doc_id>.md` at the container root and writes, per report, `canonical.json`,
+`metadata.json` (including SharePoint provenance), `facts.json`, `chunks.jsonl`, `manifest.json`, and `assets/`
+(original, rendered PNG and any cached descriptions); `report.json` indexes the current reports. The first ingest
+previews target writes and stale report blobs without changing `md-docs`. The second updates it and removes obsolete
+report-owned blobs only; it does not create a missing container or delete unrelated names.
+
 ## Adding or removing a report
 
 Add one report; the others are not reconverted (`ingest` skips reports already in the manifest):

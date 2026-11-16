@@ -10,8 +10,8 @@ ANCHOR_RE = re.compile(r"\s*\[e\d{4,}\]")
 
 
 def figure_key(el: dict) -> str:
-    """'Fig 22' for numbered figures, else the caption, else the element id."""
-    return (el.get("figure_no") or el.get("caption") or el.get("id") or "").strip()
+    """Stable identity when available; the printed label/caption for pre-ID canonical documents."""
+    return (el.get("figure_id") or el.get("figure_no") or el.get("caption") or el.get("id") or "").strip()
 
 
 def tables_of(el: dict) -> list[dict]:

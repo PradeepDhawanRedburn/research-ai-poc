@@ -19,7 +19,9 @@ BATCH = 100
 FETCH = 30      # candidates from each ranker before fusion
 RRF_K = 60
 
-META_FIELDS = ("doc_id", "source_file", "kind", "section", "caption", "figure", "title", "date")
+META_FIELDS = ("doc_id", "source_file", "kind", "section", "caption", "figure", "title", "date",
+               "publication_type", "published_date", "figure_id", "figure_label")
+LIST_META_FIELDS = ("analysts", "companies", "sectors")
 
 
 def collection_name(arm: str) -> str:
@@ -60,6 +62,7 @@ def vector_store(arm: str):
 
 def to_metadata(c: Chunk) -> dict:
     m = {k: str(getattr(c, k, "") or "") for k in META_FIELDS}
+    m.update({k: ";".join(getattr(c, k, []) or []) for k in LIST_META_FIELDS})
     m["assets"] = ";".join(c.assets)
     m["acl"] = ";".join(c.acl)
     m["has_facts"] = bool(c.has_facts)
@@ -73,6 +76,12 @@ def from_document(doc) -> Chunk:
                  kind=str(m.get("kind", "")), text=doc.page_content, title=str(m.get("title", "")),
                  date=str(m.get("date", "")), section=str(m.get("section", "")), caption=str(m.get("caption", "")),
                  figure=str(m.get("figure", "")), source_file=str(m.get("source_file", "")),
+                 figure_id=str(m.get("figure_id", "")), figure_label=str(m.get("figure_label", m.get("figure", ""))),
+                 analysts=[v for v in str(m.get("analysts", "")).split(";") if v],
+                 companies=[v for v in str(m.get("companies", "")).split(";") if v],
+                 sectors=[v for v in str(m.get("sectors", "")).split(";") if v],
+                 publication_type=str(m.get("publication_type", "")),
+                 published_date=str(m.get("published_date", "")),
                  assets=[a for a in str(m.get("assets", "")).split(";") if a], has_facts=bool(m.get("has_facts")),
                  acl=[a for a in str(m.get("acl", "")).split(";") if a])
 
@@ -157,19 +166,30 @@ def rrf(rankings: list[list[str]], k: int = RRF_K) -> list[str]:
     return sorted(score, key=lambda i: -score[i])
 
 
-FILTER_FIELDS = ("doc_id", "kind", "figure", "source_file", "date")   # metadata both legs can filter on
+FILTER_FIELDS = ("doc_id", "kind", "figure", "source_file", "date", "analysts", "companies", "sectors",
+                 "publication_type", "published_date")   # metadata both legs can filter on
 FIG_RE = re.compile(r"\b(?:fig(?:ure)?|chart|exhibit)\.?\s*(\d+[a-z]?)\b", re.I)
 
 
 def where_clause(filters: dict | None) -> dict | None:
     """Chroma `where` for exact-match filters; None when there are none."""
-    items = [{k: v} for k, v in (filters or {}).items() if k in FILTER_FIELDS and v not in (None, "")]
+    items = [{k: v} for k, v in (filters or {}).items()
+             if k in FILTER_FIELDS and k not in LIST_META_FIELDS and v not in (None, "")]
     return None if not items else (items[0] if len(items) == 1 else {"$and": items})
 
 
 def matches(c: Chunk, filters: dict | None) -> bool:
-    return all(str(getattr(c, k, "")) == str(v) for k, v in (filters or {}).items()
-               if k in FILTER_FIELDS and v not in (None, ""))
+    for key, value in (filters or {}).items():
+        if key not in FILTER_FIELDS or value in (None, ""):
+            continue
+        actual = getattr(c, key, "")
+        if isinstance(actual, list):
+            wanted = value if isinstance(value, (list, tuple, set)) else [value]
+            if not set(wanted).intersection(actual):
+                return False
+        elif str(actual) != str(value):
+            return False
+    return True
 
 
 def figure_in(query: str) -> str:
@@ -237,7 +257,7 @@ class Retriever:
         # field cannot be matched exactly in a Chroma where clause)
         hits = self.vs.similarity_search(query, k=FETCH * 4, filter=where_clause(flt))
         return [str(d.id) for d in hits if str(d.id) in self.by_id
-                and access.allowed(self.by_id[str(d.id)].acl, principals)][:FETCH]
+            and self._visible(self.by_id[str(d.id)], flt, principals)][:FETCH]
 
     def _sparse(self, query: str, flt: dict | None, principals=None) -> list[str]:
         scores = self.bm25.get_scores(toks(query))

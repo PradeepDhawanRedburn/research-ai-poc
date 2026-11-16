@@ -20,7 +20,8 @@ VECTORIZER = "azure_openai_text_3_large"
 SEMANTIC_CONFIG = "semantic_config"
 # fields the knowledge source hands to the agent (no vector: it would bloat every citation)
 SOURCE_DATA_FIELDS = ("id", "page_chunk", "doc_id", "title", "date", "section", "kind", "caption", "figure",
-                      "source_file", "assets", "has_facts")
+                      "source_file", "assets", "has_facts", "analysts", "companies", "sectors",
+                      "publication_type", "published_date", "figure_id", "figure_label")
 
 
 def index_name(arm: str = ARM) -> str:
@@ -44,12 +45,19 @@ def build_index():
                         vector_search_dimensions=settings.embedding_dimensions,
                         vector_search_profile_name=VECTOR_PROFILE),
             SearchField(name="doc_id", type="Edm.String", searchable=True, **meta),
+            SearchField(name="analysts", type="Collection(Edm.String)", **meta),
+            SearchField(name="companies", type="Collection(Edm.String)", **meta),
+            SearchField(name="sectors", type="Collection(Edm.String)", **meta),
+            SearchField(name="publication_type", type="Edm.String", **meta),
+            SearchField(name="published_date", type="Edm.String", **meta),
             SearchField(name="title", type="Edm.String", searchable=True),
             SearchField(name="date", type="Edm.String", sortable=True, **meta),
             SearchField(name="section", type="Edm.String", searchable=True),
             SearchField(name="kind", type="Edm.String", **meta),
             SearchField(name="caption", type="Edm.String", searchable=True),
             SearchField(name="figure", type="Edm.String", searchable=True, **meta),
+            SearchField(name="figure_id", type="Edm.String", **meta),
+            SearchField(name="figure_label", type="Edm.String", searchable=True, **meta),
             SearchField(name="source_file", type="Edm.String", **meta),
             SearchField(name="assets", type="Edm.String"),            # ';'-joined store keys of the pictures
             SearchField(name="has_facts", type="Edm.Boolean", filterable=True),
@@ -108,10 +116,30 @@ def create_index(reset: bool = False) -> str:
 def to_document(c: Chunk, vector: list[float]) -> dict:
     return {
         "id": c.id, "page_chunk": c.text, VECTOR_FIELD: vector, "doc_id": c.doc_id, "title": c.title,
+        "analysts": c.analysts, "companies": c.companies, "sectors": c.sectors,
+        "publication_type": c.publication_type, "published_date": c.published_date,
         "date": c.date or "", "section": c.section or "", "kind": c.kind, "caption": c.caption or "",
-        "figure": c.figure or "", "source_file": c.source_file or "", "assets": ";".join(c.assets),
+        "figure": c.figure or "", "figure_id": c.figure_id or "", "figure_label": c.figure_label or c.figure or "",
+        "source_file": c.source_file or "", "assets": ";".join(c.assets),
         "has_facts": bool(c.has_facts), "acl": list(c.acl),
     }
+
+
+def odata_metadata_filters(filters: dict | None) -> list[str]:
+    """Build escaped OData clauses for metadata fields supported by the Markdown+ index."""
+    allowed = {"analysts", "companies", "sectors", "publication_type", "published_date"}
+    list_fields = {"analysts", "companies", "sectors"}
+    clauses = []
+    for key, value in (filters or {}).items():
+        if key not in allowed or value in (None, ""):
+            continue
+        values = value if isinstance(value, (list, tuple, set)) else [value]
+        escaped = [str(item).replace("'", "''") for item in values if item not in (None, "")]
+        terms = ([f"{key}/any(x: x eq '{item}')" for item in escaped] if key in list_fields
+                 else [f"{key} eq '{item}'" for item in escaped])
+        if terms:
+            clauses.append(terms[0] if len(terms) == 1 else "(" + " or ".join(terms) + ")")
+    return clauses
 
 
 def push(store: Store, doc_ids: list[str] | None = None) -> int:
@@ -177,12 +205,14 @@ def get_chunk(chunk_id: str) -> dict:
     """One Markdown+ chunk by id, with `assets` as a list of store keys. {} when unknown."""
     try:
         doc = search_client(index_name()).get_document(
-            key=chunk_id, selected_fields=["id", "page_chunk", "kind", "caption", "figure", "doc_id", "assets",
-                                            "has_facts"])
+            key=chunk_id, selected_fields=["id", "page_chunk", "kind", "caption", "figure", "figure_id",
+                                           "figure_label", "doc_id", "assets", "has_facts"])
     except Exception:  # noqa: BLE001 - unknown chunk id
         return {}
     return {"id": doc.get("id", ""), "text": doc.get("page_chunk", ""), "kind": doc.get("kind", ""),
-            "caption": doc.get("caption", ""), "figure": doc.get("figure", ""), "doc_id": doc.get("doc_id", ""),
+            "caption": doc.get("caption", ""), "figure": doc.get("figure", ""),
+            "figure_id": doc.get("figure_id", ""), "figure_label": doc.get("figure_label", doc.get("figure", "")),
+            "doc_id": doc.get("doc_id", ""),
             "assets": [a for a in (doc.get("assets") or "").split(";") if a], "has_facts": bool(doc.get("has_facts"))}
 
 

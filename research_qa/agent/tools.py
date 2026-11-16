@@ -26,7 +26,8 @@ FACTS_DESCRIPTION = (
     "(row, column, state such as tick_green or cross_red), plus what a vision model read from each picture at "
     "ingestion (per item: its printed text and count; every labelled number such as employees or a share). Use it "
     "for any number from a chart, any state from a matrix, and any printed text, count or number from a picture "
-    "before looking at the picture. Filter by report id (doc_id, e.g. RA01220), figure (e.g. 'Fig 27'), "
+    "before looking at the picture. Filter by report id (doc_id, e.g. RA01220), stable figure_id, printed figure "
+    "label (e.g. 'Fig 27') plus caption text to disambiguate repeated labels, "
     "series name (substring), x (a year such as 2030, a month such as 2025-06, or a category label) or a free-text "
     "query over captions and series names. Returns rows {doc_id, figure, caption, series, x, value, unit, "
     "approximate}; approximate=true means the value was read from a drawing to within about 1% of the axis range."
@@ -40,6 +41,8 @@ FACTS_PARAMETERS = {
         "x": {"type": ["string", "null"],
               "description": "a year (2030), a month (2025-06), a date, or a category/column label, or null"},
         "query": {"type": ["string", "null"], "description": "free text matched against captions and series names, or null"},
+        "figure_id": {"type": ["string", "null"], "description": "stable figure id, preferred for repeated labels"},
+        "caption": {"type": ["string", "null"], "description": "caption text to disambiguate a printed figure label"},
     },
     "required": ["doc_id", "figure", "series", "x", "query"],
     "additionalProperties": False,
@@ -78,23 +81,41 @@ def load_facts(store: Store, doc_id: str | None = None) -> list[FactFigure]:
 
 
 def lookup_facts(store: Store, doc_id: str | None = None, figure: str | None = None, series: str | None = None,
-                 x: str | None = None, query: str | None = None) -> dict:
+                 x: str | None = None, query: str | None = None, figure_id: str | None = None,
+                 caption: str | None = None) -> dict:
     """Rows matching the filters, at most MAX_ROWS, plus a note when truncated or empty."""
     doc_id = (doc_id or "").strip().upper() or None
-    fig = _norm_figure(figure) if figure else ""
+    requested_id = (figure_id or "").strip() or (figure if figure and ":" in figure else "")
+    fig = _norm_figure(figure) if figure and not requested_id else ""
     ser = (series or "").strip().lower()
     q = (query or "").strip().lower()
+    cap = (caption or "").strip().lower()
     rows: list[dict] = []
     total = 0
-    for f in load_facts(store, doc_id):
-        if fig and _norm_figure(f.figure) != fig:
+    facts = load_facts(store, doc_id)
+    label_matches = [f for f in facts if fig and _norm_figure(f.figure_label or f.figure) == fig]
+    label_ids = {f.figure_id or f.figure_label or f.figure for f in label_matches}
+    label_ambiguous = bool(fig and len(label_ids) > 1)
+    selected = []
+    for f in facts:
+        current_id = f.figure_id or ""
+        if requested_id and current_id != requested_id:
+            continue
+        if fig and _norm_figure(f.figure_label or f.figure) != fig:
+            continue
+        if cap and cap not in f.caption.lower():
             continue
         if q and q not in f.caption.lower() and not any(q in s.name.lower() for s in f.series) \
                 and not any(q in c.row.lower() or q in c.col.lower() for c in f.cells):
             continue
+        selected.append(f)
+    selected_ids = {f.figure_id or f.figure_label or f.figure for f in selected}
+    for f in selected:
         # a query that matched only through cell rows/columns (picture or matrix facts) narrows to those cells
         cell_only = bool(q) and q not in f.caption.lower() and not any(q in s.name.lower() for s in f.series)
-        base = {"doc_id": f.doc_id, "figure": f.figure, "caption": f.caption, "approximate": f.approximate}
+        label = f.figure_label or f.figure
+        base = {"doc_id": f.doc_id, "figure": label, "figure_label": label, "figure_id": f.figure_id,
+                "caption": f.caption, "approximate": f.approximate}
         for s in f.series:
             if ser and ser not in s.name.lower():
                 continue
@@ -115,11 +136,18 @@ def lookup_facts(store: Store, doc_id: str | None = None, figure: str | None = N
             if len(rows) < MAX_ROWS:
                 rows.append({**base, "series": c.row, "x": c.col, "value": c.state, "unit": ""})
     note = ""
+    if label_ambiguous:
+        if len(selected_ids) > 1:
+            ids = ", ".join(sorted(str(value) for value in selected_ids))
+            note = f"Printed label {figure!r} is ambiguous across figure IDs: {ids}; add caption text or figure_id."
+        elif selected_ids:
+            note = f"Printed label {figure!r} was ambiguous; caption/query resolved to {next(iter(selected_ids))}."
     if not rows:
-        note = ("No facts match. Facts exist only for charts and matrices; try the figure label (e.g. 'Fig 27'), "
-                "a different series name, or no x filter. For a picture use inspect_figure.")
+        note = ((note + " ") if note else "") + (
+            "No facts match. Facts exist only for charts and matrices; try the figure label (e.g. 'Fig 27'), "
+            "a different series name, or no x filter. For a picture use inspect_figure.")
     elif total > len(rows):
-        note = f"{total} rows match; showing the first {len(rows)}. Narrow with figure, series or x."
+        note = (note + " " if note else "") + f"{total} rows match; showing the first {len(rows)}. Narrow with figure, series or x."
     return {"rows": rows, "count": total, "note": note}
 
 
@@ -129,16 +157,20 @@ FIGURE_TOOL = "inspect_figure"
 FIGURE_DESCRIPTION = (
     "Look at the picture behind a figure chunk and answer a question about what it shows: counting objects, "
     "colours, labels, layout, or values read from a chart that lookup_facts does not have. Use it only when the "
-    "answer depends on the picture and neither the chunk text nor lookup_facts gives it exactly. chunk_id is the "
-    "`id` field inside the retrieved content (for example RA02752-00145) of a chunk whose kind is figure or chart."
+    "answer depends on the picture and neither the chunk text nor lookup_facts gives it exactly. Use chunk_id when "
+    "available; otherwise use figure_id or a printed label plus caption text to disambiguate repeated labels."
 )
 FIGURE_PARAMETERS = {
     "type": "object",
     "properties": {
-        "chunk_id": {"type": "string", "description": "id of the figure chunk, e.g. RA02752-00145"},
+        "chunk_id": {"type": ["string", "null"], "description": "id of the figure chunk, e.g. RA02752-00145"},
+        "figure_id": {"type": ["string", "null"], "description": "stable identity of this figure, when available"},
+        "figure": {"type": ["string", "null"], "description": "printed label such as 'Fig 27'"},
+        "caption": {"type": ["string", "null"], "description": "caption text to disambiguate repeated labels"},
+        "doc_id": {"type": ["string", "null"], "description": "report id when resolving a printed label"},
         "question": {"type": "string", "description": "precise question about the picture, in the user's own words"},
     },
-    "required": ["chunk_id", "question"],
+    "required": ["question"],
     "additionalProperties": False,
 }
 
@@ -163,10 +195,47 @@ class FigureLook:
     model: str = ""
     input_tokens: int = 0
     output_tokens: int = 0
+    figure_id: str = ""
 
 
 def data_url(png: bytes) -> str:
     return "data:image/png;base64," + base64.b64encode(png).decode()
+
+
+def store_chunks(store: Store, doc_id: str = "") -> list[dict]:
+    from ..storage import CHUNKS
+
+    keys = [f"{CHUNKS}/{doc_id}.jsonl"] if doc_id else store.keys(f"{CHUNKS}/", ".jsonl")
+    return [chunk for key in keys if store.exists(key) for chunk in store.jsonl(key)]
+
+
+def _resolve_figure_chunk(store: Store, chunk_id: str, figure_id: str, figure: str,
+                          caption: str, doc_id: str) -> tuple[dict | None, str]:
+    all_chunks = store_chunks(store, doc_id)
+    candidates = []
+    for chunk in all_chunks:
+        if chunk_id and chunk.get("id") != chunk_id:
+            continue
+        if figure_id and chunk.get("figure_id") != figure_id:
+            continue
+        if figure and not figure_id and _norm_figure(chunk.get("figure_label") or chunk.get("figure")) != _norm_figure(figure):
+            continue
+        if caption and caption.casefold() not in str(chunk.get("caption") or "").casefold():
+            continue
+        candidates.append(chunk)
+    identities = {chunk.get("figure_id") or chunk.get("id") for chunk in candidates}
+    if len(identities) > 1:
+        return None, f"Printed label {figure!r} is ambiguous; add caption text or figure_id."
+    if not candidates:
+        return None, "No figure chunk matches the supplied identity and caption."
+    candidates.sort(key=lambda chunk: not bool(chunk.get("assets")))
+    resolution = ""
+    if figure and caption:
+        same_label = [chunk for chunk in all_chunks
+                      if _norm_figure(chunk.get("figure_label") or chunk.get("figure")) == _norm_figure(figure)]
+        if len({chunk.get("figure_id") or chunk.get("id") for chunk in same_label}) > 1:
+            resolution = f"Printed label {figure!r} was ambiguous; caption resolved to {candidates[0].get('figure_id')}."
+    return candidates[0], resolution
 
 
 PICTURES_NOTE = ("Pictures attached to this message are the originals behind the figure passages named next to them. "
@@ -195,13 +264,24 @@ def picture_blocks(store: Store, passages: list, max_n: int) -> tuple[list[dict]
 
 
 def inspect_figure(store: Store, chunk_id: str, chunk_assets: list[str], caption_and_text: str,
-                   question: str) -> FigureLook:
+                   question: str, figure_id: str = "", figure: str = "", caption: str = "",
+                   doc_id: str = "") -> FigureLook:
     """A vision model looks at up to MAX_PICTURES pictures of the chunk (fetched from the store) and answers."""
     t0 = time.perf_counter()
+    chunk_id, resolution = chunk_id or "", ""
+    if figure_id or figure:
+        selected, resolution = _resolve_figure_chunk(store, chunk_id, figure_id, figure, caption, doc_id)
+        if selected is None:
+            return FigureLook(chunk_id, question, resolution, seconds=time.perf_counter() - t0, figure_id=figure_id)
+        chunk_id = str(selected.get("id") or chunk_id)
+        figure_id = str(selected.get("figure_id") or figure_id)
+        chunk_assets = chunk_assets or selected.get("assets") or []
+        caption_and_text = caption_and_text or selected.get("text") or ""
     assets = [a for a in chunk_assets if store.exists(a)][:MAX_PICTURES]
     if not assets:
-        return FigureLook(chunk_id, question, f"Chunk {chunk_id} has no picture in the store; answer from its text "
-                          "or lookup_facts.", seconds=time.perf_counter() - t0)
+        return FigureLook(chunk_id, question, (resolution + " " if resolution else "")
+                          + f"Chunk {chunk_id} has no picture in the store; answer from its text "
+                          "or lookup_facts.", seconds=time.perf_counter() - t0, figure_id=figure_id)
     from ..search.azure import openai_client
 
     content = [{"type": "text", "text": f"Caption and description of the figure:\n{caption_and_text[:1500]}\n\n"
@@ -215,6 +295,10 @@ def inspect_figure(store: Store, chunk_id: str, chunk_assets: list[str], caption
         max_completion_tokens=2000, **kw,
     )
     u = getattr(resp, "usage", None)
-    return FigureLook(chunk_id, question, (resp.choices[0].message.content or "").strip(), assets,
+    answer = (resp.choices[0].message.content or "").strip()
+    if resolution:
+        answer = resolution + "\n" + answer
+    return FigureLook(chunk_id, question, answer, assets,
                       time.perf_counter() - t0, settings.vision_deployment,
-                      int(getattr(u, "prompt_tokens", 0) or 0), int(getattr(u, "completion_tokens", 0) or 0))
+                      int(getattr(u, "prompt_tokens", 0) or 0), int(getattr(u, "completion_tokens", 0) or 0),
+                      figure_id)

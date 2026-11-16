@@ -141,6 +141,7 @@ class Settings:
     chroma_dir: Path = Path(_env("CHROMA_DIR", str(Path(_env("CACHE_DIR", str(ROOT / ".cache"))) / "chroma")))
     # --- retrieval quality flags (LangChain engine), each one an A/B switch recorded in every evaluation run
     retrieval_figure_boost: bool = _env("RETRIEVAL_FIGURE_BOOST", "1") not in ("0", "false", "no", "off")
+    retrieval_metadata_context: bool = _env("RETRIEVAL_METADATA_CONTEXT", "1").lower() not in ("0", "false", "no", "off")
     reranker: str = _env("RERANKER", "none").lower()               # none | cohere
     rerank_candidates: int = int(_env("RERANK_CANDIDATES", "40"))  # fused candidates handed to the reranker
     rerank_endpoint: str = _env("RERANK_ENDPOINT").rstrip("/")     # Foundry serverless endpoint of the rerank model
@@ -182,6 +183,7 @@ class Settings:
         """What shaped retrieval, recorded in each evaluation run's config so runs can be compared A against B."""
         return {"backend": self.retrieval_backend, "max_docs": self.max_docs,
                 "figure_boost": self.retrieval_figure_boost, "reranker": self.reranker,
+                "metadata_context": self.retrieval_metadata_context,
                 "rerank_candidates": self.rerank_candidates if self.reranker != "none" else None,
                 "rerank_model": self.rerank_model if self.reranker != "none" else None,
                 "single_pass_images": self.single_pass_images_max if self.single_pass_images else False}

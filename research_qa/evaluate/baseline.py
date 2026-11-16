@@ -112,10 +112,13 @@ def summarise(recs: list[dict]) -> dict:
     for combo, types in by.items():
         out[combo] = {}
         for t, rs in types.items():
+            from .report import wilson_interval
+
             scored = [r for r in rs if r["recall"] is not None]
             out[combo][t] = {
                 "n": len(rs),
                 "recall": (sum(r["recall"] for r in scored) / len(scored)) if scored else None,
+                "recall_ci": wilson_interval(sum(r["recall"] for r in scored), len(scored)),
                 "scored": len(scored),
                 "unresolved": sum(1 for r in scored if not r["resolved"]),
                 "p50_s": _p([r["total_s"] for r in rs], 0.5),
@@ -142,6 +145,11 @@ def markdown(run_name: str, summary: dict, k: int, config: dict | None = None) -
         n = max((summary[c].get(t, {}).get("n", 0) for c in combos), default=0)
         cells = [pct(summary[c].get(t, {}).get("recall")) for c in combos]
         out.append(f"| {TYPE_LABEL.get(t, t)} | {n} | " + " | ".join(cells) + " |")
+    out += ["", "### Recall 95% Wilson intervals", "",
+            "| type | " + " | ".join(combos) + " |", "|---|" + "---|" * len(combos)]
+    for t in types + ["all"]:
+        cells = [format_ci(summary[c].get(t, {}).get("recall_ci")) for c in combos]
+        out.append(f"| {TYPE_LABEL.get(t, t)} | " + " | ".join(cells) + " |")
     streamed = any(summary[c]["all"].get("p95_first_token_s") for c in combos)
     out += ["", "## Latency (p95 seconds; p50 in brackets" + ("; p95 to first token after the slash)" if streamed else ")"),
             "", "| type | " + " | ".join(combos) + " |", "|---|" + "---|" * len(combos)]
@@ -177,6 +185,19 @@ def report(run_name: str, store: Store, k: int = 10) -> tuple[str, dict]:
     _summary, rows, config = load_run(run_name, store)
     recs = recall_rows(rows, store, k)
     summary = summarise(recs)
-    md = markdown(run_name, summary, k, config)
+    retrieval_md = markdown(run_name, summary, k, config)
+    from . import report as answer_report
+    from .extraction import check as extraction_check, markdown as extraction_markdown
+
+    answer_summary = answer_report.summarise(rows, config.get("arms") or sorted({r["arm"] for r in rows}),
+                                             config.get("modes") or sorted({r["mode"] for r in rows}))
+    answer_summary["run"] = run_name
+    extraction_md = extraction_markdown(extraction_check(store))
+    md = (f"# Evaluation decision report: {run_name}\n\n## Extraction\n\n{extraction_md}\n"
+          f"## Retrieval\n\n{retrieval_md}\n## Answer\n\n{answer_report.markdown(answer_summary, rows)}")
     store.put(f"{run_key(run_name)}/baseline-k{k}.md", md, "text/markdown")
     return md, summary
+
+
+def format_ci(interval: tuple[float, float] | None) -> str:
+    return "-" if interval is None else f"{interval[0]:.0%}–{interval[1]:.0%}"

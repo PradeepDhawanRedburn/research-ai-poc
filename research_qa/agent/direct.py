@@ -22,7 +22,7 @@ ANSWER_SYSTEM = """You answer questions about financial research reports using o
 Be concise: a direct answer first, then a short supporting explanation."""
 
 
-def retrieve_body(arm: str, question: str, doc_id: str | None = None, principals=None) -> dict:
+def retrieve_body(arm: str, question: str, doc_id: str | None = None, principals=None, filters: dict | None = None) -> dict:
     """The `intents` request body. On the Markdown+ index (filterable fields) the filterAddOn carries the caller's
     access rights (acl.json, see research_qa/acl.py) and, when given, the doc_id. The Word arm's Blob-built index
     has neither field, so no filter is sent for it: access control there is Azure's own, not ours."""
@@ -38,6 +38,9 @@ def retrieve_body(arm: str, question: str, doc_id: str | None = None, principals
         clauses = [access.odata_filter(access.caller_principals(principals))]
         if doc_id:
             clauses.append("doc_id eq '%s'" % doc_id.replace("'", "''"))
+        from ..search.index import odata_metadata_filters
+
+        clauses.extend(odata_metadata_filters(filters))
         params["filterAddOn"] = " and ".join(clauses)
     return {
         "intents": [{"type": "semantic", "search": question}],
@@ -48,7 +51,7 @@ def retrieve_body(arm: str, question: str, doc_id: str | None = None, principals
 
 
 def retrieve(arm: str, question: str, max_docs: int | None = None, doc_id: str | None = None,
-             principals=None) -> dict:
+             principals=None, filters: dict | None = None) -> dict:
     from ..search.azure import search_rest
 
     # the passage limit lives on the knowledge base (retrieveDefaults), the same for both modes; `max_docs` is
@@ -60,7 +63,7 @@ def retrieve(arm: str, question: str, max_docs: int | None = None, doc_id: str |
     # Shape from the REST reference (Knowledge Retrieval - Retrieve, 2025-11-01-preview and later): `intents` with
     # semantic queries, the effort stated on the request, and source data asked for on the references so the
     # passages carry their fields (otherwise only ids and the extractive text come back).
-    intents = retrieve_body(arm, question, doc_id, principals)
+    intents = retrieve_body(arm, question, doc_id, principals, filters)
     try:
         return search_rest("POST", path, intents)
     except RuntimeError as first:
@@ -91,7 +94,8 @@ def passages_from_retrieve(resp: dict, arm: str) -> tuple[list[Passage], list[st
                            source_file=source_file, kind=str(c.get("kind") or ("chunk" if arm == "word" else "")),
                            heading=str(c.get("caption") or c.get("figure") or c.get("section") or ""), text=text,
                            assets=[a for a in str(c.get("assets") or "").split(";") if a],
-                           title=str(c.get("title") or ""), date=str(c.get("date") or "")))
+                           title=str(c.get("title") or ""), date=str(c.get("date") or ""),
+                           figure_id=str(c.get("figure_id") or ""), figure_label=str(c.get("figure_label") or c.get("figure") or "")))
 
     for ref in resp.get("references", []) or []:
         data = ref.get("sourceData") or {}

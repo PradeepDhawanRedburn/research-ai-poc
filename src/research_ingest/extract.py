@@ -10,7 +10,9 @@ import hashlib
 import os
 import posixpath
 import re
+import unicodedata
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from lxml import etree
 
@@ -52,6 +54,24 @@ DISCLOSURE_HINTS = ("Important note", "regulatory disclosures", "Conflicts of In
                     "This research was", "Rothschild & Co Redburn argues that", "solely for the information")
 
 SYMBOL_FONTS = {"wingdings", "wingdings 2", "wingdings 3", "webdings", "symbol"}
+
+
+def assign_figure_ids(doc_id: str, elements: list[dict]) -> None:
+    ordinal = 0
+    for el in elements:
+        if el.get("type") not in ("figure", "table"):
+            continue
+        ordinal += 1
+        caption = unicodedata.normalize("NFKC", el.get("caption") or "")
+        caption = re.sub(r"\s+", " ", caption).strip().casefold()
+        digest = hashlib.sha1(caption.encode("utf-8")).hexdigest()[:8]
+        label = el.get("figure_no") or ""
+        if not label and el.get("caption"):
+            match = CAPTION_RE.match(el["caption"])
+            if match:
+                label = match.group(1).strip()
+        el["figure_id"] = f"{doc_id}:{ordinal}:{digest}"
+        el["figure_label"] = label
 WINGDINGS = {
     0xFC: "✓", 0xFB: "✗", 0xFE: "☑", 0xFD: "☒", 0x6C: "●", 0x6D: "○", 0x6E: "■", 0x6F: "□",
     0x75: "◆", 0x76: "❖", 0xE8: "→", 0xE7: "←", 0xE9: "↑", 0xEA: "↓", 0xD8: "➢", 0xA7: "▪",
@@ -741,39 +761,121 @@ class Extractor:
                 out[m.group(1) + "s"].append(text)
         return out
 
+    def sharepoint_metadata(self) -> dict:
+        """Find the SharePoint documentManagement block without assuming its customXml item number."""
+        fields = {
+            "PublicationID": "publication_id", "PublicationName": "publication_name",
+            "PublicationType": "publication_type", "PublicationAnalysts": "analysts",
+            "PublicationSectors": "sectors", "PublicationCompanies": "companies",
+            "PublicationTargetDate": "published_date", "PublicationStatus": "publication_status",
+            "PublicationVersion": "publication_version",
+        }
+        for part in sorted(self.pkg.names):
+            if not re.fullmatch(r"customXml/item[^/]*\.xml", part):
+                continue
+            try:
+                root = self.pkg.xml(part)
+            except Exception as exc:  # noqa: BLE001
+                self.warnings.append(f"SharePoint metadata XML malformed in {part}: {exc}")
+                continue
+            blocks = root.xpath(".//*[local-name()='documentManagement']")
+            if root.xpath("self::*[local-name()='documentManagement']"):
+                blocks.insert(0, root)
+            if not blocks:
+                continue
+            block = blocks[0]
+            result = {}
+            for node in block.iter():
+                name = node.tag.rsplit("}", 1)[-1]
+                key = fields.get(name)
+                if not key:
+                    continue
+                values = [re.sub(r"\s+", " ", (v.text or "")).strip()
+                          for v in node.iter() if v.tag.rsplit("}", 1)[-1] == "Value"]
+                if not values and not any(v.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true"
+                                          for v in node.iter()):
+                    value = re.sub(r"\s+", " ", " ".join(node.itertext())).strip()
+                    values = [value] if value else []
+                if key in ("analysts", "sectors", "companies"):
+                    result[key] = list(dict.fromkeys(v for v in values if v))
+                elif values:
+                    result[key] = values[0]
+            if result.get("published_date"):
+                raw_date = result["published_date"]
+                try:
+                    result["published_date"] = datetime.fromisoformat(raw_date.replace("Z", "+00:00")).date().isoformat()
+                except ValueError:
+                    parsed = None
+                    for fmt in ("%d %B %Y", "%d %b %Y", "%m/%d/%Y"):
+                        try:
+                            parsed = datetime.strptime(raw_date, fmt).date().isoformat()
+                            break
+                        except ValueError:
+                            continue
+                    if parsed:
+                        result["published_date"] = parsed
+                    else:
+                        self.warnings.append(f"SharePoint PublicationTargetDate is invalid: {raw_date}")
+                        result.pop("published_date")
+            return result
+        self.warnings.append("SharePoint documentManagement metadata block not found")
+        return {}
+
     def build_metadata(self) -> dict:
         md: dict = {"doc_id": self.doc_id, "source_file": os.path.basename(self.path)}
+        sources = {"doc_id": "extractor", "source_file": "extractor"}
         key_data = {}
         first = self.elements[:40]
         for el in first:
             t = el.get("type")
             if t == "title" and "title" not in md:
                 md["title"] = el["text"]
+                sources["title"] = "first_element"
             elif t == "subtitle" and "subtitle" not in md:
                 md["subtitle"] = el["text"]
+                sources["subtitle"] = "first_element"
             elif t == "date" and "date" not in md:
                 md["date"] = el["text"]
+                sources["date"] = "first_element"
             elif t == "key_data":
                 k, _, v = el["text"].partition(":")
                 key_data[k.strip().lower().replace(" ", "_")] = v.strip()
             elif t == "author_block":
-                md["analysts"] = el["analysts"]
+                md["analyst_contacts"] = el["analysts"]
+                md["analysts"] = list(dict.fromkeys(a.get("name", "").strip() for a in el["analysts"] if a.get("name")))
+                sources["analysts"] = "author_block"
+                sources["analyst_contacts"] = "author_block"
         md.update(key_data)
+        for key in key_data:
+            sources[key] = "key_data"
+        md.setdefault("analysts", [])
+        sources.setdefault("analysts", "fallback_missing")
         hf = self.header_footer_text()
         for h in hf["headers"]:
             if "/" not in h and len(h) < 60:
                 md["sector"] = h
+                sources["sector"] = "header_text"
+        md.setdefault("sectors", [])
+        sources.setdefault("sectors", "fallback_missing")
+        company = md.get("company") or md.get("company_name")
+        md.setdefault("companies", [company] if company else [])
+        sources.setdefault("companies", "key_data" if company else "fallback_missing")
         md["report_type"] = "company" if "ticker" in key_data else "macro_or_sector"
+        sources["report_type"] = "key_data_heuristic"
         thesis = " ".join(el["text"] for el in first if el.get("role") in ("thesis", "body") and el.get("type") == "paragraph")[:3000]
         m = re.search(r"\b(?:Reiterate|Maintain|Reaffirm|Upgrade to|Downgrade to|Initiate(?:d)? (?:coverage )?(?:at|with))\s+(Buy|Sell|Neutral)\b", thesis)
         if m:
             md["rating"] = m.group(1)
             md["rating_basis"] = "inferred from text"
+            sources["rating"] = "text_regex"
+            sources["rating_basis"] = "text_regex"
         else:
             m2 = re.search(r"\b(Buy|Sell|Neutral)\b[- ]rated", thesis)
             if m2 and "ticker" in key_data:
                 md["rating"] = m2.group(1)
                 md["rating_basis"] = "inferred from text (weak)"
+                sources["rating"] = "text_regex_weak"
+                sources["rating_basis"] = "text_regex_weak"
         disclosures = " ".join(el["text"] for el in self.elements if el.get("boilerplate"))
         for key, pat in (("completed_at", r"completed at (\d{4}-\d{2}-\d{2} \d{2}:\d{2})"),
                          ("published_at", r"published at (\d{4}-\d{2}-\d{2} \d{2}:\d{2})"),
@@ -781,7 +883,23 @@ class Extractor:
             mm = re.search(pat, disclosures)
             if mm:
                 md[key] = mm.group(1)
+                sources[key] = "disclosure_regex"
         md["confidential_marking"] = any("Confidential" in f for f in hf["footers"])
+        sources["confidential_marking"] = "footer_text"
+        sharepoint = self.sharepoint_metadata()
+        for key, value in sharepoint.items():
+            md[key] = value
+            sources[key] = "sharepoint"
+            if key == "publication_name":
+                md["title"] = value
+                sources["title"] = "sharepoint"
+            elif key == "sectors":
+                md["sector"] = "; ".join(value)
+                sources["sector"] = "sharepoint"
+            elif key == "published_date":
+                md["date"] = value
+                sources["date"] = "sharepoint"
+        md["metadata_sources"] = sources
         return md
 
     def stats(self) -> dict:
@@ -808,8 +926,12 @@ class Extractor:
             for text in hf[kind + "s"]:
                 self.emit({"type": kind, "role": kind, "text": text, "boilerplate": True})
 
+    def assign_figure_ids(self) -> None:
+        assign_figure_ids(self.doc_id, self.elements)
+
     def run(self) -> dict:
         self.walk_body()
+        self.assign_figure_ids()
         self.emit_header_footer()
         return {
             "doc_id": self.doc_id,
